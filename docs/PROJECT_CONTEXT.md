@@ -10,7 +10,7 @@ This repository contains a single family wedding invitation for approximately 50
 
 ## Product flow
 
-The main page is the public wedding invitation preview. The separate `/admin` route unlocks with the server-only creator secret and contains the invitation creator plus shared countdown, venue, story, and gallery editors. A successful invitation request stores only guest personalization and returns a `/thiep/[token]` link. That route always reads the latest shared content and renders a read-only guest experience without creator or admin controls.
+The main page is the public wedding invitation and contains the invitation creator near the end. The separate `/admin` route unlocks with the server-only creator secret and contains only shared countdown, venue, story, and gallery editors plus a preview. A successful invitation request stores only guest personalization and returns a `/thiep/[token]` link. That route always reads the latest shared content and renders a read-only guest experience without creator or admin controls.
 
 ## Technology
 
@@ -34,8 +34,8 @@ The main page is the public wedding invitation preview. The separate `/admin` ro
 
 ## Commit 3 architecture
 
-- `app/page.tsx` renders the complete public sample invitation without creator or admin controls.
-- `app/admin/page.tsx` renders the protected lightweight family workspace.
+- `app/page.tsx` renders the complete public sample invitation and invitation creator without shared-content admin controls.
+- `app/admin/page.tsx` renders the protected shared-content workspace without the invitation creator.
 - `app/api/invitations/route.ts` is the only write endpoint.
 - `app/api/wedding-content/route.ts` publicly reads shared content and requires the creator secret for verification or updates.
 - `app/thiep/[token]/page.tsx` reads one invitation directly through Prisma in a dynamic Server Component.

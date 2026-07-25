@@ -57,8 +57,8 @@ Không commit `.env`. File `.env.example` chỉ chứa tên biến và giá tr�
 
 ## Luồng tạo thiệp
 
-1. Gia đình mở trang `/admin` và xác thực mã quản trị.
-2. Chọn khu vực “Tạo thiệp khách”.
+1. Gia đình mở trang `/` và đi đến khu vực “Tạo thiệp cá nhân”.
+2. Nhập thông tin người nhận và mã tạo thiệp.
 3. Nhập nội dung người được mời, số người tùy chọn, lời nhắn tùy chọn và mã tạo
    thiệp.
 4. Form gọi `POST /api/invitations`.
@@ -72,8 +72,8 @@ Mã tạo thiệp không được lưu trong database, URL, localStorage hoặc 
 
 ## Routes
 
-- `/`: thiệp mẫu công khai, không có form tạo link hoặc điều khiển quản trị.
-- `/admin`: quản trị nội dung chung, preview và tạo thiệp khách sau khi xác thực.
+- `/`: thiệp mẫu công khai và form tạo thiệp cá nhân, không có điều khiển quản trị nội dung chung.
+- `/admin`: chỉ quản trị nội dung chung và preview sau khi xác thực.
 - `POST /api/invitations`: endpoint duy nhất để tạo thiệp.
 - `GET /api/wedding-content`: nội dung chung cần để render thiệp.
 - `POST /api/wedding-content`: xác thực mã quản trị, không lưu secret.

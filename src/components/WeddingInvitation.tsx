@@ -1,4 +1,5 @@
 import { WeddingExperience } from "@/src/components/WeddingExperience";
+import { CreatorSection } from "@/src/sections/CreatorSection";
 import { FooterSection } from "@/src/sections/FooterSection";
 import { GallerySection } from "@/src/sections/GallerySection";
 import { InvitationSection } from "@/src/sections/InvitationSection";
@@ -13,11 +14,13 @@ import type { WeddingContentData } from "@/src/types/wedding";
 type WeddingInvitationProps = {
   content: WeddingContentData;
   invitation?: InvitationPersonalization;
+  showCreator?: boolean;
 };
 
 export function WeddingInvitation({
   content,
   invitation,
+  showCreator = false,
 }: WeddingInvitationProps) {
   return (
     <WeddingExperience recipientText={invitation?.recipientText}>
@@ -37,6 +40,7 @@ export function WeddingInvitation({
         />
         <VenueSection venues={content.venues} />
         <MusicSection />
+        {showCreator ? <CreatorSection /> : null}
         <FooterSection />
       </main>
     </WeddingExperience>

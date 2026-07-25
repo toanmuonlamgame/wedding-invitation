@@ -2,7 +2,6 @@
 
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import { CreatorSection } from "@/src/sections/CreatorSection";
 import type {
   GalleryMoment,
   LoveStoryChapter,
@@ -17,7 +16,6 @@ type WeddingAdminProps = {
 
 type AdminTab =
   | "overview"
-  | "creator"
   | "general"
   | "venues"
   | "story"
@@ -238,17 +236,19 @@ export function WeddingAdmin({
 
   return (
     <aside className="wedding-admin" aria-label="Quản trị nội dung thiệp">
-      {!isUnlocked && !standalone ? (
-        <button
-          className="admin-entry-button"
-          type="button"
-          onClick={() => {
-            setStatus("");
-            setIsUnlockOpen(true);
-          }}
-        >
-          Chỉnh sửa nội dung
-        </button>
+      {!isUnlocked ? (
+        standalone ? null : (
+          <button
+            className="admin-entry-button"
+            type="button"
+            onClick={() => {
+              setStatus("");
+              setIsUnlockOpen(true);
+            }}
+          >
+            Chỉnh sửa nội dung
+          </button>
+        )
       ) : (
         <div className="admin-panel">
           <header className="admin-panel-header">
@@ -275,7 +275,6 @@ export function WeddingAdmin({
             {(
               [
                 ["overview", "Tổng quan & preview"],
-                ["creator", "Tạo thiệp khách"],
                 ["general", "Countdown"],
                 ["venues", "Địa điểm"],
                 ["story", "Quản lý câu chuyện"],
@@ -311,8 +310,6 @@ export function WeddingAdmin({
                 />
               </section>
             ) : null}
-
-            {activeTab === "creator" ? <CreatorSection /> : null}
 
             {activeTab === "general" ? (
               <div className="admin-form-grid">

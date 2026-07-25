@@ -1779,10 +1779,6 @@ a {
   background: var(--white);
 }
 
-.admin-editor > .creator-section {
-  margin: 0;
-}
-
 .admin-form-grid {
   display: grid;
   gap: 1rem;
