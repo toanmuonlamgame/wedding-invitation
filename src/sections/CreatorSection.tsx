@@ -9,11 +9,12 @@ export function CreatorSection() {
           <SectionHeading
             eyebrow="Dành cho gia đình"
             title="Tạo thiệp cá nhân"
-            description="Điền thông tin vị khách để kiểm tra giao diện. Commit 2 không lưu dữ liệu và chưa tạo liên kết."
+            titleId="creator-title"
+            description="Điền thông tin vị khách và mã tạo thiệp để sinh một liên kết riêng, chỉ đọc và sẵn sàng gửi đi."
           />
         </div>
 
-        <div className="creator-layout" id="creator-title" data-reveal>
+        <div className="creator-layout" data-reveal>
           <aside className="creator-aside">
             <div>
               <p className="creator-number">Gửi lời mời</p>
@@ -24,7 +25,8 @@ export function CreatorSection() {
               </p>
             </div>
             <p className="demo-note">
-              Bản demo · Chức năng tạo liên kết sẽ được kết nối ở Commit 3.
+              Dữ liệu chỉ được lưu khi máy chủ đã được kết nối PostgreSQL và mã
+              tạo thiệp hợp lệ.
             </p>
           </aside>
           <InvitationForm />

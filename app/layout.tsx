@@ -18,8 +18,8 @@ const displayFont = Cormorant_Garamond({
 });
 
 export const metadata: Metadata = {
-  title: "Thiệp cưới | Vũ Bình & Thành Long",
-  description: "Thiệp cưới trực tuyến của Vũ Bình và Thành Long",
+  title: "Thiệp cưới Vũ Bình & Thành Long",
+  description: "Thiệp cưới trực tuyến cá nhân hóa",
 };
 
 export default function RootLayout({

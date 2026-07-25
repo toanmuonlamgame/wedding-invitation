@@ -1,26 +1,17 @@
-import { WeddingExperience } from "@/src/components/WeddingExperience";
-import { InvitationSection } from "@/src/sections/InvitationSection";
-import { OpeningSection } from "@/src/sections/OpeningSection";
-import { ScheduleSection } from "@/src/sections/ScheduleSection";
-import { StorySection } from "@/src/sections/StorySection";
-import { GallerySection } from "@/src/sections/GallerySection";
-import { VenueSection } from "@/src/sections/VenueSection";
-import { CreatorSection } from "@/src/sections/CreatorSection";
-import { FooterSection } from "@/src/sections/FooterSection";
+import type { Metadata } from "next";
+import { WeddingInvitation } from "@/src/components/WeddingInvitation";
+
+export const metadata: Metadata = {
+  title: "Thiệp cưới Vũ Bình & Thành Long",
+  description: "Thiệp cưới trực tuyến cá nhân hóa",
+  openGraph: {
+    title: "Thiệp cưới Vũ Bình & Thành Long",
+    description: "Trân trọng kính mời bạn chung vui cùng hai gia đình.",
+    type: "website",
+    siteName: "Vũ Bình & Thành Long",
+  },
+};
 
 export default function Home() {
-  return (
-    <WeddingExperience>
-      <main className="invitation-main">
-        <OpeningSection />
-        <InvitationSection />
-        <ScheduleSection />
-        <StorySection />
-        <GallerySection />
-        <VenueSection />
-        <CreatorSection />
-        <FooterSection />
-      </main>
-    </WeddingExperience>
-  );
+  return <WeddingInvitation showCreator />;
 }

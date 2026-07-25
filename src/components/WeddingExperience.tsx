@@ -1,25 +1,63 @@
 "use client";
 
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { MusicPlayer } from "@/src/components/MusicPlayer";
 import { wedding } from "@/src/lib/wedding-data";
 
 gsap.registerPlugin(ScrollTrigger);
 
 type WeddingExperienceProps = {
   children: React.ReactNode;
+  recipientText?: string;
 };
 
-export function WeddingExperience({ children }: WeddingExperienceProps) {
+type WeddingExperienceContextValue = {
+  isOpened: boolean;
+};
+
+const WeddingExperienceContext =
+  createContext<WeddingExperienceContextValue | null>(null);
+
+export function useWeddingExperience() {
+  const context = useContext(WeddingExperienceContext);
+
+  if (!context) {
+    throw new Error(
+      "useWeddingExperience must be used inside WeddingExperience",
+    );
+  }
+
+  return context;
+}
+
+const petals = [
+  { left: "7%", delay: "-2.1s", duration: "11.8s", drift: "38px" },
+  { left: "18%", delay: "-7.4s", duration: "14.2s", drift: "-24px" },
+  { left: "31%", delay: "-4.8s", duration: "12.6s", drift: "46px" },
+  { left: "43%", delay: "-9.2s", duration: "15.4s", drift: "-34px" },
+  { left: "55%", delay: "-1.5s", duration: "13.7s", drift: "28px" },
+  { left: "66%", delay: "-6.3s", duration: "11.4s", drift: "-42px" },
+  { left: "77%", delay: "-10.1s", duration: "15.8s", drift: "35px" },
+  { left: "88%", delay: "-3.7s", duration: "13.1s", drift: "-27px" },
+] as const;
+
+export function WeddingExperience({
+  children,
+  recipientText,
+}: WeddingExperienceProps) {
   const rootRef = useRef<HTMLDivElement>(null);
-  const audioRef = useRef<HTMLAudioElement>(null);
   const openButtonRef = useRef<HTMLButtonElement>(null);
+  const contentRef = useRef<HTMLDivElement>(null);
   const [isOpened, setIsOpened] = useState(false);
   const [showCover, setShowCover] = useState(true);
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [isAudioUnavailable, setIsAudioUnavailable] = useState(false);
 
   useEffect(() => {
     const previousOverflow = document.body.style.overflow;
@@ -38,17 +76,18 @@ export function WeddingExperience({ children }: WeddingExperienceProps) {
       return;
     }
 
+    const media = gsap.matchMedia();
     const context = gsap.context(() => {
-      const media = gsap.matchMedia();
-
       media.add("(prefers-reduced-motion: no-preference)", () => {
-        gsap
-          .timeline({ defaults: { ease: "power3.out" } })
-          .fromTo(
-            "[data-hero-reveal]",
-            { opacity: 0, y: 28 },
-            { opacity: 1, y: 0, duration: 1.05, stagger: 0.12 },
-          );
+        const heroTimeline = gsap.timeline({
+          defaults: { ease: "power3.out" },
+        });
+
+        heroTimeline.fromTo(
+          "[data-hero-reveal]",
+          { opacity: 0, y: 28 },
+          { opacity: 1, y: 0, duration: 0.95, stagger: 0.1 },
+        );
 
         gsap.utils.toArray<HTMLElement>("[data-reveal]").forEach((element) => {
           gsap.fromTo(
@@ -68,12 +107,99 @@ export function WeddingExperience({ children }: WeddingExperienceProps) {
           );
         });
 
+        gsap.fromTo(
+          "[data-invitation-reveal]",
+          { opacity: 0, y: 24 },
+          {
+            opacity: 1,
+            y: 0,
+            duration: 0.85,
+            stagger: 0.11,
+            ease: "power2.out",
+            scrollTrigger: {
+              trigger: ".invitation-section",
+              start: "top 72%",
+              once: true,
+            },
+          },
+        );
+
+        gsap.fromTo(
+          "[data-ornament-reveal] .ornament",
+          { opacity: 0, scaleX: 0.45 },
+          {
+            opacity: 1,
+            scaleX: 1,
+            duration: 0.8,
+            ease: "power2.out",
+            scrollTrigger: {
+              trigger: ".invitation-section",
+              start: "top 72%",
+              once: true,
+            },
+          },
+        );
+
+        gsap.fromTo(
+          "[data-countdown-item]",
+          { opacity: 0, y: 18 },
+          {
+            opacity: 1,
+            y: 0,
+            duration: 0.65,
+            stagger: 0.08,
+            ease: "power2.out",
+            scrollTrigger: {
+              trigger: ".countdown",
+              start: "top 88%",
+              once: true,
+            },
+          },
+        );
+
+        gsap.fromTo(
+          "[data-story-line]",
+          { scaleX: 0, scaleY: 0, transformOrigin: "top left" },
+          {
+            scaleX: 1,
+            scaleY: 1,
+            duration: 1.2,
+            ease: "power2.out",
+            scrollTrigger: {
+              trigger: ".story-timeline",
+              start: "top 82%",
+              once: true,
+            },
+          },
+        );
+
+        gsap.fromTo(
+          "[data-story-item]",
+          { opacity: 0, y: 24 },
+          {
+            opacity: 1,
+            y: 0,
+            duration: 0.75,
+            stagger: 0.14,
+            ease: "power2.out",
+            scrollTrigger: {
+              trigger: ".story-timeline",
+              start: "top 78%",
+              once: true,
+            },
+          },
+        );
+
         gsap.utils
           .toArray<HTMLElement>("[data-gallery-reveal]")
           .forEach((element, index) => {
             gsap.fromTo(
               element,
-              { opacity: 0, clipPath: "inset(12% 12% 12% 12%)", scale: 1.05 },
+              {
+                opacity: 0,
+                clipPath: "inset(12% 12% 12% 12%)",
+                scale: 1.05,
+              },
               {
                 opacity: 1,
                 clipPath: "inset(0% 0% 0% 0%)",
@@ -91,29 +217,38 @@ export function WeddingExperience({ children }: WeddingExperienceProps) {
           });
       });
 
-      return () => media.revert();
+      media.add(
+        "(min-width: 56rem) and (prefers-reduced-motion: no-preference)",
+        () => {
+          gsap.utils
+            .toArray<HTMLElement>("[data-parallax]")
+            .forEach((element, index) => {
+              gsap.to(element, {
+                yPercent: index % 2 === 0 ? 8 : -8,
+                ease: "none",
+                scrollTrigger: {
+                  trigger: element.closest("section") ?? element,
+                  start: "top bottom",
+                  end: "bottom top",
+                  scrub: 0.8,
+                },
+              });
+            });
+        },
+      );
     }, rootRef);
 
-    return () => context.revert();
+    ScrollTrigger.refresh();
+
+    return () => {
+      media.revert();
+      context.revert();
+    };
   }, [isOpened]);
-
-  async function tryPlayMusic() {
-    if (!audioRef.current || isAudioUnavailable) {
-      return;
-    }
-
-    try {
-      await audioRef.current.play();
-    } catch {
-      setIsPlaying(false);
-      setIsAudioUnavailable(true);
-    }
-  }
 
   function handleOpen() {
     setIsOpened(true);
     document.body.style.overflow = "";
-    void tryPlayMusic();
 
     const reduceMotion = window.matchMedia(
       "(prefers-reduced-motion: reduce)",
@@ -121,103 +256,133 @@ export function WeddingExperience({ children }: WeddingExperienceProps) {
 
     if (reduceMotion) {
       setShowCover(false);
+      window.requestAnimationFrame(() => contentRef.current?.focus());
       return;
     }
 
     gsap
-      .timeline({ onComplete: () => setShowCover(false) })
+      .timeline({
+        defaults: { ease: "power3.inOut" },
+        onComplete: () => {
+          setShowCover(false);
+          window.requestAnimationFrame(() => contentRef.current?.focus());
+        },
+      })
       .to(".cover-content", {
         autoAlpha: 0,
-        y: -18,
-        duration: 0.45,
+        y: -16,
+        scale: 0.98,
+        duration: 0.38,
         ease: "power2.in",
       })
+      .to(
+        ".cover-panel-left",
+        {
+          xPercent: -103,
+          rotate: -1.5,
+          duration: 0.82,
+        },
+        "-=0.04",
+      )
+      .to(
+        ".cover-panel-right",
+        {
+          xPercent: 103,
+          rotate: 1.5,
+          duration: 0.82,
+        },
+        "<",
+      )
       .to(
         ".invitation-cover",
         {
           autoAlpha: 0,
-          scale: 1.025,
-          duration: 0.75,
-          ease: "power3.inOut",
+          duration: 0.3,
+          ease: "power2.out",
         },
-        "-=0.05",
+        "-=0.18",
       );
   }
 
-  function handleMusicToggle() {
-    const audio = audioRef.current;
-    if (!audio || isAudioUnavailable) {
-      return;
-    }
-
-    if (audio.paused) {
-      void tryPlayMusic();
-    } else {
-      audio.pause();
-    }
-  }
-
   return (
-    <div ref={rootRef}>
-      {showCover ? (
-        <div
-          className="invitation-cover"
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="cover-title"
-        >
-          <div className="cover-flourish cover-flourish-left" aria-hidden="true" />
-          <div className="cover-flourish cover-flourish-right" aria-hidden="true" />
-          <div className="cover-content">
-            <p className="cover-kicker">Trân trọng kính mời</p>
-            <p className="cover-monogram" aria-hidden="true">
-              {wedding.monogram}
-            </p>
-            <h1 className="cover-title" id="cover-title">
-              {wedding.bride}
-              <span>&amp;</span>
-              {wedding.groom}
-            </h1>
-            <p className="cover-note">
-              Có một lời mời nhỏ đang chờ bạn mở ra
-            </p>
-            <button
-              ref={openButtonRef}
-              className="cover-button"
-              type="button"
-              onClick={handleOpen}
-            >
-              Mở thiệp
-              <span aria-hidden="true">↓</span>
-            </button>
+    <WeddingExperienceContext.Provider value={{ isOpened }}>
+      <div ref={rootRef}>
+        {showCover ? (
+          <div
+            className="invitation-cover"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="cover-title"
+          >
+            <div className="cover-panel cover-panel-left" aria-hidden="true" />
+            <div className="cover-panel cover-panel-right" aria-hidden="true" />
+            <div
+              className="cover-flourish cover-flourish-left"
+              aria-hidden="true"
+            />
+            <div
+              className="cover-flourish cover-flourish-right"
+              aria-hidden="true"
+            />
+            <div className="cover-content">
+              <p className="cover-kicker">Trân trọng kính mời</p>
+              {recipientText ? (
+                <p className="cover-recipient">{recipientText}</p>
+              ) : null}
+              <p className="cover-monogram" aria-hidden="true">
+                {wedding.monogram}
+              </p>
+              <h1 className="cover-title" id="cover-title">
+                {wedding.bride}
+                <span>&amp;</span>
+                {wedding.groom}
+              </h1>
+              <p className="cover-note">
+                Có một lời mời nhỏ đang chờ bạn mở ra
+              </p>
+              <button
+                ref={openButtonRef}
+                className="cover-button"
+                type="button"
+                onClick={handleOpen}
+              >
+                Mở thiệp
+                <span aria-hidden="true">↓</span>
+              </button>
+            </div>
           </div>
+        ) : null}
+
+        {isOpened ? (
+          <div className="petal-field" aria-hidden="true">
+            {petals.map((petal, index) => (
+              <span
+                className="petal"
+                key={`${petal.left}-${petal.delay}`}
+                style={
+                  {
+                    "--petal-left": petal.left,
+                    "--petal-delay": petal.delay,
+                    "--petal-duration": petal.duration,
+                    "--petal-drift": petal.drift,
+                    "--petal-scale": 0.72 + (index % 4) * 0.11,
+                  } as React.CSSProperties
+                }
+              />
+            ))}
+          </div>
+        ) : null}
+
+        <div
+          ref={contentRef}
+          className="experience-content"
+          inert={!isOpened}
+          aria-hidden={!isOpened}
+          tabIndex={-1}
+        >
+          {children}
         </div>
-      ) : null}
-
-      <div className="experience-content" inert={!isOpened} aria-hidden={!isOpened}>
-        {children}
       </div>
-
-      {isOpened ? (
-        <MusicPlayer
-          isPlaying={isPlaying}
-          isUnavailable={isAudioUnavailable}
-          onToggle={handleMusicToggle}
-        />
-      ) : null}
-
-      <audio
-        ref={audioRef}
-        src={wedding.musicSrc}
-        preload="none"
-        loop
-        onPlay={() => setIsPlaying(true)}
-        onPause={() => setIsPlaying(false)}
-        onError={() => {
-          setIsPlaying(false);
-          setIsAudioUnavailable(true);
-        }}
-      />
-    </div>
+    </WeddingExperienceContext.Provider>
   );
 }

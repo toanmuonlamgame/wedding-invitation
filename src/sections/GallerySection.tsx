@@ -13,11 +13,12 @@ export function GallerySection() {
           <SectionHeading
             eyebrow="Album của chúng mình"
             title="Những khoảnh khắc"
+            titleId="gallery-title"
             description="Ảnh cưới chính thức sẽ được đặt vào đúng vị trí này. Fallback nội bộ giúp thiệp luôn trọn vẹn khi media chưa sẵn sàng."
           />
         </div>
 
-        <div className="gallery-grid" id="gallery-title">
+        <div className="gallery-grid">
           {wedding.gallery.map((moment, index) => (
             <GalleryVisual moment={moment} index={index} key={moment.src} />
           ))}

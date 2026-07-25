@@ -1,30 +1,59 @@
 import { Ornament } from "@/src/components/Ornament";
 import { wedding } from "@/src/lib/wedding-data";
+import type { InvitationPersonalization } from "@/src/types/invitation";
 
-export function InvitationSection() {
+type InvitationSectionProps = {
+  invitation?: InvitationPersonalization;
+};
+
+export function InvitationSection({ invitation }: InvitationSectionProps) {
   return (
     <section
       className="section invitation-section"
       aria-labelledby="invitation-title"
     >
       <div className="section-shell invitation-copy">
-        <p className="section-eyebrow" data-reveal>
-          Lời mời thân tình
+        <p className="section-eyebrow" data-invitation-reveal>
+          {invitation ? "Trân trọng kính mời" : "Lời mời thân tình"}
         </p>
-        <h2 className="invitation-lead" id="invitation-title" data-reveal>
-          “Có những hành trình đẹp hơn khi được sẻ chia cùng những người mình
-          thương.”
+        <h2
+          className={`invitation-lead${invitation ? " invitation-recipient" : ""}`}
+          id="invitation-title"
+          data-invitation-reveal
+        >
+          {invitation ? (
+            invitation.recipientText
+          ) : (
+            <>
+              “Có những hành trình đẹp hơn khi được sẻ chia cùng những người
+              mình thương.”
+            </>
+          )}
         </h2>
-        <div data-reveal>
+        <div data-ornament-reveal>
           <Ornament />
         </div>
-        <p className="invitation-body" data-reveal>
-          Với niềm hân hoan của hai gia đình, Vũ Bình và Thành Long trân trọng
-          kính mời bạn đến chung vui trong ngày hai chúng mình bắt đầu một
-          chương mới. Sự hiện diện của bạn là món quà ấm áp và quý giá.
+        <p className="invitation-body" data-invitation-reveal>
+          Với niềm hân hoan của hai gia đình, trân trọng kính mời{" "}
+          {invitation ? invitation.recipientText : "bạn"} tới tham dự lễ thành
+          hôn của {wedding.coupleDisplay}. Sự hiện diện của bạn là món quà ấm
+          áp và quý giá.
         </p>
 
-        <div className="families" data-reveal>
+        {invitation?.guestCount ? (
+          <p className="guest-count" data-invitation-reveal>
+            Lời mời dành cho {invitation.guestCount} người
+          </p>
+        ) : null}
+
+        {invitation?.privateMessage ? (
+          <blockquote className="private-message" data-invitation-reveal>
+            <span>Lời nhắn riêng</span>
+            <p>{invitation.privateMessage}</p>
+          </blockquote>
+        ) : null}
+
+        <div className="families" data-invitation-reveal>
           <div className="family">
             <span>Nhà gái</span>
             <strong>{wedding.brideFamily}</strong>

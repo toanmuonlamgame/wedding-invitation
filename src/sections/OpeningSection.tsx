@@ -4,8 +4,16 @@ import { wedding } from "@/src/lib/wedding-data";
 export function OpeningSection() {
   return (
     <section className="section hero-section" aria-labelledby="opening-title">
-      <div className="hero-botanical hero-botanical-left" aria-hidden="true" />
-      <div className="hero-botanical hero-botanical-right" aria-hidden="true" />
+      <div
+        className="hero-botanical hero-botanical-left"
+        data-parallax
+        aria-hidden="true"
+      />
+      <div
+        className="hero-botanical hero-botanical-right"
+        data-parallax
+        aria-hidden="true"
+      />
       <div className="hero-content">
         <p className="hero-kicker" data-hero-reveal>
           Lễ thành hôn

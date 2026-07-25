@@ -14,7 +14,11 @@ export const wedding: WeddingDetails = {
   mapUrl: null,
   brideFamily: "Gia đình cô dâu Vũ Bình",
   groomFamily: "Gia đình chú rể Thành Long",
-  musicSrc: "/music/wedding-theme.wav",
+  youtubeVideoId: "t-uuZb5PrUs",
+  musicTitle:
+    "Wedding Music | TOP 20 ca khúc đám cưới được yêu thích nhất",
+  musicUrl: "https://www.youtube.com/watch?v=t-uuZb5PrUs",
+  musicFallbackSrc: "/music/wedding-theme.wav",
   story: [
     {
       marker: "Chương I",

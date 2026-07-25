@@ -52,7 +52,7 @@ export function Countdown({ targetDate }: CountdownProps) {
   return (
     <div className="countdown" aria-label="Đếm ngược đến ngày cưới">
       {units.map(([label, value]) => (
-        <div className="countdown-item" key={label}>
+        <div className="countdown-item" key={label} data-countdown-item>
           <span className="countdown-number">
             {value === undefined ? "—" : String(value).padStart(2, "0")}
           </span>

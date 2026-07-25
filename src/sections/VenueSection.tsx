@@ -9,12 +9,17 @@ export function VenueSection() {
           <SectionHeading
             eyebrow="Địa điểm"
             title="Hẹn bạn tại đây"
+            titleId="venue-title"
             description="Thông tin chính thức sẽ được gia đình cập nhật trong một tệp dữ liệu duy nhất."
           />
         </div>
 
         <div className="venue-layout">
-          <div className="map-illustration" aria-hidden="true" data-reveal>
+          <div
+            className="map-illustration"
+            aria-hidden="true"
+            data-parallax
+          >
             <div className="map-line map-line-one" />
             <div className="map-line map-line-two" />
             <div className="map-point">
@@ -23,7 +28,7 @@ export function VenueSection() {
           </div>
           <div className="venue-content" data-reveal>
             <span className="venue-time">{wedding.timeDisplay}</span>
-            <h3 className="venue-name" id="venue-title">
+            <h3 className="venue-name">
               {wedding.venue}
             </h3>
             <p className="venue-address">{wedding.address}</p>

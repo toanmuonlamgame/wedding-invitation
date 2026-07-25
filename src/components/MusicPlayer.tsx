@@ -2,29 +2,35 @@
 
 type MusicPlayerProps = {
   isPlaying: boolean;
+  isLoading: boolean;
   isUnavailable: boolean;
   onToggle: () => void;
 };
 
 export function MusicPlayer({
   isPlaying,
+  isLoading,
   isUnavailable,
   onToggle,
 }: MusicPlayerProps) {
   const label = isUnavailable
     ? "Không thể phát nhạc nền"
-    : isPlaying
-      ? "Tạm dừng nhạc nền"
-      : "Phát nhạc nền";
+    : isLoading
+      ? "Đang tải trình phát nhạc"
+      : isPlaying
+        ? "Tạm dừng nhạc nền"
+        : "Phát nhạc nền";
 
   return (
     <div className="music-player">
       <span className="music-caption" aria-live="polite">
         {isUnavailable
-          ? "Nhạc chưa sẵn sàng"
-          : isPlaying
-            ? "Đang phát · Khúc nhạc ngày cưới"
-            : "Nhạc nền · Đang tạm dừng"}
+          ? "Nhạc nền không khả dụng"
+          : isLoading
+            ? "Đang tải nhạc"
+            : isPlaying
+              ? "Đang phát nhạc"
+              : "Nhạc nền · Đang tạm dừng"}
       </span>
       <button
         className="music-button"
@@ -32,7 +38,7 @@ export function MusicPlayer({
         data-playing={isPlaying}
         aria-label={label}
         aria-pressed={isPlaying}
-        disabled={isUnavailable}
+        disabled={isLoading || isUnavailable}
         onClick={onToggle}
       >
         <span className="music-bars" aria-hidden="true">

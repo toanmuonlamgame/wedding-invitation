@@ -25,7 +25,10 @@ export type WeddingDetails = {
   mapUrl: string | null;
   brideFamily: string;
   groomFamily: string;
-  musicSrc: string;
+  youtubeVideoId: string;
+  musicTitle: string;
+  musicUrl: string;
+  musicFallbackSrc: string;
   story: StoryMilestone[];
   gallery: GalleryMoment[];
 };

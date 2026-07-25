@@ -9,12 +9,38 @@ This version has breaking changes — APIs, conventions, and file structure may 
 - Build one private family wedding invitation for 50–100 guests, not a SaaS product.
 - The couple is **Vũ Bình & Thành Long**. Do not introduce substitute names.
 - Product flow: main invitation → enter guest details → create a personalized link → read-only invitation page.
-- Current stack: Next.js, TypeScript, Tailwind CSS, and App Router.
-- Planned later stack: Prisma, Supabase PostgreSQL, and Vercel.
-- Prioritize mobile-first layout, fast loading, beautiful local imagery, and restrained animation.
-- Do not build accounts, payments, multiple templates, or a complex dashboard.
+- Current stack: Next.js App Router, TypeScript, Tailwind CSS, GSAP, Prisma, PostgreSQL, and Zod.
+- Target hosting: Supabase PostgreSQL and Vercel.
+- Prioritize mobile-first layout, fast loading, beautiful local imagery, accessible interactions, and restrained animation.
+- Do not build accounts, payments, RSVP, multiple templates, or a complex dashboard.
+
+## Delivery phases
+
+- Commit 1: completed static wedding invitation.
+- Commit 2: GSAP, full-screen cover, music controls, and mobile polish.
+- Commit 3: database persistence, personalized invitation links, advanced effects, and production readiness.
+
+## Commit 3 boundaries
+
+- Production packages allowed: `@prisma/client`, `zod`.
+- Development package allowed: `prisma`.
+- Use Node.js `crypto` for invitation tokens.
+- Keep Prisma and creator-secret access server-only.
+- Do not expose a public invitation list, edit endpoint, or delete endpoint.
+
+## Manual steps required
+
+- The user must create and configure `.env` values.
+- The user must create the Supabase project and run Prisma migrations.
+- The user must configure and perform the Vercel deployment.
+- The user must commit and push Git changes.
+- Agents must not perform any of those manual steps.
+
+## Agent constraints
+
 - Do not commit or push Git.
-- Do not create or edit `.env` files.
-- Do not run database migrations.
-- Do not install packages outside the explicitly allowed list. For Commit 2, only `gsap` is allowed.
+- Do not create or modify `.env`.
+- Do not run migrations, `prisma db push`, Prisma Studio, seeds, or database resets.
+- Do not deploy or operate Supabase/Vercel.
+- Do not install packages outside the explicitly allowed list.
 - Always report: Summary, Files changed, Validation results, Manual step required, and Known limitations.

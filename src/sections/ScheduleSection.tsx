@@ -13,11 +13,12 @@ export function ScheduleSection() {
           <SectionHeading
             eyebrow="Save the date"
             title="Ngày chung đôi"
+            titleId="schedule-title"
             description="Gia đình sẽ cập nhật ngày giờ chính thức tại đây. Khi thông tin sẵn sàng, bộ đếm ngược sẽ tự động bắt đầu."
           />
         </div>
 
-        <div className="date-composition" id="schedule-title" data-reveal>
+        <div className="date-composition" data-reveal>
           <p className="date-label">Ngày cưới</p>
           <p className="date-placeholder">{wedding.dateDisplay}</p>
           <span>{wedding.timeDisplay}</span>
