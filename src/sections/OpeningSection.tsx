@@ -1,27 +1,33 @@
-import { MusicPlayer } from "@/src/components/MusicPlayer";
 import { Ornament } from "@/src/components/Ornament";
 import { wedding } from "@/src/lib/wedding-data";
 
 export function OpeningSection() {
   return (
-    <section className="section opening" aria-labelledby="opening-title">
-      <div className="invitation-card">
-        <div className="monogram" aria-hidden="true">
-          A · H
-        </div>
-        <p className="opening-kicker">Trân trọng báo tin lễ thành hôn</p>
+    <section className="section hero-section" aria-labelledby="opening-title">
+      <div className="hero-botanical hero-botanical-left" aria-hidden="true" />
+      <div className="hero-botanical hero-botanical-right" aria-hidden="true" />
+      <div className="hero-content">
+        <p className="hero-kicker" data-hero-reveal>
+          Lễ thành hôn
+        </p>
+        <p className="hero-monogram" data-hero-reveal aria-hidden="true">
+          {wedding.monogram}
+        </p>
         <h1 className="couple-names" id="opening-title">
-          <span>{wedding.bride}</span>
-          <em>&amp;</em>
-          <span>{wedding.groom}</span>
+          <span data-hero-reveal>{wedding.bride}</span>
+          <em data-hero-reveal>&amp;</em>
+          <span data-hero-reveal>{wedding.groom}</span>
         </h1>
-        <Ornament />
-        <p className="opening-date">{wedding.dateDisplay}</p>
+        <div data-hero-reveal>
+          <Ornament />
+        </div>
+        <p className="hero-date" data-hero-reveal>
+          {wedding.dateDisplay}
+        </p>
+        <p className="hero-scroll" data-hero-reveal>
+          Cuộn xuống để cùng xem câu chuyện của chúng mình
+        </p>
       </div>
-      <div className="scroll-cue" aria-hidden="true">
-        Mở thiệp
-      </div>
-      <MusicPlayer />
     </section>
   );
 }

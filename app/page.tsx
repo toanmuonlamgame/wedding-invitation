@@ -1,3 +1,4 @@
+import { WeddingExperience } from "@/src/components/WeddingExperience";
 import { InvitationSection } from "@/src/sections/InvitationSection";
 import { OpeningSection } from "@/src/sections/OpeningSection";
 import { ScheduleSection } from "@/src/sections/ScheduleSection";
@@ -9,15 +10,17 @@ import { FooterSection } from "@/src/sections/FooterSection";
 
 export default function Home() {
   return (
-    <main>
-      <OpeningSection />
-      <InvitationSection />
-      <ScheduleSection />
-      <StorySection />
-      <GallerySection />
-      <VenueSection />
-      <CreatorSection />
-      <FooterSection />
-    </main>
+    <WeddingExperience>
+      <main className="invitation-main">
+        <OpeningSection />
+        <InvitationSection />
+        <ScheduleSection />
+        <StorySection />
+        <GallerySection />
+        <VenueSection />
+        <CreatorSection />
+        <FooterSection />
+      </main>
+    </WeddingExperience>
   );
 }

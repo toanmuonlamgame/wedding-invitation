@@ -8,7 +8,7 @@ export function InvitationForm() {
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setMessage(
-      "Thiệp mẫu đã sẵn sàng về giao diện. Tính năng tạo liên kết sẽ được kết nối ở phiên bản sau.",
+      "Thông tin đã hợp lệ. Tính năng tạo liên kết sẽ được kết nối ở Commit 3.",
     );
   }
 
@@ -20,7 +20,7 @@ export function InvitationForm() {
           id="guestName"
           name="guestName"
           type="text"
-          placeholder="Ví dụ: Gia đình anh chị Hoàng Nam"
+          placeholder="Ví dụ: Gia đình anh chị thân mến"
           autoComplete="name"
           required
         />

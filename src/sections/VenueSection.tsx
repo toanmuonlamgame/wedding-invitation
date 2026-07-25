@@ -5,34 +5,49 @@ export function VenueSection() {
   return (
     <section className="section venue-section" aria-labelledby="venue-title">
       <div className="section-shell">
-        <SectionHeading
-          eyebrow="Địa điểm"
-          title="Hẹn bạn tại đây"
-          description="Tiệc thân mật sẽ bắt đầu vào buổi chiều. Bạn dành thêm một chút thời gian để đến sớm và cùng chúng mình lưu lại vài tấm hình nhé."
-        />
+        <div data-reveal>
+          <SectionHeading
+            eyebrow="Địa điểm"
+            title="Hẹn bạn tại đây"
+            description="Thông tin chính thức sẽ được gia đình cập nhật trong một tệp dữ liệu duy nhất."
+          />
+        </div>
 
-        <div className="venue-card">
-          <div className="map-art" aria-hidden="true">
-            <div className="map-pin">
-              <span>A · H</span>
+        <div className="venue-layout">
+          <div className="map-illustration" aria-hidden="true" data-reveal>
+            <div className="map-line map-line-one" />
+            <div className="map-line map-line-two" />
+            <div className="map-point">
+              <span>{wedding.monogram}</span>
             </div>
           </div>
-          <div className="venue-content">
-            <span className="venue-time">{wedding.time}</span>
+          <div className="venue-content" data-reveal>
+            <span className="venue-time">{wedding.timeDisplay}</span>
             <h3 className="venue-name" id="venue-title">
               {wedding.venue}
             </h3>
             <p className="venue-address">{wedding.address}</p>
-            <a
-              className="button"
-              href={wedding.mapUrl}
-              target="_blank"
-              rel="noreferrer"
-              aria-label="Mở địa điểm tiệc cưới trên Google Maps trong tab mới"
-            >
-              Mở Google Maps
-              <span aria-hidden="true">↗</span>
-            </a>
+            {wedding.mapUrl ? (
+              <a
+                className="button"
+                href={wedding.mapUrl}
+                target="_blank"
+                rel="noreferrer"
+                aria-label="Mở địa điểm tiệc cưới trên Google Maps trong tab mới"
+              >
+                Mở Google Maps
+                <span aria-hidden="true">↗</span>
+              </a>
+            ) : (
+              <button
+                className="button button-disabled"
+                type="button"
+                disabled
+                aria-label="Google Maps chưa sẵn sàng vì địa điểm chưa được cập nhật"
+              >
+                Google Maps · Chờ cập nhật
+              </button>
+            )}
           </div>
         </div>
       </div>

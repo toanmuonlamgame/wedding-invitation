@@ -3,28 +3,38 @@ import { wedding } from "@/src/lib/wedding-data";
 
 export function InvitationSection() {
   return (
-    <section className="section invitation-section" aria-labelledby="invitation-title">
+    <section
+      className="section invitation-section"
+      aria-labelledby="invitation-title"
+    >
       <div className="section-shell invitation-copy">
-        <p className="section-eyebrow">Lời mời thân tình</p>
-        <h2 className="lead" id="invitation-title">
-          “Tình yêu đẹp nhất là khi ta tìm thấy một người để cùng nhau gọi hai
-          tiếng gia đình.”
+        <p className="section-eyebrow" data-reveal>
+          Lời mời thân tình
+        </p>
+        <h2 className="invitation-lead" id="invitation-title" data-reveal>
+          “Có những hành trình đẹp hơn khi được sẻ chia cùng những người mình
+          thương.”
         </h2>
-        <Ornament />
-        <p className="body-copy">
-          Với niềm hân hoan và sự chúc phúc của hai gia đình, chúng mình trân
-          trọng mời bạn đến dự lễ thành hôn. Sự hiện diện của bạn sẽ là món quà
-          quý giá, làm ngày vui của chúng mình thêm trọn vẹn.
+        <div data-reveal>
+          <Ornament />
+        </div>
+        <p className="invitation-body" data-reveal>
+          Với niềm hân hoan của hai gia đình, Vũ Bình và Thành Long trân trọng
+          kính mời bạn đến chung vui trong ngày hai chúng mình bắt đầu một
+          chương mới. Sự hiện diện của bạn là món quà ấm áp và quý giá.
         </p>
 
-        <div className="families">
-          <div className="family-card">
-            <span className="family-label">Nhà gái</span>
-            <span className="family-name">{wedding.brideFamily}</span>
+        <div className="families" data-reveal>
+          <div className="family">
+            <span>Nhà gái</span>
+            <strong>{wedding.brideFamily}</strong>
           </div>
-          <div className="family-card">
-            <span className="family-label">Nhà trai</span>
-            <span className="family-name">{wedding.groomFamily}</span>
+          <div className="family-separator" aria-hidden="true">
+            &amp;
+          </div>
+          <div className="family">
+            <span>Nhà trai</span>
+            <strong>{wedding.groomFamily}</strong>
           </div>
         </div>
       </div>

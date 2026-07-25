@@ -1,35 +1,64 @@
 import type { WeddingDetails } from "@/src/types/wedding";
 
 export const wedding: WeddingDetails = {
-  bride: "Minh Anh",
-  groom: "Quang Huy",
-  dateIso: "2026-12-20T17:30:00+07:00",
-  dateDisplay: "20 · 12 · 2026",
-  time: "17:30 · Chủ Nhật, 20 tháng 12 năm 2026",
-  venue: "The Garden Riverside",
-  address: "12 Nguyễn Bỉnh Khiêm, Phường Sài Gòn, Thành phố Hồ Chí Minh",
-  mapUrl:
-    "https://www.google.com/maps/search/?api=1&query=12+Nguyen+Binh+Khiem+Ho+Chi+Minh+City",
-  brideFamily: "Ông Nguyễn Văn Minh & Bà Lê Thu Hà",
-  groomFamily: "Ông Trần Quốc Nam & Bà Phạm Ngọc Lan",
+  bride: "Vũ Bình",
+  groom: "Thành Long",
+  coupleDisplay: "Vũ Bình & Thành Long",
+  monogram: "B · L",
+  dateIso: null,
+  dateDisplay: "Ngày cưới sẽ được cập nhật",
+  timeDisplay: "Thời gian sẽ được cập nhật",
+  lunarDate: "Ngày âm lịch sẽ được cập nhật",
+  venue: "Địa điểm sẽ được cập nhật",
+  address: "Thông tin địa chỉ sẽ được gia đình bổ sung.",
+  mapUrl: null,
+  brideFamily: "Gia đình cô dâu Vũ Bình",
+  groomFamily: "Gia đình chú rể Thành Long",
+  musicSrc: "/music/wedding-theme.wav",
   story: [
     {
-      year: "2019",
-      title: "Một lần tình cờ",
+      marker: "Chương I",
+      title: "Ngày mình gặp nhau",
       description:
-        "Chúng mình gặp nhau trong một buổi chiều mưa, từ một lời chào giản dị mà thành cả hành trình dài.",
+        "Kỷ niệm đầu tiên của Vũ Bình và Thành Long sẽ được gia đình bổ sung tại đây.",
     },
     {
-      year: "2022",
+      marker: "Chương II",
       title: "Những ngày đồng hành",
       description:
-        "Qua bao chuyến đi và những bữa cơm nhà, cả hai nhận ra bình yên chính là có nhau bên cạnh.",
+        "Một dấu mốc đáng nhớ trong hành trình bên nhau sẽ được kể lại tại đây.",
     },
     {
-      year: "2026",
+      marker: "Chương III",
       title: "Về chung một nhà",
       description:
-        "Chúng mình chọn mùa cuối năm để viết chương mới và mong được sẻ chia khoảnh khắc ấy cùng bạn.",
+        "Ngày hai người bắt đầu chương mới sẽ được cập nhật khi thông tin chính thức sẵn sàng.",
+    },
+  ],
+  gallery: [
+    {
+      src: "/images/couple-01.jpg",
+      available: false,
+      alt: "Vũ Bình và Thành Long trong ảnh cưới thứ nhất",
+      caption: "Khoảnh khắc đầu tiên",
+    },
+    {
+      src: "/images/couple-02.jpg",
+      available: false,
+      alt: "Vũ Bình và Thành Long trong ảnh cưới thứ hai",
+      caption: "Một chút bình yên",
+    },
+    {
+      src: "/images/couple-03.jpg",
+      available: false,
+      alt: "Vũ Bình và Thành Long trong ảnh cưới thứ ba",
+      caption: "Ngày bên nhau",
+    },
+    {
+      src: "/images/couple-04.jpg",
+      available: false,
+      alt: "Vũ Bình và Thành Long trong ảnh cưới thứ tư",
+      caption: "Chuyện của chúng mình",
     },
   ],
 };
