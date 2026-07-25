@@ -10,7 +10,7 @@ This repository contains a single family wedding invitation for approximately 50
 
 ## Product flow
 
-The main page is the complete wedding invitation. Near the end, the family enters guest details and a server-only creator secret. A successful request stores the guest invitation and returns a personalized `/thiep/[token]` link. That route renders the complete invitation as a read-only guest experience without the creator form.
+The main page is the complete wedding invitation, invitation creator, and a lightweight family admin. The admin unlocks with the server-only creator secret and edits shared countdown, venue, story, and gallery content. A successful invitation request stores only guest personalization and returns a `/thiep/[token]` link. That route always reads the latest shared content and renders a read-only guest experience without creator or admin controls.
 
 ## Technology
 
@@ -36,11 +36,14 @@ The main page is the complete wedding invitation. Near the end, the family enter
 
 - `app/page.tsx` renders the complete sample invitation and creator form.
 - `app/api/invitations/route.ts` is the only write endpoint.
+- `app/api/wedding-content/route.ts` publicly reads shared content and requires the creator secret for verification or updates.
 - `app/thiep/[token]/page.tsx` reads one invitation directly through Prisma in a dynamic Server Component.
 - A shared invitation composition keeps the sample and guest pages visually consistent.
 - `src/lib/invitations.ts` owns request validation, token format, and safe token generation.
 - `src/lib/prisma.ts` owns the development-safe Prisma singleton.
-- Wedding facts and deliberate placeholders remain centralized in `src/lib/wedding-data.ts`.
+- `src/lib/wedding-content.ts` validates and maps the singleton `WeddingContent` record.
+- Wedding facts and deliberate database fallbacks remain centralized in `src/lib/wedding-data.ts`.
+- `prisma/migrations/20260725000000_add_wedding_content/migration.sql` is source-only; the user must apply it manually.
 
 ## Agent constraints
 

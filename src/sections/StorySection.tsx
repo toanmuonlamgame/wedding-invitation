@@ -1,7 +1,12 @@
 import { SectionHeading } from "@/src/components/SectionHeading";
-import { wedding } from "@/src/lib/wedding-data";
+import { StoryExplorer } from "@/src/components/StoryExplorer";
+import type { LoveStoryChapter } from "@/src/types/wedding";
 
-export function StorySection() {
+type StorySectionProps = {
+  chapters: LoveStoryChapter[];
+};
+
+export function StorySection({ chapters }: StorySectionProps) {
   return (
     <section className="section story-section" aria-labelledby="story-title">
       <div className="section-shell">
@@ -10,25 +15,10 @@ export function StorySection() {
             eyebrow="Chuyện chúng mình"
             title="Từ lạ thành thương"
             titleId="story-title"
-            description="Ba dấu mốc nhỏ sẽ kể lại hành trình của Vũ Bình và Thành Long khi những kỷ niệm chính thức được bổ sung."
+            description="Từng chương nhỏ được mở ra như những trang nhật ký trong hành trình của Vũ Bình và Thành Long."
           />
         </div>
-
-        <div className="story-timeline">
-          <div className="story-line" data-story-line aria-hidden="true" />
-          {wedding.story.map((milestone) => (
-            <article
-              className="story-item"
-              key={milestone.marker}
-              data-story-item
-            >
-              <div className="story-marker" aria-hidden="true" />
-              <span className="story-year">{milestone.marker}</span>
-              <h3 className="story-title">{milestone.title}</h3>
-              <p className="story-text">{milestone.description}</p>
-            </article>
-          ))}
-        </div>
+        <StoryExplorer chapters={chapters} />
       </div>
     </section>
   );

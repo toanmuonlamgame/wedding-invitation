@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 
 type CountdownProps = {
   targetDate: string | null;
+  expiredMessage: string;
 };
 
 type TimeLeft = {
@@ -13,11 +14,14 @@ type TimeLeft = {
   seconds: number;
 };
 
+type CountdownState = {
+  targetDate: string;
+  timeLeft: TimeLeft;
+  expired: boolean;
+};
+
 function getTimeLeft(targetDate: string): TimeLeft {
-  const difference = Math.max(
-    new Date(targetDate).getTime() - new Date().getTime(),
-    0,
-  );
+  const difference = Math.max(new Date(targetDate).getTime() - Date.now(), 0);
 
   return {
     days: Math.floor(difference / 86_400_000),
@@ -27,26 +31,64 @@ function getTimeLeft(targetDate: string): TimeLeft {
   };
 }
 
-export function Countdown({ targetDate }: CountdownProps) {
-  const [timeLeft, setTimeLeft] = useState<TimeLeft | null>(null);
+export function Countdown({
+  targetDate,
+  expiredMessage,
+}: CountdownProps) {
+  const [countdown, setCountdown] = useState<CountdownState | null>(null);
 
   useEffect(() => {
     if (!targetDate) {
       return;
     }
 
-    const update = () => setTimeLeft(getTimeLeft(targetDate));
-    update();
-    const timer = window.setInterval(update, 1_000);
+    const targetTime = new Date(targetDate).getTime();
+    let timer: number | undefined;
 
-    return () => window.clearInterval(timer);
+    const update = () => {
+      const expired = Date.now() >= targetTime;
+      setCountdown({
+        targetDate,
+        timeLeft: getTimeLeft(targetDate),
+        expired,
+      });
+
+      if (expired && timer !== undefined) {
+        window.clearInterval(timer);
+        timer = undefined;
+      }
+    };
+
+    const initialTimer = window.setTimeout(update, 0);
+
+    if (Date.now() < targetTime) {
+      timer = window.setInterval(update, 1_000);
+    }
+
+    return () => {
+      window.clearTimeout(initialTimer);
+      if (timer !== undefined) {
+        window.clearInterval(timer);
+      }
+    };
   }, [targetDate]);
 
+  const activeCountdown =
+    targetDate && countdown?.targetDate === targetDate ? countdown : null;
+
+  if (activeCountdown?.expired) {
+    return (
+      <p className="countdown-celebration" role="status">
+        {expiredMessage}
+      </p>
+    );
+  }
+
   const units = [
-    ["Ngày", timeLeft?.days],
-    ["Giờ", timeLeft?.hours],
-    ["Phút", timeLeft?.minutes],
-    ["Giây", timeLeft?.seconds],
+    ["Ngày", activeCountdown?.timeLeft.days],
+    ["Giờ", activeCountdown?.timeLeft.hours],
+    ["Phút", activeCountdown?.timeLeft.minutes],
+    ["Giây", activeCountdown?.timeLeft.seconds],
   ] as const;
 
   return (

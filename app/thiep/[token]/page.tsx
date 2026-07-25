@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { WeddingInvitation } from "@/src/components/WeddingInvitation";
 import { getInvitationByToken } from "@/src/lib/invitations";
 import { wedding } from "@/src/lib/wedding-data";
+import { getWeddingContent } from "@/src/lib/wedding-content";
 
 export const dynamic = "force-dynamic";
 
@@ -42,11 +43,14 @@ export default async function InvitationPage({
   params,
 }: InvitationPageProps) {
   const { token } = await params;
-  const invitation = await getInvitationByToken(token);
+  const [invitation, content] = await Promise.all([
+    getInvitationByToken(token),
+    getWeddingContent(),
+  ]);
 
   if (!invitation) {
     notFound();
   }
 
-  return <WeddingInvitation invitation={invitation} />;
+  return <WeddingInvitation content={content} invitation={invitation} />;
 }

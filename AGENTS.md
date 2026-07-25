@@ -9,6 +9,7 @@ This version has breaking changes — APIs, conventions, and file structure may 
 - Build one private family wedding invitation for 50–100 guests, not a SaaS product.
 - The couple is **Vũ Bình & Thành Long**. Do not introduce substitute names.
 - Product flow: main invitation → enter guest details → create a personalized link → read-only invitation page.
+- `/` is also a lightweight family admin for shared wedding content; `/thiep/[token]` must never render admin controls.
 - Current stack: Next.js App Router, TypeScript, Tailwind CSS, GSAP, Prisma, PostgreSQL, and Zod.
 - Target hosting: Supabase PostgreSQL and Vercel.
 - Prioritize mobile-first layout, fast loading, beautiful local imagery, accessible interactions, and restrained animation.
@@ -26,6 +27,8 @@ This version has breaking changes — APIs, conventions, and file structure may 
 - Development package allowed: `prisma`.
 - Use Node.js `crypto` for invitation tokens.
 - Keep Prisma and creator-secret access server-only.
+- Store shared countdown, venues, story, and gallery metadata in the singleton `WeddingContent` record with id `main`.
+- Invitation records only contain recipient personalization and always read the latest shared wedding content.
 - Do not expose a public invitation list, edit endpoint, or delete endpoint.
 
 ## Manual steps required

@@ -1,7 +1,14 @@
 import { SectionHeading } from "@/src/components/SectionHeading";
+import { VenueActions } from "@/src/components/VenueActions";
 import { wedding } from "@/src/lib/wedding-data";
+import { formatWeddingDateTime } from "@/src/lib/wedding-format";
+import type { WeddingEvent } from "@/src/types/wedding";
 
-export function VenueSection() {
+type VenueSectionProps = {
+  venues: WeddingEvent[];
+};
+
+export function VenueSection({ venues }: VenueSectionProps) {
   return (
     <section className="section venue-section" aria-labelledby="venue-title">
       <div className="section-shell">
@@ -10,50 +17,47 @@ export function VenueSection() {
             eyebrow="Địa điểm"
             title="Hẹn bạn tại đây"
             titleId="venue-title"
-            description="Thông tin chính thức sẽ được gia đình cập nhật trong một tệp dữ liệu duy nhất."
+            description="Mỗi điểm hẹn đều được trình bày riêng để bạn dễ theo dõi hành trình ngày vui."
           />
         </div>
 
-        <div className="venue-layout">
-          <div
-            className="map-illustration"
-            aria-hidden="true"
-            data-parallax
-          >
-            <div className="map-line map-line-one" />
-            <div className="map-line map-line-two" />
-            <div className="map-point">
-              <span>{wedding.monogram}</span>
-            </div>
-          </div>
-          <div className="venue-content" data-reveal>
-            <span className="venue-time">{wedding.timeDisplay}</span>
-            <h3 className="venue-name">
-              {wedding.venue}
-            </h3>
-            <p className="venue-address">{wedding.address}</p>
-            {wedding.mapUrl ? (
-              <a
-                className="button"
-                href={wedding.mapUrl}
-                target="_blank"
-                rel="noreferrer"
-                aria-label="Mở địa điểm tiệc cưới trên Google Maps trong tab mới"
-              >
-                Mở Google Maps
-                <span aria-hidden="true">↗</span>
-              </a>
-            ) : (
-              <button
-                className="button button-disabled"
-                type="button"
-                disabled
-                aria-label="Google Maps chưa sẵn sàng vì địa điểm chưa được cập nhật"
-              >
-                Google Maps · Chờ cập nhật
-              </button>
-            )}
-          </div>
+        <div className="venue-list">
+          {venues.map((venue, index) => {
+            const dateTime = formatWeddingDateTime(venue.dateTime);
+
+            return (
+              <article className="venue-layout" key={venue.id} data-reveal>
+                <div
+                  className="map-illustration"
+                  aria-hidden="true"
+                  data-parallax={index === 0 ? "" : undefined}
+                >
+                  <div className="map-line map-line-one" />
+                  <div className="map-line map-line-two" />
+                  <div className="map-point">
+                    <span>{wedding.monogram}</span>
+                  </div>
+                </div>
+                <div className="venue-content">
+                  <p className="venue-event-type">{venue.eventType}</p>
+                  <span className="venue-time">
+                    {dateTime.date} · {dateTime.time}
+                  </span>
+                  <h3 className="venue-name">{venue.venueName}</h3>
+                  <p className="venue-address">{venue.address}</p>
+                  {venue.note ? <p className="venue-note">{venue.note}</p> : null}
+                  {!venue.available ? (
+                    <p className="placeholder-label">Thông tin mẫu chờ cập nhật</p>
+                  ) : null}
+                  <VenueActions
+                    address={venue.address}
+                    mapsUrl={venue.mapsUrl}
+                    available={venue.available}
+                  />
+                </div>
+              </article>
+            );
+          })}
         </div>
       </div>
     </section>

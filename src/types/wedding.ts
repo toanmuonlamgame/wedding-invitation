@@ -1,14 +1,46 @@
-export type StoryMilestone = {
-  marker: string;
+export type WeddingEvent = {
+  id: string;
   title: string;
-  description: string;
+  eventType: string;
+  dateTime: string | null;
+  venueName: string;
+  address: string;
+  mapsUrl: string | null;
+  note?: string;
+  available: boolean;
+};
+
+export type LoveStoryChapter = {
+  id: string;
+  chapterNumber: string;
+  period: string;
+  title: string;
+  summary: string;
+  fullStory: string;
+  imageSrc?: string;
+  imageAlt: string;
+  available: boolean;
+  visible: boolean;
 };
 
 export type GalleryMoment = {
+  id: string;
   src: string;
   available: boolean;
   alt: string;
   caption: string;
+  featured: boolean;
+  carousel: boolean;
+  visible: boolean;
+};
+
+export type WeddingContentData = {
+  weddingDateTime: string | null;
+  expiredCountdownMessage: string;
+  venues: WeddingEvent[];
+  storyChapters: LoveStoryChapter[];
+  galleryImages: GalleryMoment[];
+  albumIntervalMs: number;
 };
 
 export type WeddingDetails = {
@@ -16,19 +48,14 @@ export type WeddingDetails = {
   groom: string;
   coupleDisplay: string;
   monogram: string;
-  dateIso: string | null;
-  dateDisplay: string;
-  timeDisplay: string;
-  lunarDate: string;
-  venue: string;
-  address: string;
-  mapUrl: string | null;
+  datePlaceholder: string;
+  timePlaceholder: string;
+  lunarDatePlaceholder: string;
   brideFamily: string;
   groomFamily: string;
   youtubeVideoId: string;
   musicTitle: string;
   musicUrl: string;
   musicFallbackSrc: string;
-  story: StoryMilestone[];
-  gallery: GalleryMoment[];
+  musicVolume: number;
 };

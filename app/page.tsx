@@ -1,5 +1,8 @@
 import type { Metadata } from "next";
 import { WeddingInvitation } from "@/src/components/WeddingInvitation";
+import { getWeddingContent } from "@/src/lib/wedding-content";
+
+export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "Thiệp cưới Vũ Bình & Thành Long",
@@ -12,6 +15,7 @@ export const metadata: Metadata = {
   },
 };
 
-export default function Home() {
-  return <WeddingInvitation showCreator />;
+export default async function Home() {
+  const content = await getWeddingContent();
+  return <WeddingInvitation content={content} showCreator showAdmin />;
 }

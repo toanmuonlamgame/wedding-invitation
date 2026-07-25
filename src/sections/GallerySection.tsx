@@ -1,27 +1,26 @@
-import { GalleryVisual } from "@/src/components/GalleryVisual";
+import { AlbumGallery } from "@/src/components/AlbumGallery";
 import { SectionHeading } from "@/src/components/SectionHeading";
-import { wedding } from "@/src/lib/wedding-data";
+import type { GalleryMoment } from "@/src/types/wedding";
 
-export function GallerySection() {
+type GallerySectionProps = {
+  images: GalleryMoment[];
+  intervalMs: number;
+};
+
+export function GallerySection({ images, intervalMs }: GallerySectionProps) {
   return (
-    <section
-      className="section gallery-section"
-      aria-labelledby="gallery-title"
-    >
+    <section className="section gallery-section" aria-labelledby="gallery-title">
       <div className="section-shell">
         <div data-reveal>
           <SectionHeading
             eyebrow="Album của chúng mình"
             title="Những khoảnh khắc"
             titleId="gallery-title"
-            description="Ảnh cưới chính thức sẽ được đặt vào đúng vị trí này. Fallback nội bộ giúp thiệp luôn trọn vẹn khi media chưa sẵn sàng."
+            description="Một lát cắt dịu dàng từ album cưới, có thể mở rộng để xem trọn từng khoảnh khắc."
           />
         </div>
-
-        <div className="gallery-grid">
-          {wedding.gallery.map((moment, index) => (
-            <GalleryVisual moment={moment} index={index} key={moment.src} />
-          ))}
+        <div data-gallery-reveal>
+          <AlbumGallery images={images} intervalMs={intervalMs} />
         </div>
       </div>
     </section>

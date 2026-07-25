@@ -1,9 +1,9 @@
 # Thiệp cưới Vũ Bình & Thành Long
 
 Website thiệp cưới dành cho một đám cưới gia đình khoảng 50–100 khách. Trang
-chính là thiệp mẫu hoàn chỉnh và có form để gia đình tạo liên kết cá nhân
-`/thiep/[token]`. Trang khách giữ trọn trải nghiệm cover, animation, nhạc, album
-và địa điểm nhưng ở chế độ chỉ đọc.
+chính là thiệp mẫu, nơi tạo link và admin nhẹ để gia đình cập nhật countdown,
+địa điểm, câu chuyện và album dùng chung. Trang `/thiep/[token]` luôn đọc nội
+dung chung mới nhất nhưng chỉ hiển thị trải nghiệm dành cho khách.
 
 ## Stack
 
@@ -26,7 +26,7 @@ Tự sao chép `.env.example` thành `.env`, điền các biến theo phần dư
 tự chạy migration lần đầu:
 
 ```bash
-npx prisma migrate dev --name init_invitation
+npx prisma migrate deploy
 npx prisma generate
 npm run dev
 ```
@@ -57,14 +57,17 @@ Không commit `.env`. File `.env.example` chỉ chứa tên biến và giá tr�
 
 ## Luồng tạo thiệp
 
-1. Gia đình mở trang `/`, đi đến khu vực “Tạo thiệp cá nhân”.
-2. Nhập nội dung người được mời, số người tùy chọn, lời nhắn tùy chọn và mã tạo
+1. Gia đình mở trang `/`; có thể dùng “Chỉnh sửa nội dung” để quản lý dữ liệu
+   chung sau khi xác thực mã quản trị.
+2. Gia đình đi đến khu vực “Tạo thiệp cá nhân”.
+3. Nhập nội dung người được mời, số người tùy chọn, lời nhắn tùy chọn và mã tạo
    thiệp.
-3. Form gọi `POST /api/invitations`.
-4. Server dùng Zod kiểm tra body, so sánh mã tạo thiệp, sinh token 192-bit bằng
+4. Form gọi `POST /api/invitations`.
+5. Server dùng Zod kiểm tra body, so sánh mã tạo thiệp, sinh token 192-bit bằng
    Node.js `crypto` và lưu một bản ghi `Invitation`.
-5. Giao diện trả về link thật, cho phép sao chép hoặc mở ngay.
-6. `/thiep/[token]` đọc đúng một bản ghi bằng Prisma và render thiệp chỉ đọc.
+6. Giao diện trả về link thật, cho phép sao chép hoặc mở ngay.
+7. `/thiep/[token]` ghép invitation với singleton `WeddingContent` và render
+   thiệp chỉ đọc.
 
 Mã tạo thiệp không được lưu trong database, URL, localStorage hoặc response.
 
@@ -72,6 +75,9 @@ Mã tạo thiệp không được lưu trong database, URL, localStorage hoặc 
 
 - `/`: thiệp mẫu hoàn chỉnh + form tạo thiệp.
 - `POST /api/invitations`: endpoint duy nhất để tạo thiệp.
+- `GET /api/wedding-content`: nội dung chung cần để render thiệp.
+- `POST /api/wedding-content`: xác thực mã quản trị, không lưu secret.
+- `PUT /api/wedding-content`: cập nhật singleton nội dung chung, bắt buộc secret.
 - `/thiep/[token]`: thiệp cá nhân chỉ đọc, render động.
 - Token sai định dạng hoặc không tồn tại trả về trang 404.
 
@@ -79,22 +85,16 @@ Không có endpoint liệt kê, chỉnh sửa hoặc xóa invitation.
 
 ## Prisma
 
-Schema nằm tại `prisma/schema.prisma`. Các lệnh chỉ kiểm tra/generate, không
-kết nối database:
+Schema nằm tại `prisma/schema.prisma`. Migration thêm `WeddingContent` đã có
+source tại `prisma/migrations/20260725000000_add_wedding_content`. Các lệnh chỉ
+kiểm tra/generate, không kết nối database:
 
 ```bash
 npx prisma validate
 npx prisma generate
 ```
 
-Lệnh tạo migration ban đầu cần người vận hành tự chạy sau khi đã điền URL
-Supabase thật:
-
-```bash
-npx prisma migrate dev --name init_invitation
-```
-
-Với production, chỉ chạy migration đã được review:
+Áp dụng migration source đã review bằng:
 
 ```bash
 npx prisma migrate deploy
@@ -138,4 +138,4 @@ chuyện và bốn ảnh cưới hiện vẫn là placeholder có chủ đích t
 `src/lib/wedding-data.ts` và `public/images`.
 
 Nhạc dùng video YouTube do gia đình cung cấp; `public/music/wedding-theme.wav`
-là fallback nội bộ nếu trình phát ngoài không khả dụng.
+là fallback nội bộ. Cả hai trình phát mặc định ở 50% âm lượng.

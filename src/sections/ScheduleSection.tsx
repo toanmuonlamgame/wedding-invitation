@@ -1,8 +1,18 @@
 import { Countdown } from "@/src/components/Countdown";
 import { SectionHeading } from "@/src/components/SectionHeading";
 import { wedding } from "@/src/lib/wedding-data";
+import { formatWeddingDateTime } from "@/src/lib/wedding-format";
 
-export function ScheduleSection() {
+type ScheduleSectionProps = {
+  weddingDateTime: string | null;
+  expiredMessage: string;
+};
+
+export function ScheduleSection({
+  weddingDateTime,
+  expiredMessage,
+}: ScheduleSectionProps) {
+  const formattedDate = formatWeddingDateTime(weddingDateTime);
   return (
     <section
       className="section schedule-section"
@@ -20,13 +30,16 @@ export function ScheduleSection() {
 
         <div className="date-composition" data-reveal>
           <p className="date-label">Ngày cưới</p>
-          <p className="date-placeholder">{wedding.dateDisplay}</p>
-          <span>{wedding.timeDisplay}</span>
-          <small>{wedding.lunarDate}</small>
+          <p className="date-placeholder">{formattedDate.date}</p>
+          <span>{formattedDate.time}</span>
+          <small>{wedding.lunarDatePlaceholder}</small>
         </div>
 
         <div data-reveal>
-          <Countdown targetDate={wedding.dateIso} />
+          <Countdown
+            targetDate={weddingDateTime}
+            expiredMessage={expiredMessage}
+          />
         </div>
       </div>
     </section>

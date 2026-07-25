@@ -158,22 +158,6 @@ export function WeddingExperience({
         );
 
         gsap.fromTo(
-          "[data-story-line]",
-          { scaleX: 0, scaleY: 0, transformOrigin: "top left" },
-          {
-            scaleX: 1,
-            scaleY: 1,
-            duration: 1.2,
-            ease: "power2.out",
-            scrollTrigger: {
-              trigger: ".story-timeline",
-              start: "top 82%",
-              once: true,
-            },
-          },
-        );
-
-        gsap.fromTo(
           "[data-story-item]",
           { opacity: 0, y: 24 },
           {
@@ -183,7 +167,7 @@ export function WeddingExperience({
             stagger: 0.14,
             ease: "power2.out",
             scrollTrigger: {
-              trigger: ".story-timeline",
+              trigger: ".story-chapter-grid",
               start: "top 78%",
               once: true,
             },

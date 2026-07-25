@@ -16,3 +16,14 @@ model Invitation {
   privateMessage String?
   createdAt      DateTime @default(now())
 }
+
+model WeddingContent {
+  id                      String   @id
+  weddingDateTime         DateTime?
+  expiredCountdownMessage String?
+  venuesJson              Json
+  storyChaptersJson       Json
+  galleryImagesJson       Json
+  albumIntervalMs         Int      @default(5000)
+  updatedAt               DateTime @updatedAt
+}

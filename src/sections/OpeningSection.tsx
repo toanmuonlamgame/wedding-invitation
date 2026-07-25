@@ -1,7 +1,13 @@
 import { Ornament } from "@/src/components/Ornament";
 import { wedding } from "@/src/lib/wedding-data";
+import { formatWeddingDateTime } from "@/src/lib/wedding-format";
 
-export function OpeningSection() {
+type OpeningSectionProps = {
+  weddingDateTime: string | null;
+};
+
+export function OpeningSection({ weddingDateTime }: OpeningSectionProps) {
+  const formattedDate = formatWeddingDateTime(weddingDateTime);
   return (
     <section className="section hero-section" aria-labelledby="opening-title">
       <div
@@ -30,7 +36,7 @@ export function OpeningSection() {
           <Ornament />
         </div>
         <p className="hero-date" data-hero-reveal>
-          {wedding.dateDisplay}
+          {formattedDate.date}
         </p>
         <p className="hero-scroll" data-hero-reveal>
           Cuộn xuống để cùng xem câu chuyện của chúng mình

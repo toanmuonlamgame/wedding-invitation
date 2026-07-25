@@ -10,6 +10,7 @@ type YouTubePlayer = {
   destroy: () => void;
   pauseVideo: () => void;
   playVideo: () => void;
+  setVolume: (volume: number) => void;
 };
 
 type YouTubePlayerEvent = {
@@ -109,6 +110,9 @@ export function MusicSection() {
 
     let cancelled = false;
     const fallbackAudio = fallbackAudioRef.current;
+    if (fallbackAudio) {
+      fallbackAudio.volume = wedding.musicVolume;
+    }
 
     const playLocalFallback = () => {
       if (cancelled || !fallbackAudio) {
@@ -146,6 +150,7 @@ export function MusicSection() {
           },
           events: {
             onReady: (event) => {
+              event.target.setVolume(wedding.musicVolume * 100);
               setIsReady(true);
               setStatus("Trình phát đã sẵn sàng.");
               event.target.playVideo();
