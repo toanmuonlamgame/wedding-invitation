@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
+import { CreatorSection } from "@/src/sections/CreatorSection";
 import type {
   GalleryMoment,
   LoveStoryChapter,
@@ -11,9 +12,16 @@ import type {
 
 type WeddingAdminProps = {
   initialContent: WeddingContentData;
+  standalone?: boolean;
 };
 
-type AdminTab = "general" | "venues" | "story" | "album";
+type AdminTab =
+  | "overview"
+  | "creator"
+  | "general"
+  | "venues"
+  | "story"
+  | "album";
 
 function cloneContent(content: WeddingContentData): WeddingContentData {
   return JSON.parse(JSON.stringify(content)) as WeddingContentData;
@@ -71,16 +79,19 @@ function newGalleryImage(): GalleryMoment {
   };
 }
 
-export function WeddingAdmin({ initialContent }: WeddingAdminProps) {
+export function WeddingAdmin({
+  initialContent,
+  standalone = false,
+}: WeddingAdminProps) {
   const router = useRouter();
-  const [isUnlockOpen, setIsUnlockOpen] = useState(false);
+  const [isUnlockOpen, setIsUnlockOpen] = useState(standalone);
   const [isUnlocked, setIsUnlocked] = useState(false);
   const [creatorSecret, setCreatorSecret] = useState("");
   const [savedContent, setSavedContent] = useState(() =>
     cloneContent(initialContent),
   );
   const [draft, setDraft] = useState(() => cloneContent(initialContent));
-  const [activeTab, setActiveTab] = useState<AdminTab>("general");
+  const [activeTab, setActiveTab] = useState<AdminTab>("overview");
   const [status, setStatus] = useState("");
   const [isSaving, setIsSaving] = useState(false);
   const secretInputRef = useRef<HTMLInputElement>(null);
@@ -100,7 +111,7 @@ export function WeddingAdmin({ initialContent }: WeddingAdminProps) {
     document.body.style.overflow = "hidden";
 
     function handleEscape(event: KeyboardEvent) {
-      if (event.key === "Escape" && isUnlockOpen) {
+      if (event.key === "Escape" && isUnlockOpen && !standalone) {
         setIsUnlockOpen(false);
         setCreatorSecret("");
       }
@@ -112,7 +123,7 @@ export function WeddingAdmin({ initialContent }: WeddingAdminProps) {
       document.body.style.overflow = previousOverflow;
       document.removeEventListener("keydown", handleEscape);
     };
-  }, [isUnlockOpen, isUnlocked]);
+  }, [isUnlockOpen, isUnlocked, standalone]);
 
   async function handleUnlock(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -193,6 +204,7 @@ export function WeddingAdmin({ initialContent }: WeddingAdminProps) {
 
   function closeAdmin() {
     setIsUnlocked(false);
+    setIsUnlockOpen(standalone);
     setCreatorSecret("");
     setStatus("");
   }
@@ -226,7 +238,7 @@ export function WeddingAdmin({ initialContent }: WeddingAdminProps) {
 
   return (
     <aside className="wedding-admin" aria-label="Quản trị nội dung thiệp">
-      {!isUnlocked ? (
+      {!isUnlocked && !standalone ? (
         <button
           className="admin-entry-button"
           type="button"
@@ -244,14 +256,26 @@ export function WeddingAdmin({ initialContent }: WeddingAdminProps) {
               <p className="section-eyebrow">Quản trị nhẹ</p>
               <h2>Nội dung chung của mọi thiệp</h2>
             </div>
-            <button className="text-button" type="button" onClick={closeAdmin}>
-              Đóng quản trị
-            </button>
+            <div className="admin-header-actions">
+              <a
+                className="text-button"
+                href="/"
+                target="_blank"
+                rel="noreferrer"
+              >
+                Xem trang thiệp
+              </a>
+              <button className="text-button" type="button" onClick={closeAdmin}>
+                Khóa quản trị
+              </button>
+            </div>
           </header>
 
           <nav className="admin-tabs" aria-label="Nhóm nội dung chỉnh sửa">
             {(
               [
+                ["overview", "Tổng quan & preview"],
+                ["creator", "Tạo thiệp khách"],
                 ["general", "Countdown"],
                 ["venues", "Địa điểm"],
                 ["story", "Quản lý câu chuyện"],
@@ -270,6 +294,26 @@ export function WeddingAdmin({ initialContent }: WeddingAdminProps) {
           </nav>
 
           <div className="admin-editor">
+            {activeTab === "overview" ? (
+              <section className="admin-overview" aria-labelledby="admin-preview-title">
+                <div className="admin-overview-copy">
+                  <p className="section-eyebrow">Bản xem trước công khai</p>
+                  <h3 id="admin-preview-title">Thiệp của Vũ Bình & Thành Long</h3>
+                  <p>
+                    Preview luôn dùng nội dung đã lưu gần nhất. Sau khi lưu thay
+                    đổi, tải lại khung xem trước để kiểm tra.
+                  </p>
+                </div>
+                <iframe
+                  className="admin-preview-frame"
+                  src="/"
+                  title="Xem trước trang thiệp công khai"
+                />
+              </section>
+            ) : null}
+
+            {activeTab === "creator" ? <CreatorSection /> : null}
+
             {activeTab === "general" ? (
               <div className="admin-form-grid">
                 <div className="field">
@@ -776,10 +820,10 @@ export function WeddingAdmin({ initialContent }: WeddingAdminProps) {
 
       {isUnlockOpen ? (
         <div
-          className="admin-unlock-backdrop"
+          className={`admin-unlock-backdrop${standalone ? " admin-unlock-page" : ""}`}
           role="presentation"
           onMouseDown={(event) => {
-            if (event.currentTarget === event.target) {
+            if (!standalone && event.currentTarget === event.target) {
               setIsUnlockOpen(false);
               setCreatorSecret("");
             }
@@ -792,17 +836,19 @@ export function WeddingAdmin({ initialContent }: WeddingAdminProps) {
             aria-labelledby="admin-unlock-title"
             onSubmit={handleUnlock}
           >
-            <button
-              className="dialog-close"
-              type="button"
-              aria-label="Đóng yêu cầu mã quản trị"
-              onClick={() => {
-                setIsUnlockOpen(false);
-                setCreatorSecret("");
-              }}
-            >
-              ×
-            </button>
+            {!standalone ? (
+              <button
+                className="dialog-close"
+                type="button"
+                aria-label="Đóng yêu cầu mã quản trị"
+                onClick={() => {
+                  setIsUnlockOpen(false);
+                  setCreatorSecret("");
+                }}
+              >
+                ×
+              </button>
+            ) : null}
             <p className="section-eyebrow">Dành cho gia đình</p>
             <h2 id="admin-unlock-title">Mở chế độ chỉnh sửa</h2>
             <div className="field">

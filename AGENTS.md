@@ -9,7 +9,7 @@ This version has breaking changes — APIs, conventions, and file structure may 
 - Build one private family wedding invitation for 50–100 guests, not a SaaS product.
 - The couple is **Vũ Bình & Thành Long**. Do not introduce substitute names.
 - Product flow: main invitation → enter guest details → create a personalized link → read-only invitation page.
-- `/` is also a lightweight family admin for shared wedding content; `/thiep/[token]` must never render admin controls.
+- `/` is the public preview invitation, `/admin` contains the family tools, and `/thiep/[token]` must never render creator or admin controls.
 - Current stack: Next.js App Router, TypeScript, Tailwind CSS, GSAP, Prisma, PostgreSQL, and Zod.
 - Target hosting: Supabase PostgreSQL and Vercel.
 - Prioritize mobile-first layout, fast loading, beautiful local imagery, accessible interactions, and restrained animation.

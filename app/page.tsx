@@ -17,5 +17,5 @@ export const metadata: Metadata = {
 
 export default async function Home() {
   const content = await getWeddingContent();
-  return <WeddingInvitation content={content} showCreator showAdmin />;
+  return <WeddingInvitation content={content} />;
 }

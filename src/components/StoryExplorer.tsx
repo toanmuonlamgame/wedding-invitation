@@ -44,6 +44,22 @@ export function StoryExplorer({ chapters }: StoryExplorerProps) {
         return;
       }
 
+      if (event.key === "ArrowLeft") {
+        event.preventDefault();
+        setSelectedIndex((index) =>
+          index === null ? null : (index - 1 + chapters.length) % chapters.length,
+        );
+        return;
+      }
+
+      if (event.key === "ArrowRight") {
+        event.preventDefault();
+        setSelectedIndex((index) =>
+          index === null ? null : (index + 1) % chapters.length,
+        );
+        return;
+      }
+
       if (event.key !== "Tab" || !dialogRef.current) {
         return;
       }
@@ -75,7 +91,7 @@ export function StoryExplorer({ chapters }: StoryExplorerProps) {
       document.body.style.overflow = previousOverflow;
       document.removeEventListener("keydown", handleKeyDown);
     };
-  }, [selectedIndex]);
+  }, [chapters.length, selectedIndex]);
 
   function openDialog(index: number) {
     setSelectedIndex(index);
@@ -137,7 +153,7 @@ export function StoryExplorer({ chapters }: StoryExplorerProps) {
                 type="button"
                 onClick={() => openDialog(index)}
               >
-                Xem câu chuyện
+                Đọc chương
               </button>
             </div>
           </article>
@@ -189,6 +205,35 @@ export function StoryExplorer({ chapters }: StoryExplorerProps) {
                 <p className="placeholder-label">Nội dung mẫu chờ cập nhật</p>
               ) : null}
               <p className="story-full-text">{selectedChapter.fullStory}</p>
+              <nav className="story-reader-nav" aria-label="Điều hướng chương">
+                <button
+                  className="text-button"
+                  type="button"
+                  onClick={() =>
+                    setSelectedIndex((index) =>
+                      index === null
+                        ? 0
+                        : (index - 1 + chapters.length) % chapters.length,
+                    )
+                  }
+                >
+                  ← Chương trước
+                </button>
+                <span aria-live="polite">
+                  {(selectedIndex ?? 0) + 1} / {chapters.length}
+                </span>
+                <button
+                  className="text-button"
+                  type="button"
+                  onClick={() =>
+                    setSelectedIndex((index) =>
+                      index === null ? 0 : (index + 1) % chapters.length,
+                    )
+                  }
+                >
+                  Chương sau →
+                </button>
+              </nav>
             </article>
           </div>
         </div>
