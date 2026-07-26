@@ -13,13 +13,14 @@ This version has breaking changes — APIs, conventions, and file structure may 
 - Current stack: Next.js App Router, TypeScript, Tailwind CSS, GSAP, Prisma, PostgreSQL, and Zod.
 - Target hosting: Supabase PostgreSQL and Vercel.
 - Prioritize mobile-first layout, fast loading, beautiful local imagery, accessible interactions, and restrained animation.
-- Do not build accounts, payments, RSVP, multiple templates, or a complex dashboard.
+- Do not build accounts, payments, multiple templates, or a complex dashboard.
 
 ## Delivery phases
 
 - Commit 1: completed static wedding invitation.
 - Commit 2: GSAP, full-screen cover, music controls, and mobile polish.
 - Commit 3: database persistence, personalized invitation links, advanced effects, and production readiness.
+- Commit 4: public wedding wishes, per-invitation RSVP, admin moderation, and field-level validation.
 
 ## Commit 3 boundaries
 

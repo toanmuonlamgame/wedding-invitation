@@ -2076,7 +2076,234 @@ a {
   }
 }
 
+.field-error {
+  display: block;
+  margin: 0.35rem 0 0;
+  color: #9b3e36;
+  font-size: 0.75rem;
+  font-weight: 500;
+  line-height: 1.45;
+}
+
+input[aria-invalid="true"],
+textarea[aria-invalid="true"],
+select[aria-invalid="true"],
+fieldset[aria-invalid="true"] {
+  border-color: #a94b42 !important;
+  outline-color: #a94b42;
+}
+
+.wishes-section {
+  background:
+    radial-gradient(circle at 15% 10%, rgba(177, 138, 81, 0.09), transparent 35%),
+    var(--paper);
+}
+
+.wishes-list {
+  display: grid;
+  gap: 1rem;
+  max-width: 52rem;
+  margin-inline: auto;
+}
+
+.wish-note {
+  margin: 0;
+  padding: 1.55rem 1.35rem;
+  border-top: 1px solid var(--gold);
+  background: rgba(255, 253, 248, 0.72);
+}
+
+.wish-note > p {
+  margin: 0;
+  color: var(--forest-deep);
+  font-family: var(--font-display), serif;
+  font-size: 1.45rem;
+  line-height: 1.45;
+}
+
+.wish-note footer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem 1rem;
+  justify-content: space-between;
+  margin-top: 1rem;
+  color: var(--muted);
+  font-size: 0.73rem;
+}
+
+.wishes-empty {
+  max-width: 38rem;
+  margin: 0 auto;
+  padding: 1.4rem;
+  border-block: 1px solid var(--line);
+  color: var(--muted);
+  text-align: center;
+}
+
+.wish-form {
+  display: grid;
+  gap: 1.15rem;
+  max-width: 42rem;
+  margin: 3rem auto 0;
+  padding: 1.5rem;
+  border: 1px solid var(--line);
+  background: rgba(255, 253, 248, 0.75);
+}
+
+.wish-form h3 {
+  margin: 0;
+  font-family: var(--font-display), serif;
+  font-size: 1.8rem;
+  line-height: 1.2;
+}
+
+.rsvp-section {
+  background: var(--forest-deep);
+  color: var(--white);
+}
+
+.rsvp-shell {
+  display: grid;
+  gap: 2rem;
+  max-width: 58rem;
+}
+
+.rsvp-recipient {
+  color: rgba(255, 253, 248, 0.78);
+}
+
+.rsvp-form {
+  display: grid;
+  gap: 1.2rem;
+  padding: 1.5rem;
+  background: var(--paper);
+  color: var(--ink);
+}
+
+.rsvp-options {
+  display: grid;
+  gap: 0.75rem;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.rsvp-options legend {
+  margin-bottom: 0.55rem;
+  font-weight: 600;
+}
+
+.rsvp-options label {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+  min-height: 3.25rem;
+  padding: 0.7rem 0.9rem;
+  border: 1px solid var(--line);
+  cursor: pointer;
+}
+
+.rsvp-options label[data-selected="true"] {
+  border-color: var(--forest);
+  background: var(--sage-soft);
+}
+
+.rsvp-options input {
+  width: 1.1rem;
+  height: 1.1rem;
+  accent-color: var(--forest);
+}
+
+.admin-engagement {
+  display: grid;
+  gap: 1.25rem;
+}
+
+.admin-engagement h3 {
+  margin: 0;
+  font-family: var(--font-display), serif;
+  font-size: clamp(1.8rem, 5vw, 2.7rem);
+  line-height: 1.15;
+}
+
+.admin-engagement-list {
+  display: grid;
+  gap: 1rem;
+}
+
+.admin-engagement-item {
+  min-width: 0;
+  padding: 1.2rem;
+  border: 1px solid var(--line);
+  background: var(--white);
+  overflow-wrap: anywhere;
+}
+
+.admin-engagement-item > p,
+.admin-engagement-item > small {
+  margin: 0.65rem 0 0;
+}
+
+.admin-engagement-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem 1rem;
+  justify-content: space-between;
+  color: var(--muted);
+  font-size: 0.78rem;
+}
+
+.admin-engagement-meta strong {
+  color: var(--ink);
+  font-size: 0.92rem;
+}
+
+.rsvp-summary {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.rsvp-summary > div {
+  display: grid;
+  align-content: start;
+  min-width: 0;
+  padding: 1rem;
+  border-top: 1px solid var(--gold);
+  background: var(--white);
+}
+
+.rsvp-summary strong {
+  font-family: var(--font-display), serif;
+  font-size: 2rem;
+  line-height: 1;
+}
+
+.rsvp-summary span {
+  margin-top: 0.45rem;
+  color: var(--muted);
+  font-size: 0.7rem;
+  line-height: 1.35;
+}
+
 @media (min-width: 40rem) {
+  .wishes-list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .wish-form,
+  .rsvp-form {
+    padding: 2rem;
+  }
+
+  .rsvp-summary {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+
+  .admin-engagement-list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
   .section {
     padding: 7.5rem 2rem;
   }

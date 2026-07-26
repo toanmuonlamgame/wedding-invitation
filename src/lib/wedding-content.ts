@@ -14,32 +14,71 @@ const dateTimeSchema = z
     (value) =>
       /(?:Z|[+-]\d{2}:\d{2})$/.test(value) &&
       !Number.isNaN(Date.parse(value)),
-    "Ngày giờ phải là ISO có timezone.",
+    "Ngày giờ phải đúng định dạng.",
   );
 const internalImageSchema = z
   .string()
   .trim()
-  .min(12)
+  .min(12, "Đường dẫn ảnh phải bắt đầu bằng /images/.")
   .max(200)
-  .regex(/^\/images\/[A-Za-z0-9._/-]+$/)
+  .regex(
+    /^\/images\/[A-Za-z0-9._/-]+$/,
+    "Đường dẫn ảnh phải bắt đầu bằng /images/ và không chứa ký tự lạ.",
+  )
   .refine((value) => !value.includes(".."), "Đường dẫn ảnh không hợp lệ.");
 const mapsUrlSchema = z
   .string()
   .trim()
-  .url()
+  .url("Link Google Maps không hợp lệ.")
   .max(500)
-  .refine((value) => value.startsWith("https://"), "Maps URL phải dùng HTTPS.");
+  .refine(
+    (value) => /^https?:\/\//.test(value),
+    "Link Google Maps không hợp lệ.",
+  );
+
+function emptyStringToNull(value: unknown) {
+  return typeof value === "string" && value.trim() === "" ? null : value;
+}
+
+function emptyStringToUndefined(value: unknown) {
+  return typeof value === "string" && value.trim() === "" ? undefined : value;
+}
+
+const nullableDateTimeSchema = z.preprocess(
+  emptyStringToNull,
+  dateTimeSchema.nullable(),
+);
+const nullableMapsUrlSchema = z.preprocess(
+  emptyStringToNull,
+  mapsUrlSchema.nullable(),
+);
+const optionalNoteSchema = z.preprocess(
+  emptyStringToUndefined,
+  z.string().trim().max(300).optional(),
+);
+const optionalImageSchema = z.preprocess(
+  emptyStringToUndefined,
+  internalImageSchema.optional(),
+);
 
 export const weddingEventSchema = z
   .object({
     id: idSchema,
-    title: z.string().trim().min(1).max(100),
-    eventType: z.string().trim().min(1).max(80),
-    dateTime: dateTimeSchema.nullable(),
-    venueName: z.string().trim().min(1).max(160),
-    address: z.string().trim().min(1).max(300),
-    mapsUrl: mapsUrlSchema.nullable(),
-    note: z.string().trim().max(300).optional(),
+    title: z.string().trim().min(1, "Vui lòng nhập tiêu đề.").max(100),
+    eventType: z
+      .string()
+      .trim()
+      .min(1, "Vui lòng nhập loại sự kiện.")
+      .max(80),
+    dateTime: nullableDateTimeSchema,
+    venueName: z
+      .string()
+      .trim()
+      .min(1, "Vui lòng nhập tên địa điểm.")
+      .max(160),
+    address: z.string().trim().min(1, "Vui lòng nhập địa chỉ.").max(300),
+    mapsUrl: nullableMapsUrlSchema,
+    note: optionalNoteSchema,
     available: z.boolean(),
   })
   .strict();
@@ -51,8 +90,12 @@ export const storyChapterSchema = z
     period: z.string().trim().min(1).max(100),
     title: z.string().trim().min(1).max(120),
     summary: z.string().trim().min(1).max(400),
-    fullStory: z.string().trim().min(1).max(4_000),
-    imageSrc: internalImageSchema.optional(),
+    fullStory: z
+      .string()
+      .trim()
+      .min(10, "Nội dung chương phải có ít nhất 10 ký tự.")
+      .max(4_000),
+    imageSrc: optionalImageSchema,
     imageAlt: z.string().trim().min(1).max(200),
     available: z.boolean(),
     visible: z.boolean(),
@@ -74,8 +117,12 @@ export const galleryImageSchema = z
 
 export const weddingContentSchema = z
   .object({
-    weddingDateTime: dateTimeSchema.nullable(),
-    expiredCountdownMessage: z.string().trim().min(1).max(200),
+    weddingDateTime: nullableDateTimeSchema,
+    expiredCountdownMessage: z
+      .string()
+      .trim()
+      .min(1, "Vui lòng nhập thông điệp sau countdown.")
+      .max(200),
     venues: z.array(weddingEventSchema).min(1).max(8),
     storyChapters: z.array(storyChapterSchema).max(20),
     galleryImages: z.array(galleryImageSchema).max(40),

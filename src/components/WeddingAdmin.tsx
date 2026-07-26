@@ -2,6 +2,11 @@
 
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
+import {
+  AdminRsvpManager,
+  AdminWishManager,
+} from "@/src/components/AdminEngagement";
+import type { FieldErrors } from "@/src/types/engagement";
 import type {
   GalleryMoment,
   LoveStoryChapter,
@@ -19,10 +24,97 @@ type AdminTab =
   | "general"
   | "venues"
   | "story"
-  | "album";
+  | "album"
+  | "wishes"
+  | "rsvps";
 
 function cloneContent(content: WeddingContentData): WeddingContentData {
   return JSON.parse(JSON.stringify(content)) as WeddingContentData;
+}
+
+function normalizeDateTime(value: string | null) {
+  const normalized = value?.trim();
+  if (!normalized) {
+    return null;
+  }
+
+  const vietnameseDateTime = normalized.match(
+    /^(\d{2})\/(\d{2})\/(\d{4})T(\d{2}):(\d{2})(?::(\d{2}))?$/,
+  );
+  if (vietnameseDateTime) {
+    const [, day, month, year, hour, minute, second = "00"] =
+      vietnameseDateTime;
+    return `${year}-${month}-${day}T${hour}:${minute}:${second}+07:00`;
+  }
+
+  if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(normalized)) {
+    return `${normalized}:00+07:00`;
+  }
+
+  if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}$/.test(normalized)) {
+    return `${normalized}+07:00`;
+  }
+
+  return normalized;
+}
+
+function normalizeContent(content: WeddingContentData): WeddingContentData {
+  return {
+    weddingDateTime: normalizeDateTime(content.weddingDateTime),
+    expiredCountdownMessage: content.expiredCountdownMessage.trim(),
+    albumIntervalMs: Number(content.albumIntervalMs),
+    venues: content.venues.map((venue) => ({
+      ...venue,
+      id: venue.id.trim(),
+      title: venue.title.trim(),
+      eventType: venue.eventType.trim(),
+      dateTime: normalizeDateTime(venue.dateTime),
+      venueName: venue.venueName.trim(),
+      address: venue.address.trim(),
+      mapsUrl: venue.mapsUrl?.trim() || null,
+      note: venue.note?.trim() || undefined,
+    })),
+    storyChapters: content.storyChapters.map((chapter) => ({
+      ...chapter,
+      id: chapter.id.trim(),
+      chapterNumber: chapter.chapterNumber.trim(),
+      period: chapter.period.trim(),
+      title: chapter.title.trim(),
+      summary: chapter.summary.trim(),
+      fullStory: chapter.fullStory.trim(),
+      imageSrc: chapter.imageSrc?.trim() || undefined,
+      imageAlt: chapter.imageAlt.trim(),
+    })),
+    galleryImages: content.galleryImages.map((image) => ({
+      ...image,
+      id: image.id.trim(),
+      src: image.src.trim(),
+      alt: image.alt.trim(),
+      caption: image.caption.trim(),
+    })),
+  };
+}
+
+function tabForField(path: string): AdminTab {
+  if (path.startsWith("venues.")) return "venues";
+  if (path.startsWith("storyChapters.")) return "story";
+  if (path.startsWith("galleryImages.")) return "album";
+  return "general";
+}
+
+function AdminFieldError({
+  errors,
+  path,
+}: {
+  errors: FieldErrors;
+  path: string;
+}) {
+  const message = errors[path];
+  return message ? (
+    <span className="field-error" id={`admin-error-${path.replaceAll(".", "-")}`}>
+      {message}
+    </span>
+  ) : null;
 }
 
 function moveItem<T>(items: T[], index: number, direction: -1 | 1) {
@@ -92,7 +184,28 @@ export function WeddingAdmin({
   const [activeTab, setActiveTab] = useState<AdminTab>("overview");
   const [status, setStatus] = useState("");
   const [isSaving, setIsSaving] = useState(false);
+  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const secretInputRef = useRef<HTMLInputElement>(null);
+
+  function clearFieldError(path: string) {
+    setFieldErrors((current) => {
+      if (!current[path]) return current;
+      const next = { ...current };
+      delete next[path];
+      return next;
+    });
+  }
+
+  function fieldProps(path: string) {
+    const hasError = Boolean(fieldErrors[path]?.length);
+    return {
+      "aria-describedby": hasError
+        ? `admin-error-${path.replaceAll(".", "-")}`
+        : undefined,
+      "aria-invalid": hasError,
+      "data-field-path": path,
+    } as const;
+  }
 
   useEffect(() => {
     if (isUnlockOpen) {
@@ -159,19 +272,36 @@ export function WeddingAdmin({
     }
 
     setIsSaving(true);
+    setFieldErrors({});
     setStatus("Đang lưu nội dung chung…");
 
     try {
+      const normalized = normalizeContent(draft);
       const response = await fetch("/api/wedding-content", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...draft, creatorSecret }),
+        body: JSON.stringify({ ...normalized, creatorSecret }),
       });
       const payload = (await response.json()) as
         | WeddingContentData
-        | { message?: unknown };
+        | { fieldErrors?: FieldErrors; message?: unknown };
 
       if (!response.ok) {
+        if ("fieldErrors" in payload && payload.fieldErrors) {
+          const nextErrors = payload.fieldErrors;
+          setFieldErrors(nextErrors);
+          const firstPath = Object.keys(nextErrors)[0];
+          if (firstPath) {
+            setActiveTab(tabForField(firstPath));
+            window.requestAnimationFrame(() => {
+              document
+                .querySelector<HTMLElement>(
+                  `[data-field-path="${CSS.escape(firstPath)}"]`,
+                )
+                ?.focus();
+            });
+          }
+        }
         const message =
           "message" in payload && typeof payload.message === "string"
             ? payload.message
@@ -182,6 +312,7 @@ export function WeddingAdmin({
       const saved = payload as WeddingContentData;
       setSavedContent(cloneContent(saved));
       setDraft(cloneContent(saved));
+      setFieldErrors({});
       setStatus("Đã lưu. Các link thiệp sẽ dùng nội dung mới khi tải lại.");
       router.refresh();
     } catch (error) {
@@ -197,6 +328,7 @@ export function WeddingAdmin({
 
   function handleCancel() {
     setDraft(cloneContent(savedContent));
+    setFieldErrors({});
     setStatus("Đã khôi phục nội dung từ lần lưu gần nhất.");
   }
 
@@ -208,6 +340,9 @@ export function WeddingAdmin({
   }
 
   function updateVenue(index: number, patch: Partial<WeddingEvent>) {
+    Object.keys(patch).forEach((key) =>
+      clearFieldError(`venues.${index}.${key}`),
+    );
     setDraft((current) => ({
       ...current,
       venues: current.venues.map((venue, venueIndex) =>
@@ -217,6 +352,9 @@ export function WeddingAdmin({
   }
 
   function updateChapter(index: number, patch: Partial<LoveStoryChapter>) {
+    Object.keys(patch).forEach((key) =>
+      clearFieldError(`storyChapters.${index}.${key}`),
+    );
     setDraft((current) => ({
       ...current,
       storyChapters: current.storyChapters.map((chapter, chapterIndex) =>
@@ -226,6 +364,9 @@ export function WeddingAdmin({
   }
 
   function updateImage(index: number, patch: Partial<GalleryMoment>) {
+    Object.keys(patch).forEach((key) =>
+      clearFieldError(`galleryImages.${index}.${key}`),
+    );
     setDraft((current) => ({
       ...current,
       galleryImages: current.galleryImages.map((image, imageIndex) =>
@@ -279,6 +420,8 @@ export function WeddingAdmin({
                 ["venues", "Địa điểm"],
                 ["story", "Quản lý câu chuyện"],
                 ["album", "Quản lý album"],
+                ["wishes", "Lời chúc"],
+                ["rsvps", "RSVP"],
               ] as const
             ).map(([tab, label]) => (
               <button
@@ -319,15 +462,18 @@ export function WeddingAdmin({
                   </label>
                   <input
                     id="adminWeddingDateTime"
+                    {...fieldProps("weddingDateTime")}
                     value={draft.weddingDateTime ?? ""}
                     placeholder="2027-01-20T10:30:00+07:00"
-                    onChange={(event) =>
+                    onChange={(event) => {
+                      clearFieldError("weddingDateTime");
                       setDraft((current) => ({
                         ...current,
                         weddingDateTime: event.target.value || null,
-                      }))
-                    }
+                      }));
+                    }}
                   />
+                  <AdminFieldError errors={fieldErrors} path="weddingDateTime" />
                 </div>
                 <div className="field">
                   <label htmlFor="adminExpiredMessage">
@@ -335,14 +481,20 @@ export function WeddingAdmin({
                   </label>
                   <input
                     id="adminExpiredMessage"
+                    {...fieldProps("expiredCountdownMessage")}
                     value={draft.expiredCountdownMessage}
                     maxLength={200}
-                    onChange={(event) =>
+                    onChange={(event) => {
+                      clearFieldError("expiredCountdownMessage");
                       setDraft((current) => ({
                         ...current,
                         expiredCountdownMessage: event.target.value,
-                      }))
-                    }
+                      }));
+                    }}
+                  />
+                  <AdminFieldError
+                    errors={fieldErrors}
+                    path="expiredCountdownMessage"
                   />
                 </div>
                 <div className="field">
@@ -351,18 +503,21 @@ export function WeddingAdmin({
                   </label>
                   <input
                     id="adminAlbumInterval"
+                    {...fieldProps("albumIntervalMs")}
                     type="number"
                     min={4000}
                     max={10000}
                     step={500}
                     value={draft.albumIntervalMs}
-                    onChange={(event) =>
+                    onChange={(event) => {
+                      clearFieldError("albumIntervalMs");
                       setDraft((current) => ({
                         ...current,
                         albumIntervalMs: Number(event.target.value),
-                      }))
-                    }
+                      }));
+                    }}
                   />
+                  <AdminFieldError errors={fieldErrors} path="albumIntervalMs" />
                 </div>
               </div>
             ) : null}
@@ -378,24 +533,35 @@ export function WeddingAdmin({
                       <label>
                         Tiêu đề
                         <input
+                          {...fieldProps(`venues.${index}.title`)}
                           value={venue.title}
                           onChange={(event) =>
                             updateVenue(index, { title: event.target.value })
                           }
                         />
+                        <AdminFieldError
+                          errors={fieldErrors}
+                          path={`venues.${index}.title`}
+                        />
                       </label>
                       <label>
                         Loại sự kiện
                         <input
+                          {...fieldProps(`venues.${index}.eventType`)}
                           value={venue.eventType}
                           onChange={(event) =>
                             updateVenue(index, { eventType: event.target.value })
                           }
                         />
+                        <AdminFieldError
+                          errors={fieldErrors}
+                          path={`venues.${index}.eventType`}
+                        />
                       </label>
                       <label>
                         Ngày giờ ISO
                         <input
+                          {...fieldProps(`venues.${index}.dateTime`)}
                           value={venue.dateTime ?? ""}
                           onChange={(event) =>
                             updateVenue(index, {
@@ -403,28 +569,43 @@ export function WeddingAdmin({
                             })
                           }
                         />
+                        <AdminFieldError
+                          errors={fieldErrors}
+                          path={`venues.${index}.dateTime`}
+                        />
                       </label>
                       <label>
                         Tên địa điểm
                         <input
+                          {...fieldProps(`venues.${index}.venueName`)}
                           value={venue.venueName}
                           onChange={(event) =>
                             updateVenue(index, { venueName: event.target.value })
                           }
                         />
+                        <AdminFieldError
+                          errors={fieldErrors}
+                          path={`venues.${index}.venueName`}
+                        />
                       </label>
                       <label className="admin-wide-field">
                         Địa chỉ
                         <textarea
+                          {...fieldProps(`venues.${index}.address`)}
                           value={venue.address}
                           onChange={(event) =>
                             updateVenue(index, { address: event.target.value })
                           }
                         />
+                        <AdminFieldError
+                          errors={fieldErrors}
+                          path={`venues.${index}.address`}
+                        />
                       </label>
                       <label className="admin-wide-field">
                         Google Maps HTTPS
                         <input
+                          {...fieldProps(`venues.${index}.mapsUrl`)}
                           value={venue.mapsUrl ?? ""}
                           onChange={(event) =>
                             updateVenue(index, {
@@ -432,14 +613,23 @@ export function WeddingAdmin({
                             })
                           }
                         />
+                        <AdminFieldError
+                          errors={fieldErrors}
+                          path={`venues.${index}.mapsUrl`}
+                        />
                       </label>
                       <label className="admin-wide-field">
                         Ghi chú
                         <textarea
+                          {...fieldProps(`venues.${index}.note`)}
                           value={venue.note ?? ""}
                           onChange={(event) =>
                             updateVenue(index, { note: event.target.value })
                           }
+                        />
+                        <AdminFieldError
+                          errors={fieldErrors}
+                          path={`venues.${index}.note`}
                         />
                       </label>
                       <label className="admin-checkbox">
@@ -507,6 +697,7 @@ export function WeddingAdmin({
                       <label>
                         Số chương
                         <input
+                          {...fieldProps(`storyChapters.${index}.chapterNumber`)}
                           value={chapter.chapterNumber}
                           onChange={(event) =>
                             updateChapter(index, {
@@ -514,38 +705,58 @@ export function WeddingAdmin({
                             })
                           }
                         />
+                        <AdminFieldError
+                          errors={fieldErrors}
+                          path={`storyChapters.${index}.chapterNumber`}
+                        />
                       </label>
                       <label>
                         Mốc thời gian
                         <input
+                          {...fieldProps(`storyChapters.${index}.period`)}
                           value={chapter.period}
                           onChange={(event) =>
                             updateChapter(index, { period: event.target.value })
                           }
                         />
+                        <AdminFieldError
+                          errors={fieldErrors}
+                          path={`storyChapters.${index}.period`}
+                        />
                       </label>
                       <label className="admin-wide-field">
                         Tiêu đề
                         <input
+                          {...fieldProps(`storyChapters.${index}.title`)}
                           value={chapter.title}
                           onChange={(event) =>
                             updateChapter(index, { title: event.target.value })
                           }
                         />
+                        <AdminFieldError
+                          errors={fieldErrors}
+                          path={`storyChapters.${index}.title`}
+                        />
                       </label>
                       <label className="admin-wide-field">
                         Tóm tắt
                         <textarea
+                          {...fieldProps(`storyChapters.${index}.summary`)}
                           value={chapter.summary}
                           onChange={(event) =>
                             updateChapter(index, { summary: event.target.value })
                           }
+                        />
+                        <AdminFieldError
+                          errors={fieldErrors}
+                          path={`storyChapters.${index}.summary`}
                         />
                       </label>
                       <label className="admin-wide-field">
                         Nội dung đầy đủ
                         <textarea
                           className="admin-story-textarea"
+                          {...fieldProps(`storyChapters.${index}.fullStory`)}
                           value={chapter.fullStory}
                           onChange={(event) =>
                             updateChapter(index, {
@@ -553,10 +764,15 @@ export function WeddingAdmin({
                             })
                           }
                         />
+                        <AdminFieldError
+                          errors={fieldErrors}
+                          path={`storyChapters.${index}.fullStory`}
+                        />
                       </label>
                       <label>
                         Ảnh từ album
                         <select
+                          {...fieldProps(`storyChapters.${index}.imageSrc`)}
                           value={chapter.imageSrc ?? ""}
                           onChange={(event) =>
                             updateChapter(index, {
@@ -571,16 +787,25 @@ export function WeddingAdmin({
                             </option>
                           ))}
                         </select>
+                        <AdminFieldError
+                          errors={fieldErrors}
+                          path={`storyChapters.${index}.imageSrc`}
+                        />
                       </label>
                       <label>
                         Alt text
                         <input
+                          {...fieldProps(`storyChapters.${index}.imageAlt`)}
                           value={chapter.imageAlt}
                           onChange={(event) =>
                             updateChapter(index, {
                               imageAlt: event.target.value,
                             })
                           }
+                        />
+                        <AdminFieldError
+                          errors={fieldErrors}
+                          path={`storyChapters.${index}.imageAlt`}
                         />
                       </label>
                       <label className="admin-checkbox">
@@ -668,28 +893,43 @@ export function WeddingAdmin({
                       <label className="admin-wide-field">
                         Đường dẫn trong public/images
                         <input
+                          {...fieldProps(`galleryImages.${index}.src`)}
                           value={image.src}
                           onChange={(event) =>
                             updateImage(index, { src: event.target.value })
                           }
                         />
+                        <AdminFieldError
+                          errors={fieldErrors}
+                          path={`galleryImages.${index}.src`}
+                        />
                       </label>
                       <label>
                         Chú thích
                         <input
+                          {...fieldProps(`galleryImages.${index}.caption`)}
                           value={image.caption}
                           onChange={(event) =>
                             updateImage(index, { caption: event.target.value })
                           }
                         />
+                        <AdminFieldError
+                          errors={fieldErrors}
+                          path={`galleryImages.${index}.caption`}
+                        />
                       </label>
                       <label>
                         Alt text
                         <input
+                          {...fieldProps(`galleryImages.${index}.alt`)}
                           value={image.alt}
                           onChange={(event) =>
                             updateImage(index, { alt: event.target.value })
                           }
+                        />
+                        <AdminFieldError
+                          errors={fieldErrors}
+                          path={`galleryImages.${index}.alt`}
                         />
                       </label>
                       <label className="admin-checkbox">
@@ -788,6 +1028,14 @@ export function WeddingAdmin({
                   Thêm ảnh
                 </button>
               </div>
+            ) : null}
+
+            {activeTab === "wishes" ? (
+              <AdminWishManager creatorSecret={creatorSecret} />
+            ) : null}
+
+            {activeTab === "rsvps" ? (
+              <AdminRsvpManager creatorSecret={creatorSecret} />
             ) : null}
           </div>
 

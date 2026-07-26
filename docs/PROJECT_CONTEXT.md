@@ -10,7 +10,7 @@ This repository contains a single family wedding invitation for approximately 50
 
 ## Product flow
 
-The main page is the public wedding invitation and contains the invitation creator near the end. The separate `/admin` route unlocks with the server-only creator secret and contains only shared countdown, venue, story, and gallery editors plus a preview. A successful invitation request stores only guest personalization and returns a `/thiep/[token]` link. That route always reads the latest shared content and renders a read-only guest experience without creator or admin controls.
+The main page is the public wedding invitation, shows visible wedding wishes, and contains the invitation creator near the end. The separate `/admin` route unlocks with the server-only creator secret and contains shared-content editors, wish moderation, RSVP reporting, and a preview. A successful invitation request stores only guest personalization and returns a `/thiep/[token]` link. That route always reads the latest shared content, lets that invitation submit a wish and update its own RSVP, and never renders creator or admin controls.
 
 ## Technology
 
@@ -24,13 +24,23 @@ The main page is the public wedding invitation and contains the invitation creat
 
 - Mobile-first, fast loading, high-quality imagery, accessible controls, and restrained animation
 - No accounts, payments, multiple invitation templates, or complex dashboard
-- No RSVP, invitation editing/deleting, analytics, or public guest list in Commit 3
+- No invitation editing/deleting, analytics, or public guest/RSVP list
 
 ## Delivery status
 
 - Commit 1: completed static wedding invitation.
 - Commit 2: added GSAP, full-screen cover, music controls, and mobile polish.
 - Commit 3: adds database persistence, personalized invitation links, advanced visual effects, and production readiness.
+- Commit 4: adds public wishes, per-invitation RSVP, admin moderation/reporting, and field-level admin validation.
+
+## Commit 4 architecture
+
+- `WeddingWish` optionally belongs to an invitation; only visible wishes are returned publicly.
+- `Rsvp` belongs to exactly one invitation and is updated by upsert through that invitation token.
+- `/thiep/[token]` may submit a wish and read/update only its own RSVP.
+- `/admin` uses the existing server-side creator secret to moderate wishes and read the full RSVP summary.
+- Validation APIs return dot-path `fieldErrors`; admin inputs map those errors inline and keep the draft intact.
+- `prisma/migrations/20260726000000_add_wishes_and_rsvp/migration.sql` is source-only and must be applied manually.
 
 ## Commit 3 architecture
 

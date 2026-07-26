@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { WeddingInvitation } from "@/src/components/WeddingInvitation";
+import { getPublicWishes } from "@/src/lib/engagement";
 import { getWeddingContent } from "@/src/lib/wedding-content";
 
 export const dynamic = "force-dynamic";
@@ -16,6 +17,11 @@ export const metadata: Metadata = {
 };
 
 export default async function Home() {
-  const content = await getWeddingContent();
-  return <WeddingInvitation content={content} showCreator />;
+  const [content, wishes] = await Promise.all([
+    getWeddingContent(),
+    getPublicWishes(),
+  ]);
+  return (
+    <WeddingInvitation content={content} wishes={wishes} showCreator />
+  );
 }

@@ -5,6 +5,10 @@ import {
   saveWeddingContent,
   weddingContentUpdateSchema,
 } from "@/src/lib/wedding-content";
+import {
+  readJsonBody,
+  validationErrorResponse,
+} from "@/src/lib/api-validation";
 import { hasValidCreatorSecret } from "@/src/lib/invitations";
 
 export const runtime = "nodejs";
@@ -22,7 +26,9 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   try {
-    const parsed = adminVerificationSchema.safeParse(await request.json());
+    const body = await readJsonBody(request);
+    if (!body.success) return body.response;
+    const parsed = adminVerificationSchema.safeParse(body.data);
 
     if (!parsed.success) {
       return Response.json(
@@ -49,13 +55,12 @@ export async function POST(request: NextRequest) {
 
 export async function PUT(request: NextRequest) {
   try {
-    const parsed = weddingContentUpdateSchema.safeParse(await request.json());
+    const body = await readJsonBody(request);
+    if (!body.success) return body.response;
+    const parsed = weddingContentUpdateSchema.safeParse(body.data);
 
     if (!parsed.success) {
-      return Response.json(
-        { message: "Vui lòng kiểm tra lại toàn bộ nội dung." },
-        { status: 400 },
-      );
+      return validationErrorResponse(parsed.error);
     }
 
     if (!isAuthorized(parsed.data.creatorSecret)) {

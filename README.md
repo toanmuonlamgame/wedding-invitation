@@ -73,12 +73,16 @@ Mã tạo thiệp không được lưu trong database, URL, localStorage hoặc 
 ## Routes
 
 - `/`: thiệp mẫu công khai và form tạo thiệp cá nhân, không có điều khiển quản trị nội dung chung.
-- `/admin`: chỉ quản trị nội dung chung và preview sau khi xác thực.
+- `/admin`: quản trị nội dung chung, lời chúc, danh sách RSVP và preview sau khi xác thực.
 - `POST /api/invitations`: endpoint duy nhất để tạo thiệp.
 - `GET /api/wedding-content`: nội dung chung cần để render thiệp.
 - `POST /api/wedding-content`: xác thực mã quản trị, không lưu secret.
 - `PUT /api/wedding-content`: cập nhật singleton nội dung chung, bắt buộc secret.
-- `/thiep/[token]`: thiệp cá nhân chỉ đọc, render động.
+- `GET /api/wishes`: chỉ trả các lời chúc đang hiển thị.
+- `POST /api/invitations/[token]/wishes`: gửi lời chúc từ đúng thiệp khách.
+- `GET/PUT /api/invitations/[token]/rsvp`: đọc hoặc cập nhật RSVP của đúng thiệp khách.
+- `/api/admin/wishes` và `/api/admin/rsvps`: bắt buộc mã quản trị ở server.
+- `/thiep/[token]`: thiệp cá nhân render động, có gửi lời chúc và RSVP nhưng không có công cụ creator/admin.
 - Token sai định dạng hoặc không tồn tại trả về trang 404.
 
 Không có endpoint liệt kê, chỉnh sửa hoặc xóa invitation.
@@ -86,7 +90,8 @@ Không có endpoint liệt kê, chỉnh sửa hoặc xóa invitation.
 ## Prisma
 
 Schema nằm tại `prisma/schema.prisma`. Migration thêm `WeddingContent` đã có
-source tại `prisma/migrations/20260725000000_add_wedding_content`. Các lệnh chỉ
+source tại `prisma/migrations/20260725000000_add_wedding_content`. Migration lời chúc
+và RSVP nằm tại `prisma/migrations/20260726000000_add_wishes_and_rsvp`. Các lệnh chỉ
 kiểm tra/generate, không kết nối database:
 
 ```bash

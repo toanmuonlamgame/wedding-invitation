@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { WeddingInvitation } from "@/src/components/WeddingInvitation";
 import { getInvitationByToken } from "@/src/lib/invitations";
+import { getPublicWishes } from "@/src/lib/engagement";
 import { wedding } from "@/src/lib/wedding-data";
 import { getWeddingContent } from "@/src/lib/wedding-content";
 
@@ -43,14 +44,22 @@ export default async function InvitationPage({
   params,
 }: InvitationPageProps) {
   const { token } = await params;
-  const [invitation, content] = await Promise.all([
+  const [invitation, content, wishes] = await Promise.all([
     getInvitationByToken(token),
     getWeddingContent(),
+    getPublicWishes(),
   ]);
 
   if (!invitation) {
     notFound();
   }
 
-  return <WeddingInvitation content={content} invitation={invitation} />;
+  return (
+    <WeddingInvitation
+      content={content}
+      invitation={invitation}
+      invitationToken={token}
+      wishes={wishes}
+    />
+  );
 }

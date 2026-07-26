@@ -16,7 +16,7 @@ export function GallerySection({ images, intervalMs }: GallerySectionProps) {
             eyebrow="Album của chúng mình"
             title="Những khoảnh khắc"
             titleId="gallery-title"
-            description="Một lát cắt dịu dàng từ album cưới, có thể mở rộng để xem trọn từng khoảnh khắc."
+            description="Một lát cắt dịu dàng từ album cưới, tự chuyển qua từng khoảnh khắc theo nhịp nhẹ nhàng."
           />
         </div>
         <div data-gallery-reveal>
