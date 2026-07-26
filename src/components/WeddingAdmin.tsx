@@ -6,6 +6,7 @@ import {
   AdminRsvpManager,
   AdminWishManager,
 } from "@/src/components/AdminEngagement";
+import { MediaUploader } from "@/src/components/MediaUploader";
 import type { FieldErrors } from "@/src/types/engagement";
 import type {
   GalleryMoment,
@@ -73,6 +74,10 @@ function normalizeContent(content: WeddingContentData): WeddingContentData {
       address: venue.address.trim(),
       mapsUrl: venue.mapsUrl?.trim() || null,
       note: venue.note?.trim() || undefined,
+      imageSrc: venue.imageSrc?.trim() || undefined,
+      imageStoragePath: venue.imageStoragePath?.trim() || undefined,
+      imageAlt: venue.imageAlt?.trim() || undefined,
+      showImage: Boolean(venue.showImage),
     })),
     storyChapters: content.storyChapters.map((chapter) => ({
       ...chapter,
@@ -83,12 +88,14 @@ function normalizeContent(content: WeddingContentData): WeddingContentData {
       summary: chapter.summary.trim(),
       fullStory: chapter.fullStory.trim(),
       imageSrc: chapter.imageSrc?.trim() || undefined,
+      imageStoragePath: chapter.imageStoragePath?.trim() || undefined,
       imageAlt: chapter.imageAlt.trim(),
     })),
     galleryImages: content.galleryImages.map((image) => ({
       ...image,
       id: image.id.trim(),
       src: image.src.trim(),
+      storagePath: image.storagePath?.trim() || undefined,
       alt: image.alt.trim(),
       caption: image.caption.trim(),
     })),
@@ -138,6 +145,7 @@ function newVenue(): WeddingEvent {
     address: "Địa chỉ",
     mapsUrl: null,
     note: "",
+    showImage: false,
     available: false,
   };
 }
@@ -632,6 +640,69 @@ export function WeddingAdmin({
                           path={`venues.${index}.note`}
                         />
                       </label>
+                      <div className="admin-wide-field">
+                        <MediaUploader
+                          category="venues"
+                          creatorSecret={creatorSecret}
+                          existingMedia={
+                            venue.imageSrc
+                              ? {
+                                  src: venue.imageSrc,
+                                  storagePath: venue.imageStoragePath,
+                                  alt:
+                                    venue.imageAlt ||
+                                    `Ảnh địa điểm ${venue.venueName}`,
+                                }
+                              : undefined
+                          }
+                          onUploaded={(media, file) =>
+                            updateVenue(index, {
+                              imageSrc: media.publicUrl,
+                              imageStoragePath: media.storagePath,
+                              imageAlt:
+                                venue.imageAlt ||
+                                `Ảnh địa điểm ${venue.venueName || file.name}`,
+                              showImage: true,
+                            })
+                          }
+                          onRemoveMetadata={() =>
+                            updateVenue(index, {
+                              imageSrc: undefined,
+                              imageStoragePath: undefined,
+                              showImage: false,
+                            })
+                          }
+                        />
+                      </div>
+                      <label>
+                        Alt text ảnh địa điểm
+                        <input
+                          {...fieldProps(`venues.${index}.imageAlt`)}
+                          value={venue.imageAlt ?? ""}
+                          onChange={(event) =>
+                            updateVenue(index, {
+                              imageAlt: event.target.value || undefined,
+                            })
+                          }
+                        />
+                        <AdminFieldError
+                          errors={fieldErrors}
+                          path={`venues.${index}.imageAlt`}
+                        />
+                      </label>
+                      <label className="admin-checkbox">
+                        <input
+                          type="checkbox"
+                          checked={venue.showImage}
+                          disabled={!venue.imageSrc}
+                          onChange={(event) =>
+                            updateVenue(index, {
+                              showImage: event.target.checked,
+                            })
+                          }
+                        />
+                        Hiển thị ảnh địa điểm
+                      </label>
                       <label className="admin-checkbox">
                         <input
                           type="checkbox"
@@ -774,11 +845,16 @@ export function WeddingAdmin({
                         <select
                           {...fieldProps(`storyChapters.${index}.imageSrc`)}
                           value={chapter.imageSrc ?? ""}
-                          onChange={(event) =>
+                          onChange={(event) => {
+                            const selectedImage = draft.galleryImages.find(
+                              (image) => image.src === event.target.value,
+                            );
                             updateChapter(index, {
                               imageSrc: event.target.value || undefined,
-                            })
-                          }
+                              imageStoragePath:
+                                selectedImage?.storagePath || undefined,
+                            });
+                          }}
                         >
                           <option value="">Không chọn ảnh</option>
                           {draft.galleryImages.map((image) => (
@@ -792,6 +868,33 @@ export function WeddingAdmin({
                           path={`storyChapters.${index}.imageSrc`}
                         />
                       </label>
+                      <div className="admin-wide-field">
+                        <MediaUploader
+                          category="story"
+                          creatorSecret={creatorSecret}
+                          existingMedia={
+                            chapter.imageSrc
+                              ? {
+                                  src: chapter.imageSrc,
+                                  storagePath: chapter.imageStoragePath,
+                                  alt: chapter.imageAlt,
+                                }
+                              : undefined
+                          }
+                          onUploaded={(media) =>
+                            updateChapter(index, {
+                              imageSrc: media.publicUrl,
+                              imageStoragePath: media.storagePath,
+                            })
+                          }
+                          onRemoveMetadata={() =>
+                            updateChapter(index, {
+                              imageSrc: undefined,
+                              imageStoragePath: undefined,
+                            })
+                          }
+                        />
+                      </div>
                       <label>
                         Alt text
                         <input
@@ -884,26 +987,68 @@ export function WeddingAdmin({
 
             {activeTab === "album" ? (
               <div className="admin-list">
+                <MediaUploader
+                  category="album"
+                  creatorSecret={creatorSecret}
+                  multiple
+                  onUploaded={(media, file) =>
+                    setDraft((current) => ({
+                      ...current,
+                      galleryImages: [
+                        ...current.galleryImages,
+                        {
+                          id: `image-${crypto.randomUUID()}`,
+                          src: media.publicUrl,
+                          storagePath: media.storagePath,
+                          available: true,
+                          alt: file.name.replace(/\.[^.]+$/, "").slice(0, 200),
+                          caption: file.name
+                            .replace(/\.[^.]+$/, "")
+                            .slice(0, 120),
+                          featured: false,
+                          carousel: true,
+                          visible: true,
+                        },
+                      ],
+                    }))
+                  }
+                />
                 {draft.galleryImages.map((image, index) => (
                   <fieldset className="admin-item" key={image.id}>
                     <legend>
                       Ảnh {index + 1}: {image.caption}
                     </legend>
                     <div className="admin-form-grid">
-                      <label className="admin-wide-field">
-                        Đường dẫn trong public/images
-                        <input
-                          {...fieldProps(`galleryImages.${index}.src`)}
-                          value={image.src}
-                          onChange={(event) =>
-                            updateImage(index, { src: event.target.value })
+                      <div className="admin-wide-field">
+                        <MediaUploader
+                          category="album"
+                          creatorSecret={creatorSecret}
+                          existingMedia={{
+                            src: image.src,
+                            storagePath: image.storagePath,
+                            alt: image.alt,
+                          }}
+                          onUploaded={(media) =>
+                            updateImage(index, {
+                              src: media.publicUrl,
+                              storagePath: media.storagePath,
+                              available: true,
+                            })
+                          }
+                          onRemoveMetadata={() =>
+                            setDraft((current) => ({
+                              ...current,
+                              galleryImages: current.galleryImages.filter(
+                                (_, imageIndex) => imageIndex !== index,
+                              ),
+                            }))
                           }
                         />
                         <AdminFieldError
                           errors={fieldErrors}
                           path={`galleryImages.${index}.src`}
                         />
-                      </label>
+                      </div>
                       <label>
                         Chú thích
                         <input

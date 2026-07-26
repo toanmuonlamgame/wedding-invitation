@@ -16,16 +16,56 @@ const dateTimeSchema = z
       !Number.isNaN(Date.parse(value)),
     "Ngày giờ phải đúng định dạng.",
   );
-const internalImageSchema = z
+const imageSourceSchema = z
   .string()
   .trim()
-  .min(12, "Đường dẫn ảnh phải bắt đầu bằng /images/.")
-  .max(200)
+  .min(12, "Đường dẫn ảnh chưa hợp lệ.")
+  .max(600)
+  .refine((value) => {
+    if (
+      /^\/images\/[A-Za-z0-9._/-]+$/.test(value) &&
+      !value.includes("..")
+    ) {
+      return true;
+    }
+
+    try {
+      const url = new URL(value);
+      if (url.protocol !== "https:") return false;
+
+      const configuredUrl = process.env.SUPABASE_URL?.trim();
+      if (configuredUrl && url.origin !== new URL(configuredUrl).origin) {
+        return false;
+      }
+      if (!configuredUrl && !url.hostname.endsWith(".supabase.co")) {
+        return false;
+      }
+
+      const bucket =
+        process.env.SUPABASE_STORAGE_BUCKET?.trim() || "wedding-media";
+      return url.pathname.startsWith(
+        `/storage/v1/object/public/${bucket}/`,
+      );
+    } catch {
+      return false;
+    }
+  }, "Ảnh phải dùng /images/ hoặc URL HTTPS từ Supabase Storage.");
+const storagePathSchema = z
+  .string()
+  .trim()
+  .min(1)
+  .max(300)
   .regex(
-    /^\/images\/[A-Za-z0-9._/-]+$/,
-    "Đường dẫn ảnh phải bắt đầu bằng /images/ và không chứa ký tự lạ.",
+    /^(album|story|venues)\/[A-Za-z0-9._/-]+$/,
+    "Đường dẫn Storage không hợp lệ.",
   )
-  .refine((value) => !value.includes(".."), "Đường dẫn ảnh không hợp lệ.");
+  .refine(
+    (value) =>
+      !value.includes("..") &&
+      !value.includes("\\") &&
+      !value.includes("://"),
+    "Đường dẫn Storage không hợp lệ.",
+  );
 const mapsUrlSchema = z
   .string()
   .trim()
@@ -58,7 +98,15 @@ const optionalNoteSchema = z.preprocess(
 );
 const optionalImageSchema = z.preprocess(
   emptyStringToUndefined,
-  internalImageSchema.optional(),
+  imageSourceSchema.optional(),
+);
+const optionalStoragePathSchema = z.preprocess(
+  emptyStringToUndefined,
+  storagePathSchema.optional(),
+);
+const optionalImageAltSchema = z.preprocess(
+  emptyStringToUndefined,
+  z.string().trim().max(200).optional(),
 );
 
 export const weddingEventSchema = z
@@ -79,6 +127,10 @@ export const weddingEventSchema = z
     address: z.string().trim().min(1, "Vui lòng nhập địa chỉ.").max(300),
     mapsUrl: nullableMapsUrlSchema,
     note: optionalNoteSchema,
+    imageSrc: optionalImageSchema,
+    imageStoragePath: optionalStoragePathSchema,
+    imageAlt: optionalImageAltSchema,
+    showImage: z.boolean().default(false),
     available: z.boolean(),
   })
   .strict();
@@ -96,6 +148,7 @@ export const storyChapterSchema = z
       .min(10, "Nội dung chương phải có ít nhất 10 ký tự.")
       .max(4_000),
     imageSrc: optionalImageSchema,
+    imageStoragePath: optionalStoragePathSchema,
     imageAlt: z.string().trim().min(1).max(200),
     available: z.boolean(),
     visible: z.boolean(),
@@ -105,7 +158,8 @@ export const storyChapterSchema = z
 export const galleryImageSchema = z
   .object({
     id: idSchema,
-    src: internalImageSchema,
+    src: imageSourceSchema,
+    storagePath: optionalStoragePathSchema,
     available: z.boolean(),
     alt: z.string().trim().min(1).max(200),
     caption: z.string().trim().min(1).max(120),

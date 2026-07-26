@@ -1,5 +1,6 @@
 import { SectionHeading } from "@/src/components/SectionHeading";
 import { VenueActions } from "@/src/components/VenueActions";
+import { WeddingImage } from "@/src/components/WeddingImage";
 import { wedding } from "@/src/lib/wedding-data";
 import { formatWeddingDateTime } from "@/src/lib/wedding-format";
 import type { WeddingEvent } from "@/src/types/wedding";
@@ -27,17 +28,35 @@ export function VenueSection({ venues }: VenueSectionProps) {
 
             return (
               <article className="venue-layout" key={venue.id} data-reveal>
-                <div
-                  className="map-illustration"
-                  aria-hidden="true"
-                  data-parallax={index === 0 ? "" : undefined}
-                >
-                  <div className="map-line map-line-one" />
-                  <div className="map-line map-line-two" />
-                  <div className="map-point">
-                    <span>{wedding.monogram}</span>
+                {venue.showImage && venue.imageSrc ? (
+                  <div
+                    className="venue-image"
+                    data-parallax={index === 0 ? "" : undefined}
+                  >
+                    <WeddingImage
+                      src={venue.imageSrc}
+                      available
+                      alt={
+                        venue.imageAlt ||
+                        `Ảnh địa điểm ${venue.venueName}`
+                      }
+                      sizes="(max-width: 896px) 100vw, 48vw"
+                      className="venue-image-media"
+                    />
                   </div>
-                </div>
+                ) : (
+                  <div
+                    className="map-illustration"
+                    aria-hidden="true"
+                    data-parallax={index === 0 ? "" : undefined}
+                  >
+                    <div className="map-line map-line-one" />
+                    <div className="map-line map-line-two" />
+                    <div className="map-point">
+                      <span>{wedding.monogram}</span>
+                    </div>
+                  </div>
+                )}
                 <div className="venue-content">
                   <p className="venue-event-type">{venue.eventType}</p>
                   <span className="venue-time">

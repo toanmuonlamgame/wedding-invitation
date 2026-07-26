@@ -32,6 +32,15 @@ The main page is the public wedding invitation, shows visible wedding wishes, an
 - Commit 2: added GSAP, full-screen cover, music controls, and mobile polish.
 - Commit 3: adds database persistence, personalized invitation links, advanced visual effects, and production readiness.
 - Commit 4: adds public wishes, per-invitation RSVP, admin moderation/reporting, and field-level admin validation.
+- Admin media: uploads album, story, and venue images to the public `wedding-media` Supabase Storage bucket through server-only APIs.
+
+## Admin media architecture
+
+- `POST /api/admin/media/upload` accepts one JPEG, PNG, or WebP file up to 10 MB plus a category and creator secret.
+- `DELETE /api/admin/media` deletes only confirmed paths under `album/`, `story/`, or `venues/`.
+- The service-role key is read only by server modules and never sent to the browser.
+- Storage metadata stays inside the existing `WeddingContent` JSON, so no additional Prisma model or migration is required.
+- Legacy `/images/...` sources remain valid; new images use the configured Supabase project's public HTTPS URLs.
 
 ## Commit 4 architecture
 

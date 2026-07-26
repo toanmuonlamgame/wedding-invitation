@@ -54,6 +54,16 @@ a {
   color: var(--forest-deep);
 }
 
+.visually-hidden {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  overflow: hidden !important;
+  clip: rect(0 0 0 0) !important;
+  clip-path: inset(50%) !important;
+  white-space: nowrap !important;
+}
+
 .section {
   position: relative;
   padding: 5.75rem 1.25rem;
@@ -1163,6 +1173,17 @@ a {
   min-height: 20rem;
   overflow: hidden;
   background: var(--sage-soft);
+}
+
+.venue-image {
+  position: relative;
+  min-height: 20rem;
+  overflow: hidden;
+  background: var(--sage-soft);
+}
+
+.venue-image-media {
+  object-fit: cover;
 }
 
 .map-line {
@@ -2287,6 +2308,126 @@ fieldset[aria-invalid="true"] {
   line-height: 1.35;
 }
 
+.media-uploader {
+  display: grid;
+  gap: 0.9rem;
+  min-width: 0;
+  padding: 1rem;
+  border: 1px dashed rgba(63, 88, 72, 0.32);
+  background: rgba(220, 228, 219, 0.22);
+}
+
+.media-dropzone {
+  display: grid;
+  justify-items: start;
+  gap: 0.65rem;
+  min-height: 7rem;
+  align-content: center;
+  padding: 1rem;
+  border: 1px dashed var(--sage);
+  background: var(--white);
+}
+
+.media-dropzone p,
+.media-uploader .form-status {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.68rem;
+}
+
+.media-current {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.media-current-preview {
+  position: relative;
+  width: min(100%, 22rem);
+  aspect-ratio: 4 / 3;
+  overflow: hidden;
+  background: var(--sage-soft);
+}
+
+.media-preview-image {
+  object-fit: cover;
+}
+
+.media-current-actions,
+.media-upload-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.media-current-actions button,
+.media-upload-actions button {
+  min-height: 2.5rem;
+  border: 1px solid var(--line);
+  padding: 0.45rem 0.75rem;
+  background: var(--white);
+  color: var(--forest);
+  font-size: 0.65rem;
+  cursor: pointer;
+}
+
+.media-upload-list {
+  display: grid;
+  gap: 0.7rem;
+}
+
+.media-upload-item {
+  display: grid;
+  grid-template-columns: 5rem minmax(0, 1fr);
+  gap: 0.8rem;
+  min-width: 0;
+  padding: 0.75rem;
+  border: 1px solid var(--line);
+  background: var(--white);
+}
+
+.media-upload-item > img {
+  width: 5rem;
+  height: 4rem;
+  object-fit: cover;
+}
+
+.media-upload-item > div:not(.media-upload-actions) {
+  display: grid;
+  min-width: 0;
+  align-content: start;
+}
+
+.media-upload-item strong {
+  overflow: hidden;
+  font-size: 0.72rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.media-upload-item small,
+.media-upload-item span {
+  color: var(--muted);
+  font-size: 0.62rem;
+}
+
+.media-upload-item span[data-status="success"] {
+  color: var(--forest);
+}
+
+.media-upload-item span[data-status="error"] {
+  color: #9b3e36;
+}
+
+.media-upload-item progress {
+  width: 100%;
+  margin-top: 0.35rem;
+  accent-color: var(--forest);
+}
+
+.media-upload-actions {
+  grid-column: 1 / -1;
+}
+
 @media (min-width: 40rem) {
   .wishes-list {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -2303,6 +2444,15 @@ fieldset[aria-invalid="true"] {
 
   .admin-engagement-list {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .media-upload-item {
+    grid-template-columns: 5rem minmax(0, 1fr) auto;
+    align-items: center;
+  }
+
+  .media-upload-actions {
+    grid-column: auto;
   }
   .section {
     padding: 7.5rem 2rem;
@@ -2425,7 +2575,8 @@ fieldset[aria-invalid="true"] {
     gap: 5rem;
   }
 
-  .map-illustration {
+  .map-illustration,
+  .venue-image {
     min-height: 31rem;
   }
 

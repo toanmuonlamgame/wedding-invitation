@@ -40,6 +40,9 @@ DATABASE_URL="postgresql://..."
 DIRECT_URL="postgresql://..."
 INVITATION_CREATOR_SECRET="..."
 NEXT_PUBLIC_SITE_URL="http://localhost:3000"
+SUPABASE_URL="https://your-project.supabase.co"
+SUPABASE_SERVICE_ROLE_KEY="..."
+SUPABASE_STORAGE_BUCKET="wedding-media"
 ```
 
 - `DATABASE_URL`: URL Transaction pooler của Supabase (port `6543`) cho lưu
@@ -52,6 +55,31 @@ NEXT_PUBLIC_SITE_URL="http://localhost:3000"
   `node -e "console.log(require('crypto').randomBytes(32).toString('base64url'))"`.
 - `NEXT_PUBLIC_SITE_URL`: origin chính xác của site, không kèm đường dẫn; dùng
   `http://localhost:3000` ở local và domain HTTPS thật trên Vercel.
+- `SUPABASE_URL`: Project URL HTTPS dùng bởi API upload phía server.
+- `SUPABASE_SERVICE_ROLE_KEY`: service-role key chỉ cấu hình phía server, tuyệt đối
+  không đổi tên thành biến `NEXT_PUBLIC_*`.
+- `SUPABASE_STORAGE_BUCKET`: bucket ảnh công khai; giá trị mặc định của dự án là
+  `wedding-media`.
+
+## Supabase Storage
+
+Tạo thủ công một bucket trước khi dùng uploader:
+
+1. Mở Supabase Dashboard → Storage.
+2. Chọn **New bucket**.
+3. Đặt tên chính xác `wedding-media`.
+4. Bật **Public bucket**.
+5. Có thể đặt giới hạn file 10 MB và MIME cho phép:
+   `image/jpeg`, `image/png`, `image/webp`.
+6. Không cần tạo sẵn thư mục; API sẽ dùng `album/YYYY/`, `story/YYYY/` và
+   `venues/YYYY/`.
+
+Uploader nằm trong `/admin`, xác thực bằng cùng mã quản trị. Service-role key chỉ
+được dùng bởi Route Handler để upload/xóa và không xuất hiện trong client bundle.
+
+API kiểm tra giới hạn 10 MB mỗi ảnh. Tuy nhiên Vercel Functions hiện giới hạn
+request body 4,5 MB; nếu cần tải ảnh 4,5–10 MB trên production, bước tiếp theo là
+đổi sang signed upload URL để trình duyệt gửi thẳng tới Supabase Storage.
 
 Không commit `.env`. File `.env.example` chỉ chứa tên biến và giá trị mẫu.
 
@@ -82,6 +110,8 @@ Mã tạo thiệp không được lưu trong database, URL, localStorage hoặc 
 - `POST /api/invitations/[token]/wishes`: gửi lời chúc từ đúng thiệp khách.
 - `GET/PUT /api/invitations/[token]/rsvp`: đọc hoặc cập nhật RSVP của đúng thiệp khách.
 - `/api/admin/wishes` và `/api/admin/rsvps`: bắt buộc mã quản trị ở server.
+- `POST /api/admin/media/upload`: upload một ảnh lên Supabase Storage phía server.
+- `DELETE /api/admin/media`: xóa file đã xác nhận trong các prefix media cho phép.
 - `/thiep/[token]`: thiệp cá nhân render động, có gửi lời chúc và RSVP nhưng không có công cụ creator/admin.
 - Token sai định dạng hoặc không tồn tại trả về trang 404.
 

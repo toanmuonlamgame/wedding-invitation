@@ -7,6 +7,10 @@ export type WeddingEvent = {
   address: string;
   mapsUrl: string | null;
   note?: string;
+  imageSrc?: string;
+  imageStoragePath?: string;
+  imageAlt?: string;
+  showImage: boolean;
   available: boolean;
 };
 
@@ -18,6 +22,7 @@ export type LoveStoryChapter = {
   summary: string;
   fullStory: string;
   imageSrc?: string;
+  imageStoragePath?: string;
   imageAlt: string;
   available: boolean;
   visible: boolean;
@@ -26,6 +31,7 @@ export type LoveStoryChapter = {
 export type GalleryMoment = {
   id: string;
   src: string;
+  storagePath?: string;
   available: boolean;
   alt: string;
   caption: string;

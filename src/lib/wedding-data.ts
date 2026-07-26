@@ -36,6 +36,7 @@ export const defaultWeddingContent: WeddingContentData = {
       address: "Thông tin địa chỉ sẽ được gia đình bổ sung.",
       mapsUrl: null,
       note: "Thông tin chính thức đang chờ gia đình cập nhật.",
+      showImage: false,
       available: false,
     },
   ],
