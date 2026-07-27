@@ -125,13 +125,15 @@ export function StoryExplorer({ chapters }: StoryExplorerProps) {
       <div className="story-chapter-grid">
         {chapters.map((chapter, index) => (
           <article className="story-chapter-card" key={chapter.id} data-story-item>
-            <div className="story-chapter-image">
+            <div
+              className="story-chapter-image"
+              data-fit-mode={chapter.fitMode === "contain" ? "contain" : "cover"}
+            >
               <WeddingImage
                 src={chapter.imageSrc}
                 available={chapter.available}
                 alt={chapter.imageAlt}
                 sizes="(max-width: 896px) 100vw, 33vw"
-                priority={index === 0}
                 className="story-image"
                 framing={chapter}
               />
@@ -188,7 +190,12 @@ export function StoryExplorer({ chapters }: StoryExplorerProps) {
             >
               ×
             </button>
-            <div className="editorial-dialog-image">
+            <div
+              className="editorial-dialog-image"
+              data-fit-mode={
+                selectedChapter.fitMode === "contain" ? "contain" : "cover"
+              }
+            >
               <WeddingImage
                 src={selectedChapter.imageSrc}
                 available={selectedChapter.available}

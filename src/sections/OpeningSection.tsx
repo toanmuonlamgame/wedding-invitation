@@ -1,5 +1,5 @@
 import { Ornament } from "@/src/components/Ornament";
-import { wedding } from "@/src/lib/wedding-data";
+import { wedding } from "@/src/lib/wedding-details";
 import { formatWeddingDateTime } from "@/src/lib/wedding-format";
 
 type OpeningSectionProps = {

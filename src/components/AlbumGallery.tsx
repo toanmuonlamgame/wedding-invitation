@@ -176,13 +176,16 @@ export function AlbumGallery({ images, intervalMs }: AlbumGalleryProps) {
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
     >
-      <figure className="album-slide" key={currentSlide.id}>
+      <figure
+        className="album-slide"
+        key={currentSlide.id}
+        data-fit-mode={currentSlide.fitMode === "contain" ? "contain" : "cover"}
+      >
         <WeddingImage
           src={currentSlide.src}
           available={currentSlide.available}
           alt={currentSlide.alt}
           sizes="(max-width: 896px) 100vw, 70vw"
-          priority={safeCurrentIndex === 0}
           className="album-slide-image"
           framing={currentSlide}
         />

@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { WeddingImage } from "@/src/components/WeddingImage";
 import {
   DEFAULT_FONT_PRESET,
@@ -9,6 +10,8 @@ import {
   THEME_IDS,
   THEME_PRESETS,
   getAppearanceStyle,
+  getFontPresetStyle,
+  type FontCategory,
 } from "@/src/lib/appearance";
 import type {
   FontPresetId,
@@ -36,6 +39,19 @@ export function AppearanceEditor({
   onChange,
   onSave,
 }: AppearanceEditorProps) {
+  const [fontCategory, setFontCategory] = useState<FontCategory>(
+    FONT_PRESETS[fontPreset].category,
+  );
+  const categoryLabels: Record<FontCategory, string> = {
+    elegant: "Thanh lịch",
+    modern: "Hiện đại",
+    romantic: "Bay bổng",
+    classic: "Cổ điển",
+  };
+  const visibleFontIds = FONT_IDS.filter(
+    (id) => FONT_PRESETS[id].category === fontCategory,
+  );
+
   return (
     <section className="appearance-editor" aria-labelledby="appearance-title">
       <header>
@@ -70,8 +86,8 @@ export function AppearanceEditor({
                       style={
                         {
                           "--swatch-one": preset.tokens.paper,
-                          "--swatch-two": preset.tokens.forest,
-                          "--swatch-three": preset.tokens.gold,
+                          "--swatch-two": preset.tokens.button,
+                          "--swatch-three": preset.tokens.accent,
                         } as React.CSSProperties
                       }
                       aria-hidden="true"
@@ -86,13 +102,28 @@ export function AppearanceEditor({
 
           <fieldset>
             <legend>Bộ font</legend>
+            <div className="font-category-tabs" aria-label="Nhóm font">
+              {(Object.keys(categoryLabels) as FontCategory[]).map(
+                (category) => (
+                  <button
+                    type="button"
+                    key={category}
+                    aria-pressed={fontCategory === category}
+                    onClick={() => setFontCategory(category)}
+                  >
+                    {categoryLabels[category]}
+                  </button>
+                ),
+              )}
+            </div>
             <div className="preset-grid preset-font-grid">
-              {FONT_IDS.map((id) => {
+              {visibleFontIds.map((id) => {
                 const preset = FONT_PRESETS[id];
                 return (
                   <label
                     className={`preset-option ${preset.className}`}
                     key={id}
+                    style={getFontPresetStyle(id) as React.CSSProperties}
                   >
                     <input
                       type="radio"
@@ -142,7 +173,12 @@ export function AppearanceEditor({
           <p className="section-eyebrow">Preview trực tiếp</p>
           <div
             className={`appearance-phone ${FONT_PRESETS[fontPreset].className}`}
-            style={getAppearanceStyle(themePreset) as React.CSSProperties}
+            style={
+              {
+                ...getAppearanceStyle(themePreset),
+                ...getFontPresetStyle(fontPreset),
+              } as React.CSSProperties
+            }
           >
             <div className="appearance-phone-image">
               {previewImage ? (
@@ -169,6 +205,10 @@ export function AppearanceEditor({
             <article>
               <strong>Một lời chúc nhỏ</strong>
               <p>Chúc hai bạn luôn bình yên và đồng hành thật lâu.</p>
+            </article>
+            <article className="appearance-phone-venue">
+              <strong>Địa điểm tổ chức lễ cưới</strong>
+              <p>Trung tâm tiệc cưới · 18:00 · Giờ Việt Nam</p>
             </article>
           </div>
         </div>

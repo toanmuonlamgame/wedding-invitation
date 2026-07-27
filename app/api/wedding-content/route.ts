@@ -1,4 +1,5 @@
 import type { NextRequest } from "next/server";
+import { revalidatePath, revalidateTag } from "next/cache";
 import {
   adminVerificationSchema,
   getWeddingContent,
@@ -80,7 +81,11 @@ export async function PUT(request: NextRequest) {
       themePreset: parsed.data.themePreset,
       fontPreset: parsed.data.fontPreset,
     };
-    return Response.json(await saveWeddingContent(content));
+    const savedContent = await saveWeddingContent(content);
+    revalidateTag("wedding-content", { expire: 0 });
+    revalidatePath("/", "page");
+    revalidatePath("/thiep/[token]", "page");
+    return Response.json(savedContent);
   } catch {
     return Response.json(
       { message: "Chưa thể lưu nội dung lúc này. Bản nháp vẫn được giữ." },

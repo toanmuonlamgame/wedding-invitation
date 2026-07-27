@@ -3,7 +3,7 @@
 import Image from "next/image";
 import { useState } from "react";
 import { imageFramingStyle } from "@/src/lib/image-framing";
-import { wedding } from "@/src/lib/wedding-data";
+import { wedding } from "@/src/lib/wedding-details";
 import type { ImageFraming } from "@/src/types/wedding";
 
 type WeddingImageProps = {
@@ -11,7 +11,6 @@ type WeddingImageProps = {
   available: boolean;
   alt: string;
   sizes: string;
-  priority?: boolean;
   className?: string;
   framing?: Partial<ImageFraming>;
 };
@@ -21,7 +20,6 @@ export function WeddingImage({
   available,
   alt,
   sizes,
-  priority = false,
   className = "",
   framing,
 }: WeddingImageProps) {
@@ -36,7 +34,7 @@ export function WeddingImage({
         alt={alt}
         fill
         sizes={sizes}
-        priority={priority}
+        data-fit-mode={framing?.fitMode === "contain" ? "contain" : "cover"}
         style={imageFramingStyle(framing)}
         onError={() => setFailedSrc(src)}
       />

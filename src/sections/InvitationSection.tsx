@@ -1,5 +1,5 @@
 import { Ornament } from "@/src/components/Ornament";
-import { wedding } from "@/src/lib/wedding-data";
+import { wedding } from "@/src/lib/wedding-details";
 import type { InvitationPersonalization } from "@/src/types/invitation";
 
 type InvitationSectionProps = {

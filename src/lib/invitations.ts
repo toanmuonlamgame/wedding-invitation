@@ -55,6 +55,7 @@ export const getInvitationByToken = cache(async (token: string) => {
       recipientText: true,
       guestCount: true,
       privateMessage: true,
+      isActive: true,
     },
   });
 });

@@ -1,16 +1,43 @@
 export type ThemePresetId =
-  | "light-elegant"
-  | "dark-elegant"
-  | "blush-romantic"
-  | "navy-classic"
-  | "natural-olive";
+  | "ivory-sage"
+  | "champagne-gold"
+  | "blush-romance"
+  | "midnight-navy"
+  | "forest-noir"
+  | "burgundy-velvet"
+  | "lavender-dream"
+  | "peach-garden"
+  | "terracotta-boho"
+  | "black-pearl";
 
-export type FontPresetId = "elegant" | "modern" | "romantic" | "classic";
+export type FontPresetId =
+  | "elegant-editorial"
+  | "classic-wedding"
+  | "royal-serif"
+  | "french-elegance"
+  | "luxury-magazine"
+  | "modern-clean"
+  | "minimal-chic"
+  | "soft-contemporary"
+  | "urban-wedding"
+  | "scandinavian-light"
+  | "romantic-script"
+  | "garden-calligraphy"
+  | "dreamy-blossom"
+  | "love-letter"
+  | "fairytale-wedding"
+  | "vintage-invitation"
+  | "victorian-romance"
+  | "art-nouveau"
+  | "bohemian-poetry"
+  | "cinematic-love";
 
 export type ImageFraming = {
   positionX: number;
   positionY: number;
   zoom: number;
+  fitMode: "cover" | "contain";
+  backgroundColor: string;
 };
 
 export type WeddingEvent = {
@@ -28,6 +55,8 @@ export type WeddingEvent = {
   positionX: number;
   positionY: number;
   zoom: number;
+  fitMode: "cover" | "contain";
+  backgroundColor: string;
   showImage: boolean;
   available: boolean;
 };
@@ -45,6 +74,8 @@ export type LoveStoryChapter = {
   positionX: number;
   positionY: number;
   zoom: number;
+  fitMode: "cover" | "contain";
+  backgroundColor: string;
   available: boolean;
   visible: boolean;
 };
@@ -59,6 +90,8 @@ export type GalleryMoment = {
   positionX: number;
   positionY: number;
   zoom: number;
+  fitMode: "cover" | "contain";
+  backgroundColor: string;
   featured: boolean;
   carousel: boolean;
   visible: boolean;

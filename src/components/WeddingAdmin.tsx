@@ -1,15 +1,8 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import dynamic from "next/dynamic";
 import { useEffect, useRef, useState } from "react";
-import {
-  AdminRsvpManager,
-  AdminWishManager,
-} from "@/src/components/AdminEngagement";
-import { AdminDataExport } from "@/src/components/AdminDataExport";
-import { AppearanceEditor } from "@/src/components/AppearanceEditor";
-import { ImageFramingEditor } from "@/src/components/ImageFramingEditor";
-import { MediaUploader } from "@/src/components/MediaUploader";
 import { normalizeImageFraming } from "@/src/lib/image-framing";
 import type { FieldErrors } from "@/src/types/engagement";
 import type {
@@ -19,6 +12,62 @@ import type {
   WeddingEvent,
 } from "@/src/types/wedding";
 
+const adminLoading = () => (
+  <p className="admin-local-loading" role="status">
+    Đang tải công cụ…
+  </p>
+);
+
+const AdminInvitationManager = dynamic(
+  () =>
+    import("@/src/components/AdminInvitationManager").then(
+      (module) => module.AdminInvitationManager,
+    ),
+  { loading: adminLoading },
+);
+const AppearanceEditor = dynamic(
+  () =>
+    import("@/src/components/AppearanceEditor").then(
+      (module) => module.AppearanceEditor,
+    ),
+  { loading: adminLoading },
+);
+const ImageFramingEditor = dynamic(
+  () =>
+    import("@/src/components/ImageFramingEditor").then(
+      (module) => module.ImageFramingEditor,
+    ),
+  { loading: adminLoading },
+);
+const MediaUploader = dynamic(
+  () =>
+    import("@/src/components/MediaUploader").then(
+      (module) => module.MediaUploader,
+    ),
+  { loading: adminLoading },
+);
+const AdminWishManager = dynamic(
+  () =>
+    import("@/src/components/AdminEngagement").then(
+      (module) => module.AdminWishManager,
+    ),
+  { loading: adminLoading },
+);
+const AdminRsvpManager = dynamic(
+  () =>
+    import("@/src/components/AdminEngagement").then(
+      (module) => module.AdminRsvpManager,
+    ),
+  { loading: adminLoading },
+);
+const AdminDataExport = dynamic(
+  () =>
+    import("@/src/components/AdminDataExport").then(
+      (module) => module.AdminDataExport,
+    ),
+  { loading: adminLoading },
+);
+
 type WeddingAdminProps = {
   initialContent: WeddingContentData;
   standalone?: boolean;
@@ -26,6 +75,7 @@ type WeddingAdminProps = {
 
 type AdminTab =
   | "overview"
+  | "invitations"
   | "appearance"
   | "general"
   | "venues"
@@ -183,6 +233,8 @@ function newVenue(): WeddingEvent {
     positionX: 50,
     positionY: 50,
     zoom: 1,
+    fitMode: "cover",
+    backgroundColor: "#ffffff",
     showImage: false,
     available: false,
   };
@@ -200,6 +252,8 @@ function newChapter(): LoveStoryChapter {
     positionX: 50,
     positionY: 50,
     zoom: 1,
+    fitMode: "cover",
+    backgroundColor: "#ffffff",
     available: false,
     visible: true,
   };
@@ -215,6 +269,8 @@ function newGalleryImage(): GalleryMoment {
     positionX: 50,
     positionY: 50,
     zoom: 1,
+    fitMode: "cover",
+    backgroundColor: "#ffffff",
     featured: false,
     carousel: true,
     visible: true,
@@ -468,6 +524,7 @@ export function WeddingAdmin({
             {(
               [
                 ["overview", "Tổng quan & preview"],
+                ["invitations", "Quản lý thiệp mời"],
                 ["appearance", "Giao diện thiệp"],
                 ["general", "Countdown"],
                 ["venues", "Địa điểm"],
@@ -574,6 +631,10 @@ export function WeddingAdmin({
                   <AdminFieldError errors={fieldErrors} path="albumIntervalMs" />
                 </div>
               </div>
+            ) : null}
+
+            {activeTab === "invitations" ? (
+              <AdminInvitationManager creatorSecret={creatorSecret} />
             ) : null}
 
             {activeTab === "appearance" ? (
@@ -1102,6 +1163,8 @@ export function WeddingAdmin({
                           positionX: 50,
                           positionY: 50,
                           zoom: 1,
+                          fitMode: "cover",
+                          backgroundColor: "#ffffff",
                           featured: false,
                           carousel: true,
                           visible: true,

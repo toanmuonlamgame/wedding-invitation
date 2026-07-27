@@ -22,6 +22,14 @@ export async function generateMetadata({
     notFound();
   }
 
+  if (!invitation.isActive) {
+    return {
+      title: "Thiệp mời không còn khả dụng",
+      description: "Liên kết thiệp mời này hiện đã được vô hiệu hóa.",
+      robots: { index: false, follow: false },
+    };
+  }
+
   const title = `Thiệp mời dành cho ${invitation.recipientText} | ${wedding.coupleDisplay}`;
 
   return {
@@ -44,15 +52,33 @@ export default async function InvitationPage({
   params,
 }: InvitationPageProps) {
   const { token } = await params;
-  const [invitation, content, wishes] = await Promise.all([
-    getInvitationByToken(token),
-    getWeddingContent(),
-    getPublicWishes(),
-  ]);
+  const invitation = await getInvitationByToken(token);
 
   if (!invitation) {
     notFound();
   }
+
+  if (!invitation.isActive) {
+    return (
+      <main className="disabled-invitation">
+        <section aria-labelledby="disabled-invitation-title">
+          <p className="section-eyebrow">Vũ Bình &amp; Thành Long</p>
+          <h1 id="disabled-invitation-title">
+            Thiệp mời này hiện không còn khả dụng.
+          </h1>
+          <p>
+            Có thể gia đình đã gửi một liên kết mới. Vui lòng liên hệ người gửi
+            thiệp để được hỗ trợ.
+          </p>
+        </section>
+      </main>
+    );
+  }
+
+  const [content, wishes] = await Promise.all([
+    getWeddingContent(),
+    getPublicWishes(),
+  ]);
 
   return (
     <WeddingInvitation

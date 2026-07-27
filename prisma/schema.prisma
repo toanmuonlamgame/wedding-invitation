@@ -14,9 +14,17 @@ model Invitation {
   recipientText  String
   guestCount     Int?
   privateMessage String?
+  label          String?
+  adminNotes     String?
+  isActive       Boolean  @default(true)
+  disabledAt     DateTime?
   createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
   wishes         WeddingWish[]
   rsvp           Rsvp?
+
+  @@index([isActive, createdAt])
+  @@index([recipientText])
 }
 
 model WeddingContent {
@@ -27,8 +35,8 @@ model WeddingContent {
   storyChaptersJson       Json
   galleryImagesJson       Json
   albumIntervalMs         Int      @default(5000)
-  themePreset             String   @default("light-elegant")
-  fontPreset              String   @default("elegant")
+  themePreset             String   @default("ivory-sage")
+  fontPreset              String   @default("elegant-editorial")
   updatedAt               DateTime @updatedAt
 }
 

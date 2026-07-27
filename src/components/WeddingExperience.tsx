@@ -8,19 +8,16 @@ import {
   useRef,
   useState,
 } from "react";
-import { gsap } from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { wedding } from "@/src/lib/wedding-data";
+import { wedding } from "@/src/lib/wedding-details";
 import {
   FONT_PRESETS,
   getAppearanceStyle,
+  getFontPresetStyle,
 } from "@/src/lib/appearance";
 import type {
   FontPresetId,
   ThemePresetId,
 } from "@/src/types/wedding";
-
-gsap.registerPlugin(ScrollTrigger);
 
 type WeddingExperienceProps = {
   children: React.ReactNode;
@@ -70,6 +67,7 @@ export function WeddingExperience({
   const contentRef = useRef<HTMLDivElement>(null);
   const [isOpened, setIsOpened] = useState(false);
   const [showCover, setShowCover] = useState(true);
+  const [isDocumentHidden, setIsDocumentHidden] = useState(false);
 
   useEffect(() => {
     const previousOverflow = document.body.style.overflow;
@@ -83,13 +81,30 @@ export function WeddingExperience({
     };
   }, [isOpened]);
 
+  useEffect(() => {
+    const updateVisibility = () => setIsDocumentHidden(document.hidden);
+    updateVisibility();
+    document.addEventListener("visibilitychange", updateVisibility);
+    return () =>
+      document.removeEventListener("visibilitychange", updateVisibility);
+  }, []);
+
   useLayoutEffect(() => {
     if (!isOpened || !rootRef.current) {
       return;
     }
 
-    const media = gsap.matchMedia();
-    const context = gsap.context(() => {
+    let disposed = false;
+    let cleanup: (() => void) | undefined;
+
+    void Promise.all([import("gsap"), import("gsap/ScrollTrigger")]).then(
+      ([gsapModule, scrollTriggerModule]) => {
+        if (disposed || !rootRef.current) return;
+        const { gsap } = gsapModule;
+        const { ScrollTrigger } = scrollTriggerModule;
+        gsap.registerPlugin(ScrollTrigger);
+        const media = gsap.matchMedia();
+        const context = gsap.context(() => {
       media.add("(prefers-reduced-motion: no-preference)", () => {
         const heroTimeline = gsap.timeline({
           defaults: { ease: "power3.out" },
@@ -232,13 +247,19 @@ export function WeddingExperience({
             });
         },
       );
-    }, rootRef);
+        }, rootRef);
 
-    ScrollTrigger.refresh();
+        ScrollTrigger.refresh();
+        cleanup = () => {
+          media.revert();
+          context.revert();
+        };
+      },
+    );
 
     return () => {
-      media.revert();
-      context.revert();
+      disposed = true;
+      cleanup?.();
     };
   }, [isOpened]);
 
@@ -256,8 +277,9 @@ export function WeddingExperience({
       return;
     }
 
-    gsap
-      .timeline({
+    void import("gsap").then(({ gsap }) => {
+      gsap
+        .timeline({
         defaults: { ease: "power3.inOut" },
         onComplete: () => {
           setShowCover(false);
@@ -297,7 +319,8 @@ export function WeddingExperience({
           ease: "power2.out",
         },
         "-=0.18",
-      );
+        );
+    });
   }
 
   return (
@@ -305,7 +328,12 @@ export function WeddingExperience({
       <div
         ref={rootRef}
         className={`wedding-theme-root ${FONT_PRESETS[fontPreset].className}`}
-        style={getAppearanceStyle(themePreset) as React.CSSProperties}
+        style={
+          {
+            ...getAppearanceStyle(themePreset),
+            ...getFontPresetStyle(fontPreset),
+          } as React.CSSProperties
+        }
         data-theme={themePreset}
         data-font={fontPreset}
       >
@@ -356,7 +384,11 @@ export function WeddingExperience({
         ) : null}
 
         {isOpened ? (
-          <div className="petal-field" aria-hidden="true">
+          <div
+            className="petal-field"
+            data-paused={isDocumentHidden}
+            aria-hidden="true"
+          >
             {petals.map((petal, index) => (
               <span
                 className="petal"

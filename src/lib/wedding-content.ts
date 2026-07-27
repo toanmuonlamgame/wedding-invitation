@@ -1,5 +1,5 @@
 import { cache } from "react";
-import { connection } from "next/server";
+import { unstable_cache } from "next/cache";
 import { z } from "zod";
 import { prisma } from "@/src/lib/prisma";
 import { defaultWeddingContent } from "@/src/lib/wedding-data";
@@ -8,10 +8,13 @@ import {
   DEFAULT_THEME_PRESET,
   FONT_IDS,
   THEME_IDS,
+  normalizeFontPreset,
+  normalizeThemePreset,
 } from "@/src/lib/appearance";
 import {
   MAX_IMAGE_ZOOM,
   MIN_IMAGE_ZOOM,
+  normalizeImageFraming,
 } from "@/src/lib/image-framing";
 import type { WeddingContentData } from "@/src/types/wedding";
 
@@ -124,6 +127,12 @@ const imageZoomSchema = z.coerce
   .min(MIN_IMAGE_ZOOM)
   .max(MAX_IMAGE_ZOOM)
   .default(1);
+const imageFitModeSchema = z.enum(["cover", "contain"]).default("cover");
+const imageBackgroundSchema = z
+  .string()
+  .trim()
+  .regex(/^#[0-9a-f]{6}$/i, "Màu nền ảnh phải là mã hex hợp lệ.")
+  .default("#ffffff");
 
 export const weddingEventSchema = z
   .object({
@@ -149,10 +158,13 @@ export const weddingEventSchema = z
     positionX: imagePositionSchema,
     positionY: imagePositionSchema,
     zoom: imageZoomSchema,
+    fitMode: imageFitModeSchema,
+    backgroundColor: imageBackgroundSchema,
     showImage: z.boolean().default(false),
     available: z.boolean(),
   })
-  .strict();
+  .strict()
+  .transform((value) => ({ ...value, ...normalizeImageFraming(value) }));
 
 export const storyChapterSchema = z
   .object({
@@ -172,10 +184,13 @@ export const storyChapterSchema = z
     positionX: imagePositionSchema,
     positionY: imagePositionSchema,
     zoom: imageZoomSchema,
+    fitMode: imageFitModeSchema,
+    backgroundColor: imageBackgroundSchema,
     available: z.boolean(),
     visible: z.boolean(),
   })
-  .strict();
+  .strict()
+  .transform((value) => ({ ...value, ...normalizeImageFraming(value) }));
 
 export const galleryImageSchema = z
   .object({
@@ -188,11 +203,14 @@ export const galleryImageSchema = z
     positionX: imagePositionSchema,
     positionY: imagePositionSchema,
     zoom: imageZoomSchema,
+    fitMode: imageFitModeSchema,
+    backgroundColor: imageBackgroundSchema,
     featured: z.boolean(),
     carousel: z.boolean(),
     visible: z.boolean(),
   })
-  .strict();
+  .strict()
+  .transform((value) => ({ ...value, ...normalizeImageFraming(value) }));
 
 export const weddingContentSchema = z
   .object({
@@ -242,20 +260,14 @@ function parseStoredContent(record: {
     storyChapters: record.storyChaptersJson,
     galleryImages: record.galleryImagesJson,
     albumIntervalMs: record.albumIntervalMs,
-    themePreset: record.themePreset,
-    fontPreset: record.fontPreset,
+    themePreset: normalizeThemePreset(record.themePreset),
+    fontPreset: normalizeFontPreset(record.fontPreset),
   });
 
   return parsed.success ? parsed.data : defaultWeddingContent;
 }
 
-export const getWeddingContent = cache(async (): Promise<WeddingContentData> => {
-  if (!process.env.DATABASE_URL) {
-    return defaultWeddingContent;
-  }
-
-  await connection();
-
+async function loadWeddingContent(): Promise<WeddingContentData> {
   try {
     const record = await prisma.weddingContent.findUnique({
       where: { id: "main" },
@@ -275,6 +287,20 @@ export const getWeddingContent = cache(async (): Promise<WeddingContentData> => 
   } catch {
     return defaultWeddingContent;
   }
+}
+
+const getCachedWeddingContent = unstable_cache(
+  loadWeddingContent,
+  ["wedding-content-main"],
+  {
+    tags: ["wedding-content"],
+    revalidate: 300,
+  },
+);
+
+export const getWeddingContent = cache(async (): Promise<WeddingContentData> => {
+  if (!process.env.DATABASE_URL) return defaultWeddingContent;
+  return getCachedWeddingContent();
 });
 
 export async function saveWeddingContent(

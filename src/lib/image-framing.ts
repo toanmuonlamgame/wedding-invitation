@@ -4,6 +4,8 @@ export const DEFAULT_IMAGE_FRAMING: ImageFraming = {
   positionX: 50,
   positionY: 50,
   zoom: 1,
+  fitMode: "cover",
+  backgroundColor: "#ffffff",
 };
 
 export const MIN_IMAGE_ZOOM = 1;
@@ -18,10 +20,29 @@ export function clampNumber(value: unknown, min: number, max: number) {
 export function normalizeImageFraming(
   framing: Partial<ImageFraming> | null | undefined,
 ): ImageFraming {
+  const fitMode = framing?.fitMode === "contain" ? "contain" : "cover";
+  const backgroundColor =
+    typeof framing?.backgroundColor === "string" &&
+    /^#[0-9a-f]{6}$/i.test(framing.backgroundColor.trim())
+      ? framing.backgroundColor.trim().toLowerCase()
+      : "#ffffff";
+
+  if (fitMode === "contain") {
+    return {
+      positionX: 50,
+      positionY: 50,
+      zoom: 1,
+      fitMode,
+      backgroundColor: "#ffffff",
+    };
+  }
+
   return {
     positionX: clampNumber(framing?.positionX ?? 50, 0, 100),
     positionY: clampNumber(framing?.positionY ?? 50, 0, 100),
     zoom: clampNumber(framing?.zoom ?? 1, MIN_IMAGE_ZOOM, MAX_IMAGE_ZOOM),
+    fitMode,
+    backgroundColor,
   };
 }
 
@@ -29,9 +50,21 @@ export function imageFramingStyle(
   framing: Partial<ImageFraming> | null | undefined,
 ) {
   const normalized = normalizeImageFraming(framing);
+  if (normalized.fitMode === "contain") {
+    return {
+      objectFit: "contain" as const,
+      objectPosition: "center",
+      transform: "none",
+      transformOrigin: "center",
+      backgroundColor: "#ffffff",
+    };
+  }
+
   return {
+    objectFit: "cover" as const,
     objectPosition: `${normalized.positionX}% ${normalized.positionY}%`,
     transform: `scale(${normalized.zoom})`,
     transformOrigin: `${normalized.positionX}% ${normalized.positionY}%`,
+    backgroundColor: normalized.backgroundColor,
   };
 }

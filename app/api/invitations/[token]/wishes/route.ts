@@ -26,12 +26,18 @@ export async function POST(request: Request, { params }: RouteContext) {
   try {
     const invitation = await prisma.invitation.findUnique({
       where: { token },
-      select: { id: true },
+      select: { id: true, isActive: true },
     });
     if (!invitation) {
       return Response.json(
         { message: "Không tìm thấy thiệp mời." },
         { status: 404 },
+      );
+    }
+    if (!invitation.isActive) {
+      return Response.json(
+        { message: "Thiệp mời này hiện không còn khả dụng." },
+        { status: 410 },
       );
     }
 

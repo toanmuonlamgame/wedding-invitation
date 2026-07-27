@@ -157,8 +157,39 @@ node --experimental-strip-types --test tests/*.test.mts
 git diff --check
 ```
 
+## Quản lý thiệp và preset mở rộng
+
+- `/admin` có khu vực **Quản lý thiệp mời** sau khi xác thực. Danh sách được
+  tìm kiếm, lọc, sắp xếp và phân trang phía server (20 thiệp mỗi trang).
+- `POST /api/admin/invitations` chỉ trả danh sách khi mã quản trị hợp lệ.
+- `PATCH/DELETE /api/admin/invitations/[id]` hỗ trợ sửa thông tin, bật/tắt,
+  tạo lại token và xóa có xác nhận. Không có API danh sách invitation công khai.
+- Thiệp bị vô hiệu hóa hiển thị thông báo thân thiện và chặn RSVP/lời chúc.
+  Tạo lại token giữ nguyên bản ghi nên không làm mất RSVP hoặc lời chúc.
+- Hệ giao diện dùng đúng 10 theme và 20 font preset từ config tập trung.
+  Các mã preset cũ được normalize để nội dung hiện có tiếp tục render an toàn.
+- Migration source mới nằm tại
+  `prisma/migrations/20260727010000_expand_invitation_and_presets`. Migration
+  đặt invitation cũ ở trạng thái hoạt động và ánh xạ mã preset cũ; agent không
+  tự chạy migration này.
+
 Build không truy vấn database. Truy vấn invitation chỉ chạy khi có request thật
 tới `/thiep/[token]`.
+
+## Hiển thị ảnh, ngày âm và hiệu năng
+
+- Metadata ảnh trong nội dung chung hỗ trợ `fitMode: "cover" | "contain"` và
+  `backgroundColor`. Dữ liệu cũ tự dùng `cover`; chế độ `contain` luôn căn giữa,
+  zoom 1 và dùng nền trắng `#ffffff`. Các trường này nằm trong JSON hiện có nên
+  không cần migration database.
+- Ngày âm được tính nội bộ theo múi giờ Việt Nam từ ngày cưới đã lưu, không gọi
+  API bên ngoài và không phụ thuộc múi giờ trình duyệt.
+- Ảnh story, album và địa điểm dưới màn hình đầu dùng lazy loading. Album chỉ
+  mount ảnh hiện tại và dừng bộ đếm khi tab bị ẩn.
+- GSAP chỉ được tải sau khi người xem mở thiệp. Các công cụ admin nặng được tách
+  thành chunk tải theo tab; nội dung dùng chung được cache và revalidate sau khi
+  admin lưu.
+- Petal, reveal và Ken Burns đều tuân theo `prefers-reduced-motion`.
 
 ## Checklist deploy Vercel
 

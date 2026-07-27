@@ -1,7 +1,7 @@
 import { SectionHeading } from "@/src/components/SectionHeading";
 import { VenueActions } from "@/src/components/VenueActions";
 import { WeddingImage } from "@/src/components/WeddingImage";
-import { wedding } from "@/src/lib/wedding-data";
+import { wedding } from "@/src/lib/wedding-details";
 import { formatWeddingDateTime } from "@/src/lib/wedding-format";
 import type { WeddingEvent } from "@/src/types/wedding";
 
@@ -32,6 +32,9 @@ export function VenueSection({ venues }: VenueSectionProps) {
                   <div
                     className="venue-image"
                     data-parallax={index === 0 ? "" : undefined}
+                    data-fit-mode={
+                      venue.fitMode === "contain" ? "contain" : "cover"
+                    }
                   >
                     <WeddingImage
                       src={venue.imageSrc}

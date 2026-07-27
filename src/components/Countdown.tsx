@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { memo, useEffect, useState } from "react";
 
 type CountdownProps = {
   targetDate: string | null;
@@ -31,6 +31,23 @@ function getTimeLeft(targetDate: string): TimeLeft {
   };
 }
 
+const CountdownUnit = memo(function CountdownUnit({
+  label,
+  value,
+}: {
+  label: string;
+  value: number | undefined;
+}) {
+  return (
+    <div className="countdown-item" data-countdown-item>
+      <span className="countdown-number">
+        {value === undefined ? "—" : String(value).padStart(2, "0")}
+      </span>
+      <span className="countdown-label">{label}</span>
+    </div>
+  );
+});
+
 export function Countdown({
   targetDate,
   expiredMessage,
@@ -43,9 +60,13 @@ export function Countdown({
     }
 
     const targetTime = new Date(targetDate).getTime();
+    if (!Number.isFinite(targetTime)) {
+      return;
+    }
     let timer: number | undefined;
 
     const update = () => {
+      if (document.hidden) return;
       const expired = Date.now() >= targetTime;
       setCountdown({
         targetDate,
@@ -60,6 +81,7 @@ export function Countdown({
     };
 
     const initialTimer = window.setTimeout(update, 0);
+    document.addEventListener("visibilitychange", update);
 
     if (Date.now() < targetTime) {
       timer = window.setInterval(update, 1_000);
@@ -67,6 +89,7 @@ export function Countdown({
 
     return () => {
       window.clearTimeout(initialTimer);
+      document.removeEventListener("visibilitychange", update);
       if (timer !== undefined) {
         window.clearInterval(timer);
       }
@@ -94,12 +117,7 @@ export function Countdown({
   return (
     <div className="countdown" aria-label="Đếm ngược đến ngày cưới">
       {units.map(([label, value]) => (
-        <div className="countdown-item" key={label} data-countdown-item>
-          <span className="countdown-number">
-            {value === undefined ? "—" : String(value).padStart(2, "0")}
-          </span>
-          <span className="countdown-label">{label}</span>
-        </div>
+        <CountdownUnit key={label} label={label} value={value} />
       ))}
       {!targetDate ? (
         <p className="countdown-note">

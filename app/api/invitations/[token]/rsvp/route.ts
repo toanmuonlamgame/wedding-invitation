@@ -20,6 +20,7 @@ async function findInvitation(token: string) {
       id: true,
       recipientText: true,
       guestCount: true,
+      isActive: true,
     },
   });
 }
@@ -33,6 +34,12 @@ export async function GET(_request: Request, { params }: RouteContext) {
       return Response.json(
         { message: "Không tìm thấy thiệp mời." },
         { status: 404 },
+      );
+    }
+    if (!invitation.isActive) {
+      return Response.json(
+        { message: "Thiệp mời này hiện không còn khả dụng." },
+        { status: 410 },
       );
     }
 
@@ -75,6 +82,12 @@ export async function PUT(request: Request, { params }: RouteContext) {
       return Response.json(
         { message: "Không tìm thấy thiệp mời." },
         { status: 404 },
+      );
+    }
+    if (!invitation.isActive) {
+      return Response.json(
+        { message: "Thiệp mời này hiện không còn khả dụng." },
+        { status: 410 },
       );
     }
 

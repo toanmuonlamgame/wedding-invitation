@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { MusicPlayer } from "@/src/components/MusicPlayer";
 import { SectionHeading } from "@/src/components/SectionHeading";
 import { useWeddingExperience } from "@/src/components/WeddingExperience";
-import { wedding } from "@/src/lib/wedding-data";
+import { wedding } from "@/src/lib/wedding-details";
 
 type YouTubePlayer = {
   destroy: () => void;
