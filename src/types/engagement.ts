@@ -31,3 +31,6 @@ export type RsvpSummary = {
 };
 
 export type FieldErrors = Record<string, string>;
+
+export type WishExportStatus = "all" | "visible" | "hidden";
+export type RsvpExportStatus = "all" | "attending" | "declined";

@@ -101,7 +101,8 @@ Mã tạo thiệp không được lưu trong database, URL, localStorage hoặc 
 ## Routes
 
 - `/`: thiệp mẫu công khai và form tạo thiệp cá nhân, không có điều khiển quản trị nội dung chung.
-- `/admin`: quản trị nội dung chung, lời chúc, danh sách RSVP và preview sau khi xác thực.
+- `/admin`: quản trị nội dung chung, preset giao diện/font, căn khung ảnh, lời
+  chúc, danh sách RSVP, xuất CSV và preview sau khi xác thực.
 - `POST /api/invitations`: endpoint duy nhất để tạo thiệp.
 - `GET /api/wedding-content`: nội dung chung cần để render thiệp.
 - `POST /api/wedding-content`: xác thực mã quản trị, không lưu secret.
@@ -110,6 +111,8 @@ Mã tạo thiệp không được lưu trong database, URL, localStorage hoặc 
 - `POST /api/invitations/[token]/wishes`: gửi lời chúc từ đúng thiệp khách.
 - `GET/PUT /api/invitations/[token]/rsvp`: đọc hoặc cập nhật RSVP của đúng thiệp khách.
 - `/api/admin/wishes` và `/api/admin/rsvps`: bắt buộc mã quản trị ở server.
+- `POST /api/admin/export`: tạo CSV lời chúc hoặc RSVP phía server, bắt buộc mã
+  quản trị.
 - `POST /api/admin/media/upload`: upload một ảnh lên Supabase Storage phía server.
 - `DELETE /api/admin/media`: xóa file đã xác nhận trong các prefix media cho phép.
 - `/thiep/[token]`: thiệp cá nhân render động, có gửi lời chúc và RSVP nhưng không có công cụ creator/admin.
@@ -123,6 +126,11 @@ Schema nằm tại `prisma/schema.prisma`. Migration thêm `WeddingContent` đã
 source tại `prisma/migrations/20260725000000_add_wedding_content`. Migration lời chúc
 và RSVP nằm tại `prisma/migrations/20260726000000_add_wishes_and_rsvp`. Các lệnh chỉ
 kiểm tra/generate, không kết nối database:
+
+Migration preset giao diện/font nằm tại
+`prisma/migrations/20260727000000_add_appearance_presets`. Metadata căn ảnh
+(`positionX`, `positionY`, `zoom`) tiếp tục nằm trong JSON nên tương thích với
+dữ liệu ảnh cũ và không cần cột riêng.
 
 ```bash
 npx prisma validate
@@ -145,6 +153,7 @@ npm run lint
 npm run build
 npx prisma validate
 npx prisma generate
+node --experimental-strip-types --test tests/*.test.mts
 git diff --check
 ```
 

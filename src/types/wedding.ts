@@ -1,3 +1,18 @@
+export type ThemePresetId =
+  | "light-elegant"
+  | "dark-elegant"
+  | "blush-romantic"
+  | "navy-classic"
+  | "natural-olive";
+
+export type FontPresetId = "elegant" | "modern" | "romantic" | "classic";
+
+export type ImageFraming = {
+  positionX: number;
+  positionY: number;
+  zoom: number;
+};
+
 export type WeddingEvent = {
   id: string;
   title: string;
@@ -10,6 +25,9 @@ export type WeddingEvent = {
   imageSrc?: string;
   imageStoragePath?: string;
   imageAlt?: string;
+  positionX: number;
+  positionY: number;
+  zoom: number;
   showImage: boolean;
   available: boolean;
 };
@@ -24,6 +42,9 @@ export type LoveStoryChapter = {
   imageSrc?: string;
   imageStoragePath?: string;
   imageAlt: string;
+  positionX: number;
+  positionY: number;
+  zoom: number;
   available: boolean;
   visible: boolean;
 };
@@ -35,6 +56,9 @@ export type GalleryMoment = {
   available: boolean;
   alt: string;
   caption: string;
+  positionX: number;
+  positionY: number;
+  zoom: number;
   featured: boolean;
   carousel: boolean;
   visible: boolean;
@@ -47,6 +71,8 @@ export type WeddingContentData = {
   storyChapters: LoveStoryChapter[];
   galleryImages: GalleryMoment[];
   albumIntervalMs: number;
+  themePreset: ThemePresetId;
+  fontPreset: FontPresetId;
 };
 
 export type WeddingDetails = {

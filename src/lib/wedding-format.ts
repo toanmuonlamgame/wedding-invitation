@@ -34,6 +34,6 @@ export function formatWeddingDateTime(value: string | null) {
 
   return {
     date: weddingDateFormatter.format(date),
-    time: `${weddingTimeFormatter.format(date)} · Asia/Ho_Chi_Minh`,
+    time: `${weddingTimeFormatter.format(date)} · Giờ Việt Nam`,
   };
 }

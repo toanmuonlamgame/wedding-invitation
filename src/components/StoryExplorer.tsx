@@ -133,6 +133,7 @@ export function StoryExplorer({ chapters }: StoryExplorerProps) {
                 sizes="(max-width: 896px) 100vw, 33vw"
                 priority={index === 0}
                 className="story-image"
+                framing={chapter}
               />
             </div>
             <div className="story-chapter-copy">
@@ -194,6 +195,7 @@ export function StoryExplorer({ chapters }: StoryExplorerProps) {
                 alt={selectedChapter.imageAlt}
                 sizes="(max-width: 896px) 100vw, 46vw"
                 className="story-image"
+                framing={selectedChapter}
               />
             </div>
             <article className="editorial-dialog-copy">

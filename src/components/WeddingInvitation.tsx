@@ -30,7 +30,11 @@ export function WeddingInvitation({
   showCreator = false,
 }: WeddingInvitationProps) {
   return (
-    <WeddingExperience recipientText={invitation?.recipientText}>
+    <WeddingExperience
+      recipientText={invitation?.recipientText}
+      themePreset={content.themePreset}
+      fontPreset={content.fontPreset}
+    >
       <main className="invitation-main">
         <OpeningSection weddingDateTime={content.weddingDateTime} />
         <InvitationSection invitation={invitation} />

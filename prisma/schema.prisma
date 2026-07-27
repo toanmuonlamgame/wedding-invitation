@@ -27,6 +27,8 @@ model WeddingContent {
   storyChaptersJson       Json
   galleryImagesJson       Json
   albumIntervalMs         Int      @default(5000)
+  themePreset             String   @default("light-elegant")
+  fontPreset              String   @default("elegant")
   updatedAt               DateTime @updatedAt
 }
 

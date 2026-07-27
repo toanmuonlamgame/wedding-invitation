@@ -3,6 +3,16 @@ import { connection } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/src/lib/prisma";
 import { defaultWeddingContent } from "@/src/lib/wedding-data";
+import {
+  DEFAULT_FONT_PRESET,
+  DEFAULT_THEME_PRESET,
+  FONT_IDS,
+  THEME_IDS,
+} from "@/src/lib/appearance";
+import {
+  MAX_IMAGE_ZOOM,
+  MIN_IMAGE_ZOOM,
+} from "@/src/lib/image-framing";
 import type { WeddingContentData } from "@/src/types/wedding";
 
 const idSchema = z.string().trim().min(1).max(80).regex(/^[A-Za-z0-9_-]+$/);
@@ -108,6 +118,12 @@ const optionalImageAltSchema = z.preprocess(
   emptyStringToUndefined,
   z.string().trim().max(200).optional(),
 );
+const imagePositionSchema = z.coerce.number().min(0).max(100).default(50);
+const imageZoomSchema = z.coerce
+  .number()
+  .min(MIN_IMAGE_ZOOM)
+  .max(MAX_IMAGE_ZOOM)
+  .default(1);
 
 export const weddingEventSchema = z
   .object({
@@ -130,6 +146,9 @@ export const weddingEventSchema = z
     imageSrc: optionalImageSchema,
     imageStoragePath: optionalStoragePathSchema,
     imageAlt: optionalImageAltSchema,
+    positionX: imagePositionSchema,
+    positionY: imagePositionSchema,
+    zoom: imageZoomSchema,
     showImage: z.boolean().default(false),
     available: z.boolean(),
   })
@@ -150,6 +169,9 @@ export const storyChapterSchema = z
     imageSrc: optionalImageSchema,
     imageStoragePath: optionalStoragePathSchema,
     imageAlt: z.string().trim().min(1).max(200),
+    positionX: imagePositionSchema,
+    positionY: imagePositionSchema,
+    zoom: imageZoomSchema,
     available: z.boolean(),
     visible: z.boolean(),
   })
@@ -163,6 +185,9 @@ export const galleryImageSchema = z
     available: z.boolean(),
     alt: z.string().trim().min(1).max(200),
     caption: z.string().trim().min(1).max(120),
+    positionX: imagePositionSchema,
+    positionY: imagePositionSchema,
+    zoom: imageZoomSchema,
     featured: z.boolean(),
     carousel: z.boolean(),
     visible: z.boolean(),
@@ -181,6 +206,8 @@ export const weddingContentSchema = z
     storyChapters: z.array(storyChapterSchema).max(20),
     galleryImages: z.array(galleryImageSchema).max(40),
     albumIntervalMs: z.number().int().min(4_000).max(10_000),
+    themePreset: z.enum(THEME_IDS).default(DEFAULT_THEME_PRESET),
+    fontPreset: z.enum(FONT_IDS).default(DEFAULT_FONT_PRESET),
   })
   .strict();
 
@@ -203,6 +230,8 @@ function parseStoredContent(record: {
   storyChaptersJson: unknown;
   galleryImagesJson: unknown;
   albumIntervalMs: number;
+  themePreset: string;
+  fontPreset: string;
 }): WeddingContentData {
   const parsed = weddingContentSchema.safeParse({
     weddingDateTime: record.weddingDateTime?.toISOString() ?? null,
@@ -213,6 +242,8 @@ function parseStoredContent(record: {
     storyChapters: record.storyChaptersJson,
     galleryImages: record.galleryImagesJson,
     albumIntervalMs: record.albumIntervalMs,
+    themePreset: record.themePreset,
+    fontPreset: record.fontPreset,
   });
 
   return parsed.success ? parsed.data : defaultWeddingContent;
@@ -235,6 +266,8 @@ export const getWeddingContent = cache(async (): Promise<WeddingContentData> => 
         storyChaptersJson: true,
         galleryImagesJson: true,
         albumIntervalMs: true,
+        themePreset: true,
+        fontPreset: true,
       },
     });
 
@@ -259,6 +292,8 @@ export async function saveWeddingContent(
       storyChaptersJson: content.storyChapters,
       galleryImagesJson: content.galleryImages,
       albumIntervalMs: content.albumIntervalMs,
+      themePreset: content.themePreset,
+      fontPreset: content.fontPreset,
     },
     update: {
       weddingDateTime: content.weddingDateTime
@@ -269,6 +304,8 @@ export async function saveWeddingContent(
       storyChaptersJson: content.storyChapters,
       galleryImagesJson: content.galleryImages,
       albumIntervalMs: content.albumIntervalMs,
+      themePreset: content.themePreset,
+      fontPreset: content.fontPreset,
     },
     select: {
       weddingDateTime: true,
@@ -277,6 +314,8 @@ export async function saveWeddingContent(
       storyChaptersJson: true,
       galleryImagesJson: true,
       albumIntervalMs: true,
+      themePreset: true,
+      fontPreset: true,
     },
   });
 

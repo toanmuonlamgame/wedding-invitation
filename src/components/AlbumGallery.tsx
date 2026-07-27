@@ -184,6 +184,7 @@ export function AlbumGallery({ images, intervalMs }: AlbumGalleryProps) {
           sizes="(max-width: 896px) 100vw, 70vw"
           priority={safeCurrentIndex === 0}
           className="album-slide-image"
+          framing={currentSlide}
         />
         <figcaption>
           <span>{currentSlide.caption}</span>

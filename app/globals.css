@@ -20,6 +20,8 @@
 
 html {
   scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
 }
 
 body {
@@ -2650,5 +2652,599 @@ fieldset[aria-invalid="true"] {
   .admin-unlock-backdrop,
   .admin-unlock-dialog {
     animation: none !important;
+  }
+}
+
+/* Theme and typography presets */
+.wedding-theme-root {
+  min-width: 0;
+  min-height: 100svh;
+  overflow-x: clip;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--theme-body-font, var(--font-body)), sans-serif;
+}
+
+.font-preset-elegant,
+.font-preset-classic,
+.font-preset-romantic {
+  --theme-heading-font: var(--font-display);
+  --theme-body-font: var(--font-body);
+}
+
+.font-preset-modern {
+  --theme-heading-font: var(--font-body);
+  --theme-body-font: var(--font-body);
+}
+
+.font-preset-romantic .couple-names,
+.font-preset-romantic .cover-title,
+.font-preset-romantic .footer-signature,
+.font-preset-romantic .preset-font-sample {
+  font-style: italic;
+}
+
+.wedding-theme-root :is(
+    .cover-title,
+    .couple-names,
+    .section-title,
+    .invitation-title,
+    .date-placeholder,
+    .story-chapter-copy h3,
+    .editorial-dialog-copy h2,
+    .venue-name,
+    .footer-title,
+    .footer-signature
+  ),
+.appearance-phone :is(h4, h5, strong),
+.preset-font-sample {
+  font-family: var(--theme-heading-font, var(--font-display)), serif;
+}
+
+.wedding-theme-root .section-eyebrow,
+.wedding-theme-root .ornament,
+.wedding-theme-root .footer-mark {
+  color: var(--theme-ornament, var(--gold));
+}
+
+.wedding-theme-root :is(.button, .cover-button, .music-button) {
+  background: var(--forest);
+  color: var(--white);
+}
+
+.wedding-theme-root :is(
+    .story-chapter-card,
+    .venue-content,
+    .wish-note,
+    .wish-form,
+    .rsvp-form,
+    .creator-form
+  ) {
+  border-color: var(--line);
+  background: var(--theme-card, var(--white));
+}
+
+.wedding-theme-root :is(
+    .field input,
+    .field textarea,
+    .field select,
+    .wish-form input,
+    .wish-form textarea,
+    .rsvp-form input,
+    .rsvp-form textarea,
+    .creator-form input,
+    .creator-form textarea
+  ) {
+  border-color: var(--line);
+  background: var(--theme-form, var(--white));
+  color: var(--ink);
+}
+
+.wedding-theme-root .countdown-number {
+  color: var(--theme-countdown, var(--forest));
+}
+
+.wedding-theme-root .album-slide::after,
+.wedding-theme-root .story-chapter-image::after,
+.wedding-theme-root .venue-image::after {
+  position: absolute;
+  z-index: 1;
+  inset: 0;
+  background: var(--theme-overlay);
+  content: "";
+  opacity: 0.16;
+  pointer-events: none;
+}
+
+.wedding-theme-root .story-chapter-image,
+.wedding-theme-root .venue-image {
+  position: relative;
+}
+
+.wedding-theme-root[data-theme="dark-elegant"] :is(
+    .footer-section,
+    .invitation-section,
+    .venue-section,
+    .wishes-section,
+    .rsvp-section
+  ) {
+  background: var(--paper-deep);
+}
+
+/* Image framing editor */
+.image-framing-editor {
+  min-width: 0;
+  margin-top: 1rem;
+  border: 1px solid var(--line);
+  padding: 0.85rem;
+  background: var(--paper);
+}
+
+.image-framing-help {
+  margin: 0 0 0.65rem;
+  color: var(--muted);
+  font-size: 0.68rem;
+}
+
+.image-framing-frame {
+  position: relative;
+  width: 100%;
+  max-width: 34rem;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  background: var(--paper-deep);
+  cursor: grab;
+  isolation: isolate;
+  touch-action: none;
+  user-select: none;
+}
+
+.image-framing-frame[data-dragging="true"] {
+  cursor: grabbing;
+}
+
+.image-framing-frame[data-variant="album"] {
+  aspect-ratio: 16 / 10;
+}
+
+.image-framing-frame[data-variant="story"] {
+  aspect-ratio: 4 / 5;
+  max-width: 24rem;
+}
+
+.image-framing-frame[data-variant="venue"] {
+  aspect-ratio: 5 / 4;
+}
+
+.image-framing-media {
+  object-fit: cover;
+  pointer-events: none;
+  will-change: transform;
+}
+
+.image-framing-crosshair {
+  position: absolute;
+  z-index: 2;
+  top: 50%;
+  left: 50%;
+  width: 1.5rem;
+  height: 1.5rem;
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  border-radius: 50%;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.18);
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+
+.image-framing-controls {
+  display: grid;
+  gap: 0.6rem;
+  margin-top: 0.75rem;
+}
+
+.image-framing-controls label {
+  display: grid;
+  grid-template-columns: 4rem minmax(0, 1fr);
+  align-items: center;
+  gap: 0.7rem;
+  min-width: 0;
+  color: var(--forest);
+  font-size: 0.66rem;
+}
+
+.image-framing-controls input {
+  width: 100%;
+  min-width: 0;
+  accent-color: var(--forest);
+}
+
+.image-framing-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+  margin-top: 0.7rem;
+}
+
+.image-framing-meta small {
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.image-framing-meta button,
+.media-current-actions button,
+.media-upload-actions button {
+  min-height: 2.45rem;
+  border: 1px solid var(--line);
+  padding: 0.45rem 0.75rem;
+  background: var(--white);
+  color: var(--forest);
+  cursor: pointer;
+}
+
+/* Appearance editor */
+.appearance-editor > header,
+.admin-export > header {
+  max-width: 44rem;
+  margin-bottom: 1.5rem;
+}
+
+.appearance-editor h3,
+.admin-export h3 {
+  margin: 0;
+  font-family: var(--font-display), serif;
+  font-size: clamp(2rem, 8vw, 3.5rem);
+  font-weight: 500;
+  line-height: 1;
+}
+
+.appearance-editor > header > p:last-child,
+.admin-export > header > p:last-child {
+  color: var(--muted);
+  font-size: 0.76rem;
+}
+
+.appearance-editor-layout {
+  display: grid;
+  gap: 1.5rem;
+}
+
+.appearance-options {
+  min-width: 0;
+}
+
+.appearance-options fieldset {
+  min-width: 0;
+  margin: 0 0 1.2rem;
+  border: 1px solid var(--line);
+  padding: 1rem;
+}
+
+.appearance-options legend {
+  padding-inline: 0.5rem;
+  color: var(--forest);
+  font-family: var(--font-display), serif;
+  font-size: 1.25rem;
+}
+
+.preset-grid {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.preset-option {
+  position: relative;
+  display: grid;
+  min-width: 0;
+  gap: 0.35rem;
+  border: 1px solid var(--line);
+  padding: 0.85rem;
+  background: var(--white);
+  cursor: pointer;
+}
+
+.preset-option:has(input:checked) {
+  border-color: var(--forest);
+  box-shadow: inset 0 0 0 1px var(--forest);
+}
+
+.preset-option input {
+  position: absolute;
+  top: 0.7rem;
+  right: 0.7rem;
+  accent-color: var(--forest);
+}
+
+.preset-option strong,
+.preset-option small {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.preset-option small {
+  color: var(--muted);
+  font-size: 0.65rem;
+}
+
+.preset-swatches {
+  display: block;
+  width: 5rem;
+  height: 1rem;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: linear-gradient(
+    to right,
+    var(--swatch-one) 0 33.333%,
+    var(--swatch-two) 33.333% 66.666%,
+    var(--swatch-three) 66.666% 100%
+  );
+}
+
+.preset-font-sample {
+  padding-right: 1.6rem;
+  font-size: 1.2rem;
+  font-weight: 500;
+  line-height: 1.15;
+}
+
+.appearance-actions,
+.admin-export-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.7rem;
+}
+
+.appearance-phone-shell {
+  min-width: 0;
+  width: min(100%, 23rem);
+  margin-inline: auto;
+}
+
+.appearance-phone {
+  min-width: 0;
+  overflow: hidden;
+  border: 0.55rem solid var(--forest-deep);
+  border-radius: 2rem;
+  padding: 1rem;
+  background: var(--paper);
+  color: var(--ink);
+  box-shadow: 0 1.5rem 4rem rgba(27, 37, 31, 0.18);
+  font-family: var(--theme-body-font, var(--font-body)), sans-serif;
+}
+
+.appearance-phone-image {
+  position: relative;
+  display: grid;
+  aspect-ratio: 4 / 3;
+  place-items: center;
+  overflow: hidden;
+  margin: -1rem -1rem 1rem;
+  background: var(--paper-deep);
+  color: var(--gold);
+  font-family: var(--theme-heading-font, var(--font-display)), serif;
+  font-size: 2rem;
+}
+
+.appearance-phone-media {
+  object-fit: cover;
+}
+
+.appearance-phone h4 {
+  margin: 0.25rem 0;
+  color: var(--ink);
+  font-size: clamp(1.7rem, 9vw, 2.5rem);
+  font-weight: 500;
+  line-height: 0.95;
+}
+
+.appearance-phone h5 {
+  margin: 1.2rem 0 0.35rem;
+  color: var(--ink);
+  font-size: 1.35rem;
+}
+
+.appearance-phone > p:not(.section-eyebrow),
+.appearance-phone article p {
+  color: var(--muted);
+  font-size: 0.68rem;
+  line-height: 1.65;
+}
+
+.appearance-phone button {
+  min-height: 2.6rem;
+  border: 0;
+  border-radius: 999px;
+  padding: 0.55rem 1rem;
+  background: var(--forest);
+  color: var(--white);
+  font: inherit;
+}
+
+.appearance-phone article {
+  margin-top: 1rem;
+  border: 1px solid var(--line);
+  padding: 0.8rem;
+  background: var(--theme-card);
+}
+
+/* Admin exports */
+.admin-export-filters {
+  display: grid;
+  gap: 1rem;
+  max-width: 48rem;
+  margin-bottom: 1.2rem;
+}
+
+.admin-export-filters label {
+  display: grid;
+  gap: 0.4rem;
+  min-width: 0;
+  color: var(--forest);
+  font-size: 0.7rem;
+  font-weight: 500;
+}
+
+.admin-export-filters select {
+  width: 100%;
+  min-height: 3rem;
+  border: 1px solid var(--line);
+  padding: 0.65rem 0.75rem;
+  background: var(--white);
+  color: var(--ink);
+}
+
+/* Resilient text scaling and narrow screens */
+:is(
+    .wedding-theme-root,
+    .admin-panel,
+    .admin-unlock-dialog,
+    .editorial-dialog,
+    .creator-layout,
+    .venue-layout,
+    .story-chapter-card,
+    .wish-note,
+    .rsvp-form,
+    .field,
+    .admin-item,
+    .admin-engagement-item
+  ) {
+  min-width: 0;
+}
+
+:is(
+    .cover-recipient,
+    .cover-title,
+    .couple-names,
+    .section-title,
+    .section-description,
+    .invitation-title,
+    .invitation-recipient,
+    .date-placeholder,
+    .countdown-number,
+    .story-chapter-copy,
+    .venue-name,
+    .venue-address,
+    .wish-note,
+    .rsvp-recipient,
+    .admin-panel,
+    .admin-item,
+    .admin-engagement-item
+  ) {
+  overflow-wrap: anywhere;
+}
+
+.couple-names {
+  font-size: clamp(3rem, 16vw, 7.4rem);
+  line-height: 0.84;
+}
+
+.cover-title {
+  font-size: clamp(2.35rem, 12vw, 4.8rem);
+  line-height: 0.92;
+}
+
+.section-title {
+  font-size: clamp(2.25rem, 10vw, 4.7rem);
+  line-height: 1;
+}
+
+.venue-name {
+  font-size: clamp(2rem, 10vw, 3.7rem);
+  line-height: 1;
+}
+
+.countdown {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.countdown-number {
+  font-size: clamp(2.1rem, 12vw, 4.1rem);
+  line-height: 1;
+}
+
+:is(button, .button, .cover-button, input, select, textarea) {
+  max-width: 100%;
+}
+
+:is(button, .button, .cover-button) {
+  height: auto;
+  white-space: normal;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+
+textarea {
+  field-sizing: content;
+  min-height: 7rem;
+}
+
+.editorial-dialog {
+  max-height: calc(100svh - 1rem);
+}
+
+@media (min-width: 32rem) {
+  .countdown {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .preset-grid,
+  .admin-export-filters {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 64rem) {
+  .appearance-editor-layout {
+    grid-template-columns: minmax(0, 1fr) 23rem;
+    align-items: start;
+  }
+
+  .appearance-phone-shell {
+    position: sticky;
+    top: 1rem;
+  }
+}
+
+@media (max-width: 30rem) {
+  .section {
+    padding: 4.75rem 1rem;
+  }
+
+  .admin-panel {
+    padding: 0.75rem;
+  }
+
+  .admin-panel-header {
+    flex-direction: column;
+  }
+
+  .admin-header-actions {
+    justify-content: flex-start;
+  }
+
+  .admin-tabs {
+    margin-inline: -0.75rem;
+    padding-inline: 0.75rem;
+  }
+
+  .admin-item,
+  .appearance-options fieldset {
+    padding: 0.75rem;
+  }
+
+  .story-reader-nav {
+    grid-template-columns: 1fr;
+    text-align: center;
+  }
+
+  .story-reader-nav .text-button {
+    justify-self: stretch;
+  }
+
+  .album-arrow {
+    width: 2.75rem;
+    height: 2.75rem;
   }
 }

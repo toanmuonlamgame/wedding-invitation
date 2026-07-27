@@ -6,7 +6,11 @@ import {
   AdminRsvpManager,
   AdminWishManager,
 } from "@/src/components/AdminEngagement";
+import { AdminDataExport } from "@/src/components/AdminDataExport";
+import { AppearanceEditor } from "@/src/components/AppearanceEditor";
+import { ImageFramingEditor } from "@/src/components/ImageFramingEditor";
 import { MediaUploader } from "@/src/components/MediaUploader";
+import { normalizeImageFraming } from "@/src/lib/image-framing";
 import type { FieldErrors } from "@/src/types/engagement";
 import type {
   GalleryMoment,
@@ -22,12 +26,14 @@ type WeddingAdminProps = {
 
 type AdminTab =
   | "overview"
+  | "appearance"
   | "general"
   | "venues"
   | "story"
   | "album"
   | "wishes"
-  | "rsvps";
+  | "rsvps"
+  | "export";
 
 function cloneContent(content: WeddingContentData): WeddingContentData {
   return JSON.parse(JSON.stringify(content)) as WeddingContentData;
@@ -59,13 +65,39 @@ function normalizeDateTime(value: string | null) {
   return normalized;
 }
 
+function toVietnamDateTimeInput(value: string | null) {
+  const normalized = value?.trim();
+  if (!normalized) return "";
+  if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(normalized)) {
+    return normalized;
+  }
+
+  const date = new Date(normalized);
+  if (Number.isNaN(date.getTime())) return normalized;
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Asia/Ho_Chi_Minh",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    hourCycle: "h23",
+  }).formatToParts(date);
+  const get = (type: Intl.DateTimeFormatPartTypes) =>
+    parts.find((part) => part.type === type)?.value ?? "";
+  return `${get("year")}-${get("month")}-${get("day")}T${get("hour")}:${get("minute")}`;
+}
+
 function normalizeContent(content: WeddingContentData): WeddingContentData {
   return {
+    themePreset: content.themePreset,
+    fontPreset: content.fontPreset,
     weddingDateTime: normalizeDateTime(content.weddingDateTime),
     expiredCountdownMessage: content.expiredCountdownMessage.trim(),
     albumIntervalMs: Number(content.albumIntervalMs),
     venues: content.venues.map((venue) => ({
       ...venue,
+      ...normalizeImageFraming(venue),
       id: venue.id.trim(),
       title: venue.title.trim(),
       eventType: venue.eventType.trim(),
@@ -81,6 +113,7 @@ function normalizeContent(content: WeddingContentData): WeddingContentData {
     })),
     storyChapters: content.storyChapters.map((chapter) => ({
       ...chapter,
+      ...normalizeImageFraming(chapter),
       id: chapter.id.trim(),
       chapterNumber: chapter.chapterNumber.trim(),
       period: chapter.period.trim(),
@@ -93,6 +126,7 @@ function normalizeContent(content: WeddingContentData): WeddingContentData {
     })),
     galleryImages: content.galleryImages.map((image) => ({
       ...image,
+      ...normalizeImageFraming(image),
       id: image.id.trim(),
       src: image.src.trim(),
       storagePath: image.storagePath?.trim() || undefined,
@@ -103,6 +137,7 @@ function normalizeContent(content: WeddingContentData): WeddingContentData {
 }
 
 function tabForField(path: string): AdminTab {
+  if (path === "themePreset" || path === "fontPreset") return "appearance";
   if (path.startsWith("venues.")) return "venues";
   if (path.startsWith("storyChapters.")) return "story";
   if (path.startsWith("galleryImages.")) return "album";
@@ -145,6 +180,9 @@ function newVenue(): WeddingEvent {
     address: "Địa chỉ",
     mapsUrl: null,
     note: "",
+    positionX: 50,
+    positionY: 50,
+    zoom: 1,
     showImage: false,
     available: false,
   };
@@ -159,6 +197,9 @@ function newChapter(): LoveStoryChapter {
     summary: "Tóm tắt chương",
     fullStory: "Nội dung đầy đủ",
     imageAlt: "Ảnh minh họa câu chuyện",
+    positionX: 50,
+    positionY: 50,
+    zoom: 1,
     available: false,
     visible: true,
   };
@@ -171,6 +212,9 @@ function newGalleryImage(): GalleryMoment {
     available: false,
     alt: "Ảnh cưới của Vũ Bình và Thành Long",
     caption: "Khoảnh khắc mới",
+    positionX: 50,
+    positionY: 50,
+    zoom: 1,
     featured: false,
     carousel: true,
     visible: true,
@@ -424,12 +468,14 @@ export function WeddingAdmin({
             {(
               [
                 ["overview", "Tổng quan & preview"],
+                ["appearance", "Giao diện thiệp"],
                 ["general", "Countdown"],
                 ["venues", "Địa điểm"],
                 ["story", "Quản lý câu chuyện"],
                 ["album", "Quản lý album"],
                 ["wishes", "Lời chúc"],
                 ["rsvps", "RSVP"],
+                ["export", "Xuất dữ liệu"],
               ] as const
             ).map(([tab, label]) => (
               <button
@@ -466,13 +512,13 @@ export function WeddingAdmin({
               <div className="admin-form-grid">
                 <div className="field">
                   <label htmlFor="adminWeddingDateTime">
-                    Ngày giờ ISO có timezone
+                    Ngày cưới (Giờ Việt Nam)
                   </label>
                   <input
                     id="adminWeddingDateTime"
                     {...fieldProps("weddingDateTime")}
-                    value={draft.weddingDateTime ?? ""}
-                    placeholder="2027-01-20T10:30:00+07:00"
+                    type="datetime-local"
+                    value={toVietnamDateTimeInput(draft.weddingDateTime)}
                     onChange={(event) => {
                       clearFieldError("weddingDateTime");
                       setDraft((current) => ({
@@ -530,6 +576,25 @@ export function WeddingAdmin({
               </div>
             ) : null}
 
+            {activeTab === "appearance" ? (
+              <AppearanceEditor
+                themePreset={draft.themePreset}
+                fontPreset={draft.fontPreset}
+                previewImage={
+                  draft.galleryImages.find(
+                    (image) => image.visible && image.available,
+                  ) ?? draft.galleryImages.find((image) => image.visible)
+                }
+                isSaving={isSaving}
+                onChange={(appearance) => {
+                  clearFieldError("themePreset");
+                  clearFieldError("fontPreset");
+                  setDraft((current) => ({ ...current, ...appearance }));
+                }}
+                onSave={() => void handleSave()}
+              />
+            ) : null}
+
             {activeTab === "venues" ? (
               <div className="admin-list">
                 {draft.venues.map((venue, index) => (
@@ -567,10 +632,11 @@ export function WeddingAdmin({
                         />
                       </label>
                       <label>
-                        Ngày giờ ISO
+                        Ngày giờ sự kiện (Giờ Việt Nam)
                         <input
                           {...fieldProps(`venues.${index}.dateTime`)}
-                          value={venue.dateTime ?? ""}
+                          type="datetime-local"
+                          value={toVietnamDateTimeInput(venue.dateTime)}
                           onChange={(event) =>
                             updateVenue(index, {
                               dateTime: event.target.value || null,
@@ -673,6 +739,20 @@ export function WeddingAdmin({
                             })
                           }
                         />
+                        {venue.imageSrc ? (
+                          <ImageFramingEditor
+                            src={venue.imageSrc}
+                            alt={
+                              venue.imageAlt ||
+                              `Ảnh địa điểm ${venue.venueName}`
+                            }
+                            value={venue}
+                            variant="venue"
+                            onChange={(framing) =>
+                              updateVenue(index, framing)
+                            }
+                          />
+                        ) : null}
                       </div>
                       <label>
                         Alt text ảnh địa điểm
@@ -853,6 +933,9 @@ export function WeddingAdmin({
                               imageSrc: event.target.value || undefined,
                               imageStoragePath:
                                 selectedImage?.storagePath || undefined,
+                              ...(selectedImage
+                                ? normalizeImageFraming(selectedImage)
+                                : normalizeImageFraming(undefined)),
                             });
                           }}
                         >
@@ -894,6 +977,17 @@ export function WeddingAdmin({
                             })
                           }
                         />
+                        {chapter.imageSrc ? (
+                          <ImageFramingEditor
+                            src={chapter.imageSrc}
+                            alt={chapter.imageAlt}
+                            value={chapter}
+                            variant="story"
+                            onChange={(framing) =>
+                              updateChapter(index, framing)
+                            }
+                          />
+                        ) : null}
                       </div>
                       <label>
                         Alt text
@@ -1005,6 +1099,9 @@ export function WeddingAdmin({
                           caption: file.name
                             .replace(/\.[^.]+$/, "")
                             .slice(0, 120),
+                          positionX: 50,
+                          positionY: 50,
+                          zoom: 1,
                           featured: false,
                           carousel: true,
                           visible: true,
@@ -1042,6 +1139,15 @@ export function WeddingAdmin({
                                 (_, imageIndex) => imageIndex !== index,
                               ),
                             }))
+                          }
+                        />
+                        <ImageFramingEditor
+                          src={image.src}
+                          alt={image.alt}
+                          value={image}
+                          variant="album"
+                          onChange={(framing) =>
+                            updateImage(index, framing)
                           }
                         />
                         <AdminFieldError
@@ -1181,6 +1287,10 @@ export function WeddingAdmin({
 
             {activeTab === "rsvps" ? (
               <AdminRsvpManager creatorSecret={creatorSecret} />
+            ) : null}
+
+            {activeTab === "export" ? (
+              <AdminDataExport creatorSecret={creatorSecret} />
             ) : null}
           </div>
 

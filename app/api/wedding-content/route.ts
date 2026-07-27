@@ -77,6 +77,8 @@ export async function PUT(request: NextRequest) {
       storyChapters: parsed.data.storyChapters,
       galleryImages: parsed.data.galleryImages,
       albumIntervalMs: parsed.data.albumIntervalMs,
+      themePreset: parsed.data.themePreset,
+      fontPreset: parsed.data.fontPreset,
     };
     return Response.json(await saveWeddingContent(content));
   } catch {

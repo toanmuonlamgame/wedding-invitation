@@ -11,12 +11,22 @@ import {
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { wedding } from "@/src/lib/wedding-data";
+import {
+  FONT_PRESETS,
+  getAppearanceStyle,
+} from "@/src/lib/appearance";
+import type {
+  FontPresetId,
+  ThemePresetId,
+} from "@/src/types/wedding";
 
 gsap.registerPlugin(ScrollTrigger);
 
 type WeddingExperienceProps = {
   children: React.ReactNode;
   recipientText?: string;
+  themePreset: ThemePresetId;
+  fontPreset: FontPresetId;
 };
 
 type WeddingExperienceContextValue = {
@@ -52,6 +62,8 @@ const petals = [
 export function WeddingExperience({
   children,
   recipientText,
+  themePreset,
+  fontPreset,
 }: WeddingExperienceProps) {
   const rootRef = useRef<HTMLDivElement>(null);
   const openButtonRef = useRef<HTMLButtonElement>(null);
@@ -290,7 +302,13 @@ export function WeddingExperience({
 
   return (
     <WeddingExperienceContext.Provider value={{ isOpened }}>
-      <div ref={rootRef}>
+      <div
+        ref={rootRef}
+        className={`wedding-theme-root ${FONT_PRESETS[fontPreset].className}`}
+        style={getAppearanceStyle(themePreset) as React.CSSProperties}
+        data-theme={themePreset}
+        data-font={fontPreset}
+      >
         {showCover ? (
           <div
             className="invitation-cover"

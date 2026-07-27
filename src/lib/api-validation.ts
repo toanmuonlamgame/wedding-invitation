@@ -33,6 +33,7 @@ export function getFieldErrors(error: ZodError): FieldErrors {
         eventType: "Loại sự kiện",
         expiredCountdownMessage: "Thông điệp countdown",
         fullStory: "Nội dung chương",
+        fontPreset: "Bộ font",
         galleryImages: "Album",
         imageAlt: "Alt text",
         imageSrc: "Đường dẫn ảnh",
@@ -41,15 +42,19 @@ export function getFieldErrors(error: ZodError): FieldErrors {
         message: "Nội dung",
         note: "Ghi chú",
         period: "Mốc thời gian",
+        positionX: "Vị trí ngang của ảnh",
+        positionY: "Vị trí dọc của ảnh",
         senderName: "Tên người gửi",
         src: "Đường dẫn ảnh",
         storagePath: "Đường dẫn Storage",
         storyChapters: "Câu chuyện",
         summary: "Tóm tắt",
         title: "Tiêu đề",
+        themePreset: "Giao diện",
         venueName: "Tên địa điểm",
         venues: "Danh sách địa điểm",
         weddingDateTime: "Ngày cưới",
+        zoom: "Độ phóng ảnh",
       };
       const isTechnicalMessage =
         /^(Invalid input|Too (small|big)|Unrecognized key|Expected )/i.test(

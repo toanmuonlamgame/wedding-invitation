@@ -33,6 +33,27 @@ The main page is the public wedding invitation, shows visible wedding wishes, an
 - Commit 3: adds database persistence, personalized invitation links, advanced visual effects, and production readiness.
 - Commit 4: adds public wishes, per-invitation RSVP, admin moderation/reporting, and field-level admin validation.
 - Admin media: uploads album, story, and venue images to the public `wedding-media` Supabase Storage bucket through server-only APIs.
+- Admin appearance: offers five controlled theme presets, four Vietnamese font
+  presets, a live phone preview, and per-image framing metadata.
+- Admin export: creates protected UTF-8 BOM CSV files for wishes and RSVP with
+  status filters and spreadsheet formula-injection protection.
+
+## Appearance and export architecture
+
+- `WeddingContent.themePreset` and `WeddingContent.fontPreset` store controlled
+  preset codes; the default codes preserve the original light appearance.
+- Each album, story, or venue image stores `positionX`, `positionY`, and `zoom`
+  in the existing JSON shape. Missing legacy values normalize to `50`, `50`,
+  and `1`.
+- Public `/` and `/thiep/[token]` share `WeddingInvitation`, so they apply the
+  same theme, font, and image framing.
+- `POST /api/admin/export` validates the same server-side creator secret before
+  reading Prisma data. CSV output uses Vietnamese column names, UTF-8 BOM,
+  correct quoting, and formula sanitization.
+- `.xlsx` export remains intentionally disabled because the allowed dependency
+  set does not include a server-side workbook library.
+- `prisma/migrations/20260727000000_add_appearance_presets/migration.sql` is
+  source-only and must be applied manually.
 
 ## Admin media architecture
 

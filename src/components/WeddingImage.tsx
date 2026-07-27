@@ -2,7 +2,9 @@
 
 import Image from "next/image";
 import { useState } from "react";
+import { imageFramingStyle } from "@/src/lib/image-framing";
 import { wedding } from "@/src/lib/wedding-data";
+import type { ImageFraming } from "@/src/types/wedding";
 
 type WeddingImageProps = {
   src?: string;
@@ -11,6 +13,7 @@ type WeddingImageProps = {
   sizes: string;
   priority?: boolean;
   className?: string;
+  framing?: Partial<ImageFraming>;
 };
 
 export function WeddingImage({
@@ -20,6 +23,7 @@ export function WeddingImage({
   sizes,
   priority = false,
   className = "",
+  framing,
 }: WeddingImageProps) {
   const [failedSrc, setFailedSrc] = useState<string | null>(null);
   const hasError = src === failedSrc;
@@ -33,6 +37,7 @@ export function WeddingImage({
         fill
         sizes={sizes}
         priority={priority}
+        style={imageFramingStyle(framing)}
         onError={() => setFailedSrc(src)}
       />
     );

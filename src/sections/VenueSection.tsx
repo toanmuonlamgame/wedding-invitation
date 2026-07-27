@@ -42,6 +42,7 @@ export function VenueSection({ venues }: VenueSectionProps) {
                       }
                       sizes="(max-width: 896px) 100vw, 48vw"
                       className="venue-image-media"
+                      framing={venue}
                     />
                   </div>
                 ) : (
