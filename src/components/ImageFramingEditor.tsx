@@ -3,11 +3,12 @@
 import { useId, useRef, useState } from "react";
 import { WeddingImage } from "@/src/components/WeddingImage";
 import {
-  DEFAULT_IMAGE_FRAMING,
+  MAX_CONTAIN_IMAGE_ZOOM,
   MAX_IMAGE_ZOOM,
   MIN_IMAGE_ZOOM,
   clampNumber,
   normalizeImageFraming,
+  resetImageFraming,
 } from "@/src/lib/image-framing";
 import type { ImageFraming } from "@/src/types/wedding";
 
@@ -39,7 +40,11 @@ export function ImageFramingEditor({
   const fitGroupName = useId();
   const [isDragging, setIsDragging] = useState(false);
   const framing = normalizeImageFraming(value);
-  const canCrop = framing.fitMode === "cover";
+  const canDrag = framing.fitMode === "cover" || framing.zoom > 1;
+  const maxZoom =
+    framing.fitMode === "contain"
+      ? MAX_CONTAIN_IMAGE_ZOOM
+      : MAX_IMAGE_ZOOM;
 
   function update(patch: Partial<ImageFraming>) {
     onChange(normalizeImageFraming({ ...framing, ...patch }));
@@ -69,13 +74,7 @@ export function ImageFramingEditor({
             name={fitGroupName}
             checked={framing.fitMode === "contain"}
             onChange={() =>
-              update({
-                fitMode: "contain",
-                positionX: 50,
-                positionY: 50,
-                zoom: 1,
-                backgroundColor: "#ffffff",
-              })
+              update({ fitMode: "contain", backgroundColor: "#ffffff" })
             }
           />
           <span>
@@ -87,9 +86,9 @@ export function ImageFramingEditor({
         </label>
       </fieldset>
       <p className="image-framing-help">
-        {canCrop
+        {framing.fitMode === "cover"
           ? "Kéo ảnh để căn phần quan trọng vào giữa khung."
-          : "Chế độ toàn ảnh không cần căn cắt; kéo và zoom đã được tắt."}
+          : "Zoom 100%: hiển thị toàn bộ ảnh. Zoom lớn hơn 100%: ảnh có thể bị cắt; khi đó bạn có thể kéo để căn phần quan trọng."}
       </p>
       <div
         ref={frameRef}
@@ -97,8 +96,9 @@ export function ImageFramingEditor({
         data-variant={variant}
         data-dragging={isDragging}
         data-fit-mode={framing.fitMode}
+        data-can-drag={canDrag}
         onPointerDown={(event) => {
-          if (!frameRef.current || !canCrop) return;
+          if (!frameRef.current || !canDrag) return;
           event.currentTarget.setPointerCapture(event.pointerId);
           dragRef.current = {
             pointerId: event.pointerId,
@@ -110,7 +110,7 @@ export function ImageFramingEditor({
           setIsDragging(true);
         }}
         onPointerMove={(event) => {
-          if (!canCrop) return;
+          if (!canDrag) return;
           const drag = dragRef.current;
           const frame = frameRef.current;
           if (!drag || drag.pointerId !== event.pointerId || !frame) return;
@@ -154,16 +154,16 @@ export function ImageFramingEditor({
         <span className="image-framing-crosshair" aria-hidden="true" />
       </div>
 
-      <div className="image-framing-controls" aria-disabled={!canCrop}>
+      <div className="image-framing-controls">
         <label>
           Zoom
           <input
             type="range"
             min={MIN_IMAGE_ZOOM}
-            max={MAX_IMAGE_ZOOM}
+            max={maxZoom}
             step={0.05}
             value={framing.zoom}
-            disabled={!canCrop}
+            aria-valuetext={`${Math.round(framing.zoom * 100)}%`}
             onChange={(event) => update({ zoom: Number(event.target.value) })}
           />
         </label>
@@ -175,7 +175,7 @@ export function ImageFramingEditor({
             max={100}
             step={1}
             value={framing.positionX}
-            disabled={!canCrop}
+            disabled={!canDrag}
             onChange={(event) =>
               update({ positionX: Number(event.target.value) })
             }
@@ -189,7 +189,7 @@ export function ImageFramingEditor({
             max={100}
             step={1}
             value={framing.positionY}
-            disabled={!canCrop}
+            disabled={!canDrag}
             onChange={(event) =>
               update({ positionY: Number(event.target.value) })
             }
@@ -198,15 +198,13 @@ export function ImageFramingEditor({
       </div>
       <div className="image-framing-meta">
         <small>
-          {canCrop
-            ? `X ${Math.round(framing.positionX)} · Y ${Math.round(
-                framing.positionY,
-              )} · Zoom ${framing.zoom.toFixed(2)}`
-            : "Toàn ảnh · Căn giữa · Nền #ffffff"}
+          X {Math.round(framing.positionX)} · Y {Math.round(framing.positionY)} ·
+          Zoom {Math.round(framing.zoom * 100)}%
+          {framing.fitMode === "contain" ? " · Nền #ffffff" : ""}
         </small>
         <button
           type="button"
-          onClick={() => onChange(DEFAULT_IMAGE_FRAMING)}
+          onClick={() => onChange(resetImageFraming(framing.fitMode))}
         >
           Đặt lại
         </button>

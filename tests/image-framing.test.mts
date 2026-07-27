@@ -1,9 +1,11 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import {
+  MAX_CONTAIN_IMAGE_ZOOM,
   MAX_IMAGE_ZOOM,
   imageFramingStyle,
   normalizeImageFraming,
+  resetImageFraming,
 } from "../src/lib/image-framing.ts";
 
 test("normalizeImageFraming supplies backward-compatible defaults", () => {
@@ -29,12 +31,12 @@ test("normalizeImageFraming clamps position and zoom", () => {
   );
 });
 
-test("contain always centers the full image on an opaque white background", () => {
+test("contain at 100% shows the full image on an opaque white background", () => {
   const normalized = normalizeImageFraming({
     fitMode: "contain",
-    positionX: 10,
-    positionY: 90,
-    zoom: 2,
+    positionX: 50,
+    positionY: 50,
+    zoom: 1,
     backgroundColor: "#123456",
   });
   assert.deepEqual(normalized, {
@@ -46,9 +48,58 @@ test("contain always centers the full image on an opaque white background", () =
   });
   assert.deepEqual(imageFramingStyle(normalized), {
     objectFit: "contain",
-    objectPosition: "center",
-    transform: "none",
-    transformOrigin: "center",
+    objectPosition: "50% 50%",
+    transform: "scale(1)",
+    transformOrigin: "50% 50%",
+    backgroundColor: "#ffffff",
+  });
+});
+
+test("contain preserves positioning, supports zoom and clamps its own range", () => {
+  const normalized = normalizeImageFraming({
+    fitMode: "contain",
+    positionX: 24,
+    positionY: 73,
+    zoom: 2.2,
+    backgroundColor: "#000000",
+  });
+
+  assert.deepEqual(normalized, {
+    fitMode: "contain",
+    positionX: 24,
+    positionY: 73,
+    zoom: MAX_CONTAIN_IMAGE_ZOOM,
+    backgroundColor: "#ffffff",
+  });
+  assert.deepEqual(imageFramingStyle(normalized), {
+    objectFit: "contain",
+    objectPosition: "24% 73%",
+    transform: `scale(${MAX_CONTAIN_IMAGE_ZOOM})`,
+    transformOrigin: "24% 73%",
+    backgroundColor: "#ffffff",
+  });
+});
+
+test("switching fit modes keeps valid framing metadata", () => {
+  const contain = normalizeImageFraming({
+    fitMode: "contain",
+    positionX: 31,
+    positionY: 68,
+    zoom: 1.45,
+  });
+  const cover = normalizeImageFraming({ ...contain, fitMode: "cover" });
+
+  assert.equal(cover.positionX, 31);
+  assert.equal(cover.positionY, 68);
+  assert.equal(cover.zoom, 1.45);
+});
+
+test("reset returns the selected mode to 50/50/100% without transparency", () => {
+  assert.deepEqual(resetImageFraming("contain"), {
+    positionX: 50,
+    positionY: 50,
+    zoom: 1,
+    fitMode: "contain",
     backgroundColor: "#ffffff",
   });
 });

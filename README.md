@@ -179,13 +179,15 @@ tới `/thiep/[token]`.
 ## Hiển thị ảnh, ngày âm và hiệu năng
 
 - Metadata ảnh trong nội dung chung hỗ trợ `fitMode: "cover" | "contain"` và
-  `backgroundColor`. Dữ liệu cũ tự dùng `cover`; chế độ `contain` luôn căn giữa,
-  zoom 1 và dùng nền trắng `#ffffff`. Các trường này nằm trong JSON hiện có nên
-  không cần migration database.
+  `backgroundColor`. Dữ liệu cũ tự dùng `cover`; chế độ `contain` mặc định
+  50/50, zoom 100% và nền trắng `#ffffff`, đồng thời cho phép zoom tới 180% và
+  kéo để căn ảnh. Các trường này nằm trong JSON hiện có nên không cần migration
+  database.
 - Ngày âm được tính nội bộ theo múi giờ Việt Nam từ ngày cưới đã lưu, không gọi
   API bên ngoài và không phụ thuộc múi giờ trình duyệt.
 - Ảnh story, album và địa điểm dưới màn hình đầu dùng lazy loading. Album chỉ
-  mount ảnh hiện tại và dừng bộ đếm khi tab bị ẩn.
+  mount ảnh hiện tại, dùng chu kỳ cấu hình trong nội dung chung, reset timer sau
+  thao tác thủ công và dừng bộ đếm khi tab bị ẩn.
 - GSAP chỉ được tải sau khi người xem mở thiệp. Các công cụ admin nặng được tách
   thành chunk tải theo tab; nội dung dùng chung được cache và revalidate sau khi
   admin lưu.

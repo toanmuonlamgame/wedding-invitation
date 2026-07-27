@@ -1,7 +1,6 @@
 "use client";
 
 import {
-  type FocusEvent,
   type KeyboardEvent,
   type TouchEvent,
   useEffect,
@@ -10,6 +9,10 @@ import {
   useState,
 } from "react";
 import { WeddingImage } from "@/src/components/WeddingImage";
+import {
+  getNextAlbumIndex,
+  normalizeAlbumInterval,
+} from "@/src/lib/album-autoplay";
 import type { GalleryMoment } from "@/src/types/wedding";
 
 type AlbumGalleryProps = {
@@ -24,12 +27,11 @@ export function AlbumGallery({ images, intervalMs }: AlbumGalleryProps) {
   }, [images]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isHovered, setIsHovered] = useState(false);
-  const [isFocused, setIsFocused] = useState(false);
-  const [isInteractionPaused, setIsInteractionPaused] = useState(false);
   const [isDocumentHidden, setIsDocumentHidden] = useState(false);
   const [reducedMotion, setReducedMotion] = useState(false);
-  const resumeTimerRef = useRef<number | undefined>(undefined);
+  const [autoplayEpoch, setAutoplayEpoch] = useState(0);
   const touchStartXRef = useRef<number | null>(null);
+  const safeIntervalMs = normalizeAlbumInterval(intervalMs);
 
   useEffect(() => {
     const media = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -51,8 +53,6 @@ export function AlbumGallery({ images, intervalMs }: AlbumGalleryProps) {
     const canAutoplay =
       slides.length > 1 &&
       !isHovered &&
-      !isFocused &&
-      !isInteractionPaused &&
       !isDocumentHidden &&
       !reducedMotion;
 
@@ -61,39 +61,21 @@ export function AlbumGallery({ images, intervalMs }: AlbumGalleryProps) {
     }
 
     const timer = window.setInterval(() => {
-      setCurrentIndex((index) => (index + 1) % slides.length);
-    }, intervalMs);
+      setCurrentIndex((index) => getNextAlbumIndex(index, slides.length));
+    }, safeIntervalMs);
 
     return () => window.clearInterval(timer);
   }, [
-    intervalMs,
+    autoplayEpoch,
     isDocumentHidden,
-    isFocused,
     isHovered,
-    isInteractionPaused,
     reducedMotion,
+    safeIntervalMs,
     slides.length,
   ]);
 
-  useEffect(() => {
-    return () => {
-      if (resumeTimerRef.current !== undefined) {
-        window.clearTimeout(resumeTimerRef.current);
-      }
-    };
-  }, []);
-
-  function pauseAfterInteraction() {
-    setIsInteractionPaused(true);
-
-    if (resumeTimerRef.current !== undefined) {
-      window.clearTimeout(resumeTimerRef.current);
-    }
-
-    resumeTimerRef.current = window.setTimeout(() => {
-      setIsInteractionPaused(false);
-      resumeTimerRef.current = undefined;
-    }, 8_000);
+  function resetAutoplayTimer() {
+    setAutoplayEpoch((epoch) => epoch + 1);
   }
 
   function showPrevious() {
@@ -101,11 +83,8 @@ export function AlbumGallery({ images, intervalMs }: AlbumGalleryProps) {
       return;
     }
 
-    pauseAfterInteraction();
-    setCurrentIndex((index) => {
-      const safeIndex = Math.min(index, slides.length - 1);
-      return (safeIndex - 1 + slides.length) % slides.length;
-    });
+    resetAutoplayTimer();
+    setCurrentIndex((index) => getNextAlbumIndex(index, slides.length, -1));
   }
 
   function showNext() {
@@ -113,11 +92,8 @@ export function AlbumGallery({ images, intervalMs }: AlbumGalleryProps) {
       return;
     }
 
-    pauseAfterInteraction();
-    setCurrentIndex((index) => {
-      const safeIndex = Math.min(index, slides.length - 1);
-      return (safeIndex + 1) % slides.length;
-    });
+    resetAutoplayTimer();
+    setCurrentIndex((index) => getNextAlbumIndex(index, slides.length));
   }
 
   function handleCarouselKeyDown(event: KeyboardEvent<HTMLDivElement>) {
@@ -127,12 +103,6 @@ export function AlbumGallery({ images, intervalMs }: AlbumGalleryProps) {
     } else if (event.key === "ArrowRight") {
       event.preventDefault();
       showNext();
-    }
-  }
-
-  function handleBlur(event: FocusEvent<HTMLDivElement>) {
-    if (!event.currentTarget.contains(event.relatedTarget)) {
-      setIsFocused(false);
     }
   }
 
@@ -171,8 +141,6 @@ export function AlbumGallery({ images, intervalMs }: AlbumGalleryProps) {
       onKeyDown={handleCarouselKeyDown}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
-      onFocusCapture={() => setIsFocused(true)}
-      onBlurCapture={handleBlur}
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
     >
@@ -197,44 +165,46 @@ export function AlbumGallery({ images, intervalMs }: AlbumGalleryProps) {
         </figcaption>
       </figure>
 
-      <button
-        className="album-arrow album-arrow-previous"
-        type="button"
-        aria-label="Ảnh trước"
-        disabled={slides.length < 2}
-        onClick={showPrevious}
-      >
-        ←
-      </button>
-      <button
-        className="album-arrow album-arrow-next"
-        type="button"
-        aria-label="Ảnh tiếp theo"
-        disabled={slides.length < 2}
-        onClick={showNext}
-      >
-        →
-      </button>
+      {slides.length > 1 ? (
+        <>
+          <button
+            className="album-arrow album-arrow-previous"
+            type="button"
+            aria-label="Ảnh trước"
+            onClick={showPrevious}
+          >
+            ←
+          </button>
+          <button
+            className="album-arrow album-arrow-next"
+            type="button"
+            aria-label="Ảnh tiếp theo"
+            onClick={showNext}
+          >
+            →
+          </button>
 
-      <div className="album-pagination">
-        <span>
-          {safeCurrentIndex + 1} / {slides.length}
-        </span>
-        <div className="album-indicators" aria-label="Chọn ảnh">
-          {slides.map((slide, index) => (
-            <button
-              type="button"
-              key={slide.id}
-              aria-label={`Xem ảnh ${index + 1}`}
-              aria-current={index === safeCurrentIndex ? "true" : undefined}
-              onClick={() => {
-                pauseAfterInteraction();
-                setCurrentIndex(index);
-              }}
-            />
-          ))}
-        </div>
-      </div>
+          <div className="album-pagination">
+            <span>
+              {safeCurrentIndex + 1} / {slides.length}
+            </span>
+            <div className="album-indicators" aria-label="Chọn ảnh">
+              {slides.map((slide, index) => (
+                <button
+                  type="button"
+                  key={slide.id}
+                  aria-label={`Xem ảnh ${index + 1}`}
+                  aria-current={index === safeCurrentIndex ? "true" : undefined}
+                  onClick={() => {
+                    resetAutoplayTimer();
+                    setCurrentIndex(index);
+                  }}
+                />
+              ))}
+            </div>
+          </div>
+        </>
+      ) : null}
     </div>
   );
 }

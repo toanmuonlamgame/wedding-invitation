@@ -12,6 +12,10 @@ import {
   normalizeThemePreset,
 } from "@/src/lib/appearance";
 import {
+  MAX_ALBUM_INTERVAL_MS,
+  MIN_ALBUM_INTERVAL_MS,
+} from "@/src/lib/album-autoplay";
+import {
   MAX_IMAGE_ZOOM,
   MIN_IMAGE_ZOOM,
   normalizeImageFraming,
@@ -223,7 +227,17 @@ export const weddingContentSchema = z
     venues: z.array(weddingEventSchema).min(1).max(8),
     storyChapters: z.array(storyChapterSchema).max(20),
     galleryImages: z.array(galleryImageSchema).max(40),
-    albumIntervalMs: z.number().int().min(4_000).max(10_000),
+    albumIntervalMs: z
+      .number()
+      .int()
+      .min(
+        MIN_ALBUM_INTERVAL_MS,
+        "Chu kỳ album phải từ 2 đến 30 giây.",
+      )
+      .max(
+        MAX_ALBUM_INTERVAL_MS,
+        "Chu kỳ album phải từ 2 đến 30 giây.",
+      ),
     themePreset: z.enum(THEME_IDS).default(DEFAULT_THEME_PRESET),
     fontPreset: z.enum(FONT_IDS).default(DEFAULT_FONT_PRESET),
   })

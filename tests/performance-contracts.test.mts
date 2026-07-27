@@ -33,8 +33,10 @@ test("slideshow and particles clean up or pause background work", async () => {
     "src/components/WeddingExperience.tsx",
   );
   assert.match(albumSource, /clearInterval/);
-  assert.match(albumSource, /clearTimeout/);
   assert.match(albumSource, /visibilitychange/);
+  assert.match(albumSource, /autoplayEpoch/);
+  assert.match(albumSource, /slides\.length > 1/);
+  assert.match(albumSource, /!reducedMotion/);
   assert.match(experienceSource, /data-paused=\{isDocumentHidden\}/);
 });
 

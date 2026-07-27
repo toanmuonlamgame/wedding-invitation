@@ -630,10 +630,11 @@ a {
 
 .date-label {
   margin: 0 0 0.8rem;
-  color: #d6b77f;
+  color: currentColor;
   font-size: 0.6rem;
   font-weight: 600;
   letter-spacing: 0.25em;
+  opacity: 0.76;
   text-transform: uppercase;
 }
 
@@ -642,15 +643,27 @@ a {
   font-family: var(--font-display), serif;
   font-size: clamp(2.2rem, 9vw, 4rem);
   font-style: italic;
+  font-weight: 600;
   line-height: 1;
+  text-wrap: balance;
 }
 
-.date-composition > span,
+.date-composition > span {
+  display: block;
+  margin-top: 0.8rem;
+  color: currentColor;
+  font-size: clamp(0.78rem, 2.8vw, 0.9rem);
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  line-height: 1.5;
+  opacity: 0.88;
+}
+
 .date-composition > small {
   display: block;
   margin-top: 0.8rem;
-  color: rgba(255, 253, 248, 0.65);
-  font-size: 0.72rem;
+  color: currentColor;
+  opacity: 0.8;
 }
 
 .date-composition .lunar-date {
@@ -659,11 +672,13 @@ a {
   align-items: center;
   justify-content: center;
   gap: 0.45rem;
-  color: #e0c794;
+  color: currentColor;
   font-family: var(--font-display), serif;
   font-size: clamp(0.78rem, 3.5vw, 0.96rem);
   font-style: normal;
+  font-weight: 500;
   line-height: 1.5;
+  opacity: 0.86;
   overflow-wrap: anywhere;
 }
 
@@ -703,16 +718,20 @@ a {
   min-width: 2ch;
   font-family: var(--font-display), serif;
   font-size: clamp(2rem, 9vw, 3.2rem);
+  font-weight: 600;
   font-variant-numeric: tabular-nums;
   line-height: 1;
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.12);
 }
 
 .countdown-label {
   display: block;
   margin-top: 0.45rem;
-  color: rgba(255, 253, 248, 0.55);
+  color: currentColor;
   font-size: 0.52rem;
+  font-weight: 600;
   letter-spacing: 0.13em;
+  opacity: 0.74;
   text-transform: uppercase;
 }
 
@@ -1203,7 +1222,7 @@ a {
 .venue-layout {
   display: grid;
   align-items: stretch;
-  gap: 2.5rem;
+  gap: clamp(1.1rem, 4vw, 2rem);
 }
 
 .venue-event-type {
@@ -1217,14 +1236,18 @@ a {
 
 .map-illustration {
   position: relative;
-  min-height: 20rem;
+  width: 100%;
+  min-height: 0;
+  aspect-ratio: 16 / 10;
   overflow: hidden;
   background: var(--sage-soft);
 }
 
 .venue-image {
   position: relative;
-  min-height: 20rem;
+  width: 100%;
+  min-height: 0;
+  aspect-ratio: 16 / 10;
   overflow: hidden;
   background: var(--sage-soft);
 }
@@ -1276,7 +1299,10 @@ a {
 }
 
 .venue-content {
-  align-self: center;
+  min-width: 0;
+  align-self: stretch;
+  border: 1px solid var(--line);
+  padding: clamp(1.4rem, 5vw, 2.4rem);
   text-align: center;
 }
 
@@ -1289,28 +1315,34 @@ a {
 }
 
 .venue-name {
-  max-width: 29rem;
+  max-width: 24rem;
   margin: 0.8rem auto;
   font-family: var(--font-display), serif;
-  font-size: clamp(2.35rem, 9vw, 3.8rem);
+  font-size: clamp(1.8rem, 8vw, 3rem);
   font-weight: 500;
-  line-height: 1;
+  line-height: 1.08;
+  text-wrap: balance;
 }
 
 .venue-address {
-  max-width: 28rem;
+  max-width: 36ch;
   margin: 0 auto 1.6rem;
   color: var(--muted);
-  font-size: 0.82rem;
+  font-size: clamp(0.82rem, 2.6vw, 0.94rem);
+  line-height: 1.65;
+  text-wrap: pretty;
 }
 
 .venue-note {
-  max-width: 28rem;
+  max-width: 36ch;
   margin: -0.7rem auto 1rem;
-  color: var(--muted);
+  color: var(--ink);
   font-family: var(--font-display), serif;
   font-size: 1rem;
   font-style: italic;
+  font-weight: 500;
+  line-height: 1.5;
+  opacity: 0.78;
 }
 
 .placeholder-label {
@@ -1333,6 +1365,12 @@ a {
   justify-content: center;
   gap: 0.65rem;
   margin-top: 1.3rem;
+}
+
+.venue-actions > :is(a, button) {
+  min-height: 3rem;
+  flex: 1 1 11rem;
+  justify-content: center;
 }
 
 .venue-copy-status {
@@ -2627,16 +2665,22 @@ fieldset[aria-invalid="true"] {
   }
 
   .venue-layout {
-    grid-template-columns: 1.05fr 0.95fr;
-    gap: 5rem;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: clamp(2rem, 4vw, 4rem);
   }
 
   .map-illustration,
   .venue-image {
-    min-height: 31rem;
+    height: 100%;
+    min-height: clamp(24rem, 33vw, 29rem);
+    aspect-ratio: auto;
   }
 
   .venue-content {
+    display: flex;
+    min-height: clamp(24rem, 33vw, 29rem);
+    justify-content: center;
+    flex-direction: column;
     text-align: left;
   }
 
@@ -2784,6 +2828,10 @@ fieldset[aria-invalid="true"] {
   color: var(--theme-countdown, var(--forest));
 }
 
+.wedding-theme-root .schedule-section .countdown-number {
+  color: currentColor;
+}
+
 .wedding-theme-root .album-slide::after,
 .wedding-theme-root .story-chapter-image::after,
 .wedding-theme-root .venue-image::after {
@@ -2892,6 +2940,9 @@ fieldset[aria-invalid="true"] {
 
 .image-framing-frame[data-fit-mode="contain"] {
   background: #ffffff;
+}
+
+.image-framing-frame[data-can-drag="false"] {
   cursor: default;
   touch-action: auto;
 }
@@ -2916,10 +2967,13 @@ fieldset[aria-invalid="true"] {
 
 .image-framing-frame[data-fit-mode="contain"] .image-framing-media {
   background: #ffffff !important;
+}
+
+.image-framing-frame[data-can-drag="false"] .image-framing-media {
   will-change: auto;
 }
 
-.image-framing-frame[data-fit-mode="contain"] .image-framing-crosshair {
+.image-framing-frame[data-can-drag="false"] .image-framing-crosshair {
   display: none;
 }
 
@@ -3260,8 +3314,8 @@ fieldset[aria-invalid="true"] {
 }
 
 .venue-name {
-  font-size: clamp(2rem, 10vw, 3.7rem);
-  line-height: 1;
+  font-size: clamp(1.8rem, 8vw, 3rem);
+  line-height: 1.08;
 }
 
 .countdown {

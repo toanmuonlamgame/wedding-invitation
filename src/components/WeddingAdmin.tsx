@@ -3,6 +3,10 @@
 import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
 import { useEffect, useRef, useState } from "react";
+import {
+  MAX_ALBUM_INTERVAL_MS,
+  MIN_ALBUM_INTERVAL_MS,
+} from "@/src/lib/album-autoplay";
 import { normalizeImageFraming } from "@/src/lib/image-framing";
 import type { FieldErrors } from "@/src/types/engagement";
 import type {
@@ -616,8 +620,8 @@ export function WeddingAdmin({
                     id="adminAlbumInterval"
                     {...fieldProps("albumIntervalMs")}
                     type="number"
-                    min={4000}
-                    max={10000}
+                    min={MIN_ALBUM_INTERVAL_MS}
+                    max={MAX_ALBUM_INTERVAL_MS}
                     step={500}
                     value={draft.albumIntervalMs}
                     onChange={(event) => {
