@@ -1514,11 +1514,15 @@ a {
 .music-player {
   position: fixed;
   z-index: 80;
-  right: 1rem;
-  bottom: 1rem;
+  right: max(1rem, env(safe-area-inset-right));
+  bottom: calc(1rem + env(safe-area-inset-bottom));
   display: flex;
   align-items: center;
   gap: 0.7rem;
+}
+
+.music-player[data-stacked="true"] {
+  bottom: calc(5rem + env(safe-area-inset-bottom));
 }
 
 .music-caption {
@@ -3158,6 +3162,11 @@ textarea {
     padding: 4.75rem 1rem;
   }
 
+  .couple-names {
+    font-size: clamp(2.65rem, 13vw, 3.4rem);
+    letter-spacing: -0.02em;
+  }
+
   .admin-panel {
     padding: 0.75rem;
   }
@@ -3708,9 +3717,55 @@ textarea {
   pointer-events: none;
 }
 
-.cover-content,
+.cover-text-halo {
+  position: absolute;
+  z-index: 2;
+  width: min(88vw, 43rem);
+  height: min(78vh, 40rem);
+  border: 1px solid rgba(255, 253, 248, 0.42);
+  border-radius: 50%;
+  background:
+    radial-gradient(
+      ellipse at center,
+      rgba(255, 253, 248, 0.88) 0%,
+      rgba(255, 253, 248, 0.66) 42%,
+      rgba(255, 253, 248, 0.18) 72%,
+      transparent 100%
+    );
+  box-shadow: 0 0 4rem rgba(255, 253, 248, 0.24);
+  filter: blur(0.2px);
+  pointer-events: none;
+}
+
+.cover-content {
+  z-index: 3;
+}
+
 .cover-flourish {
   z-index: 2;
+}
+
+.cover-renderer[data-has-background="true"] .cover-title {
+  color: color-mix(in srgb, var(--ink) 92%, #241d18);
+  text-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.5),
+    0 0.25rem 1.5rem rgba(255, 253, 248, 0.42);
+}
+
+.cover-renderer[data-has-background="true"] :is(
+    .cover-kicker,
+    .cover-recipient,
+    .cover-monogram,
+    .cover-note
+  ) {
+  color: color-mix(in srgb, var(--forest-deep) 92%, #211b17);
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.48);
+}
+
+.cover-renderer[data-has-background="true"] .cover-button {
+  box-shadow:
+    0 0 0 0.35rem rgba(255, 253, 248, 0.52),
+    0 0.8rem 2rem rgba(30, 38, 32, 0.18);
 }
 
 .cover-renderer[data-align="left"] .cover-content {
@@ -3833,14 +3888,22 @@ textarea {
   width: min(100%, 32rem);
   margin: 2rem auto;
   padding: 1.2rem;
-  background: color-mix(in srgb, var(--theme-card) 90%, transparent);
-  border: 1px solid var(--line);
+  color: var(--ink);
+  background: color-mix(in srgb, var(--theme-card) 96%, white);
+  border: 1px solid color-mix(in srgb, var(--forest) 32%, transparent);
+  box-shadow:
+    0 1rem 3rem rgba(14, 24, 18, 0.18),
+    inset 0 1px 0 rgba(255, 255, 255, 0.78);
+  backdrop-filter: blur(12px);
 }
 
 .wedding-calendar > p {
+  margin: 0 0 0.8rem;
+  color: var(--forest-deep);
   text-align: center;
   font-family: var(--theme-heading-font);
   font-size: 1.25rem;
+  font-weight: 650;
 }
 
 .calendar-grid {
@@ -3856,14 +3919,26 @@ textarea {
   place-items: center;
 }
 
+.calendar-grid strong {
+  color: var(--forest-deep);
+  font-size: 0.72rem;
+  font-weight: 750;
+}
+
 .calendar-grid span {
   position: relative;
+  color: color-mix(in srgb, var(--ink) 90%, black);
+  font-weight: 560;
 }
 
 .calendar-grid span[aria-current="date"] {
   color: var(--white);
   background: var(--forest);
   border-radius: var(--radius-pill);
+  box-shadow:
+    0 0 0 0.2rem rgba(177, 138, 81, 0.28),
+    0 0.35rem 0.9rem rgba(33, 48, 39, 0.24);
+  font-weight: 800;
 }
 
 .calendar-grid i {
@@ -3872,6 +3947,33 @@ textarea {
   right: -0.15rem;
   color: var(--gold);
   font-style: normal;
+}
+
+.schedule-section[data-has-background="true"] .section-shell {
+  position: relative;
+  z-index: 1;
+  padding: clamp(1rem, 3vw, 2rem);
+  border: 1px solid rgba(255, 253, 248, 0.2);
+  border-radius: var(--radius-lg);
+  background:
+    radial-gradient(
+      circle at 50% 22%,
+      rgba(255, 253, 248, 0.15),
+      transparent 44%
+    ),
+    rgba(18, 31, 23, 0.42);
+  box-shadow: 0 1.5rem 4rem rgba(10, 18, 13, 0.18);
+  backdrop-filter: blur(7px);
+}
+
+.schedule-section[data-has-background="true"] .date-composition {
+  text-shadow: 0 1px 0 rgba(0, 0, 0, 0.22);
+}
+
+.schedule-section[data-has-background="true"] .countdown-item {
+  border-color: rgba(255, 253, 248, 0.32);
+  background: rgba(21, 34, 26, 0.4);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
 }
 
 .wishes-layout-bubble {

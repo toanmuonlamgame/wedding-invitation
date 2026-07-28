@@ -5,6 +5,8 @@ type MusicPlayerProps = {
   isLoading: boolean;
   isUnavailable: boolean;
   onToggle: () => void;
+  sourceLabel?: string;
+  stacked?: boolean;
 };
 
 export function MusicPlayer({
@@ -12,25 +14,31 @@ export function MusicPlayer({
   isLoading,
   isUnavailable,
   onToggle,
+  sourceLabel = "nhạc nền",
+  stacked = false,
 }: MusicPlayerProps) {
   const label = isUnavailable
-    ? "Không thể phát nhạc nền"
+    ? `Không thể phát ${sourceLabel}`
     : isLoading
-      ? "Đang tải trình phát nhạc"
+      ? `Đang tải trình phát ${sourceLabel}`
       : isPlaying
-        ? "Tạm dừng nhạc nền"
-        : "Phát nhạc nền";
+        ? `Tạm dừng ${sourceLabel}`
+        : `Phát ${sourceLabel}`;
 
   return (
-    <div className="music-player">
+    <div
+      className="music-player"
+      data-stacked={stacked || undefined}
+      data-source={sourceLabel === "nhạc YouTube" ? "youtube" : "background"}
+    >
       <span className="music-caption" aria-live="polite">
         {isUnavailable
-          ? "Nhạc nền không khả dụng"
+          ? `${sourceLabel} không khả dụng`
           : isLoading
-            ? "Đang tải nhạc"
+            ? `Đang tải ${sourceLabel}`
             : isPlaying
-              ? "Đang phát nhạc"
-              : "Nhạc nền · Đang tạm dừng"}
+              ? `Đang phát ${sourceLabel}`
+              : `${sourceLabel} · Đang tạm dừng`}
       </span>
       <button
         className="music-button"

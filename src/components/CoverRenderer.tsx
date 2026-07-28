@@ -23,6 +23,9 @@ export function CoverRenderer({
       data-align={cover.alignment}
       data-name-size={cover.nameSize}
       data-preview={preview || undefined}
+      data-has-background={
+        cover.backgroundEnabled && Boolean(cover.backgroundSrc)
+      }
     >
       {cover.backgroundEnabled && cover.backgroundSrc ? (
         <WeddingImage
@@ -43,6 +46,9 @@ export function CoverRenderer({
           backdropFilter: `blur(${cover.blurPx}px)`,
         }}
       />
+      {cover.backgroundEnabled && cover.backgroundSrc ? (
+        <div className="cover-text-halo" aria-hidden="true" />
+      ) : null}
       <div className="cover-content">
         <p className="cover-kicker">{cover.kicker}</p>
         {recipientText ? <p className="cover-recipient">{recipientText}</p> : null}

@@ -121,13 +121,18 @@ export function CoverEditor({
             }
           />
         </Field>
-        <Field label="Căn nội dung">
+        <Field
+          label="Căn nội dung"
+          error={errors["experience.cover.alignment"]}
+          path="alignment"
+        >
           <select
+            {...inputProps("alignment")}
             value={value.alignment}
             onChange={(event) =>
               update({
                 alignment: event.target.value as CoverSettings["alignment"],
-              })
+              }, "alignment")
             }
           >
             <option value="left">Trái</option>
@@ -135,13 +140,18 @@ export function CoverEditor({
             <option value="right">Phải</option>
           </select>
         </Field>
-        <Field label="Cỡ tên">
+        <Field
+          label="Cỡ tên"
+          error={errors["experience.cover.nameSize"]}
+          path="nameSize"
+        >
           <select
+            {...inputProps("nameSize")}
             value={value.nameSize}
             onChange={(event) =>
               update({
                 nameSize: event.target.value as CoverSettings["nameSize"],
-              })
+              }, "nameSize")
             }
           >
             <option value="compact">Gọn</option>
@@ -149,13 +159,18 @@ export function CoverEditor({
             <option value="grand">Lớn</option>
           </select>
         </Field>
-        <Field label="Kiểu biểu trưng">
+        <Field
+          label="Kiểu biểu trưng"
+          error={errors["experience.cover.logoMode"]}
+          path="logoMode"
+        >
           <select
+            {...inputProps("logoMode")}
             value={value.logoMode}
             onChange={(event) =>
               update({
                 logoMode: event.target.value as CoverSettings["logoMode"],
-              })
+              }, "logoMode")
             }
           >
             <option value="monogram">Monogram</option>
@@ -173,13 +188,18 @@ export function CoverEditor({
             }
           />
         </Field>
-        <Field label="Kích thước logo">
+        <Field
+          label="Kích thước logo"
+          error={errors["experience.cover.logoSize"]}
+          path="logoSize"
+        >
           <select
+            {...inputProps("logoSize")}
             value={value.logoSize}
             onChange={(event) =>
               update({
                 logoSize: event.target.value as CoverSettings["logoSize"],
-              })
+              }, "logoSize")
             }
           >
             <option value="small">Nhỏ</option>
@@ -187,32 +207,54 @@ export function CoverEditor({
             <option value="large">Lớn</option>
           </select>
         </Field>
-        <Field label="Màu lớp phủ">
+        <Field
+          label="Màu lớp phủ"
+          error={errors["experience.cover.overlayColor"]}
+          path="overlayColor"
+        >
           <input
+            {...inputProps("overlayColor")}
             type="color"
             value={value.overlayColor}
-            onChange={(event) => update({ overlayColor: event.target.value })}
+            onChange={(event) =>
+              update({ overlayColor: event.target.value }, "overlayColor")
+            }
           />
         </Field>
-        <Field label={`Độ phủ ${Math.round(value.overlayOpacity * 100)}%`}>
+        <Field
+          label={`Độ phủ ${Math.round(value.overlayOpacity * 100)}%`}
+          error={errors["experience.cover.overlayOpacity"]}
+          path="overlayOpacity"
+        >
           <input
+            {...inputProps("overlayOpacity")}
             type="range"
             min={0}
             max={0.85}
             step={0.05}
             value={value.overlayOpacity}
             onChange={(event) =>
-              update({ overlayOpacity: Number(event.target.value) })
+              update(
+                { overlayOpacity: Number(event.target.value) },
+                "overlayOpacity",
+              )
             }
           />
         </Field>
-        <Field label={`Độ mờ ${value.blurPx}px`}>
+        <Field
+          label={`Độ mờ ${value.blurPx}px`}
+          error={errors["experience.cover.blurPx"]}
+          path="blurPx"
+        >
           <input
+            {...inputProps("blurPx")}
             type="range"
             min={0}
             max={12}
             value={value.blurPx}
-            onChange={(event) => update({ blurPx: Number(event.target.value) })}
+            onChange={(event) =>
+              update({ blurPx: Number(event.target.value) }, "blurPx")
+            }
           />
         </Field>
         <label className="admin-toggle">

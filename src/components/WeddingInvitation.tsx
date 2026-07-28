@@ -46,18 +46,18 @@ export function WeddingInvitation({
       <main className="invitation-main">
         <OpeningSection weddingDateTime={content.weddingDateTime} />
         <InvitationSection invitation={invitation} />
-        <ScheduleSection
-          weddingDateTime={content.weddingDateTime}
-          expiredMessage={content.expiredCountdownMessage}
-          settings={content.experience.countdown}
-        />
-        <VenueSection venues={content.venues} />
         {content.experience.sections.heroCollage ? (
           <HeroCollage
             images={content.galleryImages}
             intervalMs={content.albumIntervalMs}
           />
         ) : null}
+        <ScheduleSection
+          weddingDateTime={content.weddingDateTime}
+          expiredMessage={content.expiredCountdownMessage}
+          settings={content.experience.countdown}
+        />
+        <VenueSection venues={content.venues} />
         {content.experience.sections.rsvp && invitation && invitationToken ? (
           <RsvpForm
             token={invitationToken}
@@ -83,7 +83,10 @@ export function WeddingInvitation({
           />
         ) : null}
         <MusicSection settings={content.experience.music} />
-        <YouTubeSection settings={content.experience.youtube} />
+        <YouTubeSection
+          settings={content.experience.youtube}
+          stackPlayer={content.experience.music.enabled}
+        />
         {showCreator ? <CreatorSection /> : null}
         <FooterSection />
       </main>

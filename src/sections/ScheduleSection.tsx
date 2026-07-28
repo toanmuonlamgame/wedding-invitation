@@ -50,7 +50,7 @@ export function ScheduleSection({
             eyebrow="Save the date"
             title="Ngày chung đôi"
             titleId="schedule-title"
-            description="Gia đình sẽ cập nhật ngày giờ chính thức tại đây. Khi thông tin sẵn sàng, bộ đếm ngược sẽ tự động bắt đầu."
+            description="Cùng đếm ngược đến ngày Vũ Bình và Thành Long về chung một nhà."
           />
         </div>
 

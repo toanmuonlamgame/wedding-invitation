@@ -229,11 +229,23 @@ const experienceSchema = z
         backgroundAlt: z.string().trim().max(200),
         background: framingSchema,
         overlayColor: hexColorSchema,
-        overlayOpacity: z.number().min(0).max(0.85),
-        blurPx: z.number().min(0).max(12),
-        alignment: z.enum(["left", "center", "right"]),
-        nameSize: z.enum(["compact", "balanced", "grand"]),
-        logoMode: z.enum(["monogram", "image", "hidden"]),
+        overlayOpacity: z
+          .number()
+          .min(0, "Độ phủ cover không được nhỏ hơn 0%.")
+          .max(0.85, "Độ phủ cover không được lớn hơn 85%."),
+        blurPx: z
+          .number()
+          .min(0, "Độ mờ cover không được nhỏ hơn 0.")
+          .max(12, "Độ mờ cover không được lớn hơn 12px."),
+        alignment: z.enum(["left", "center", "right"], {
+          error: "Cách căn nội dung cover không hợp lệ.",
+        }),
+        nameSize: z.enum(["compact", "balanced", "grand"], {
+          error: "Cỡ tên trên cover không hợp lệ.",
+        }),
+        logoMode: z.enum(["monogram", "image", "hidden"], {
+          error: "Kiểu biểu trưng cover không hợp lệ.",
+        }),
         monogramText: z
           .string()
           .trim()
@@ -241,7 +253,9 @@ const experienceSchema = z
         logoSrc: optionalImageSchema,
         logoStoragePath: optionalStoragePathSchema,
         logoAlt: z.string().trim().max(200),
-        logoSize: z.enum(["small", "medium", "large"]),
+        logoSize: z.enum(["small", "medium", "large"], {
+          error: "Kích thước logo cover không hợp lệ.",
+        }),
         logoFrame: framingSchema,
       })
       .strict(),

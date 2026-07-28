@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import { MusicPlayer } from "@/src/components/MusicPlayer";
 import { SectionHeading } from "@/src/components/SectionHeading";
 import { useWeddingExperience } from "@/src/components/WeddingExperience";
 import type { YouTubeSettings } from "@/src/types/wedding";
@@ -77,10 +78,19 @@ function getYouTubeId(url: string) {
   }
 }
 
-export function YouTubeSection({ settings }: { settings: YouTubeSettings }) {
+export function YouTubeSection({
+  settings,
+  stackPlayer = false,
+}: {
+  settings: YouTubeSettings;
+  stackPlayer?: boolean;
+}) {
   const { isOpened } = useWeddingExperience();
   const playerHostRef = useRef<HTMLDivElement>(null);
   const playerRef = useRef<YouTubePlayer | null>(null);
+  const [isReady, setIsReady] = useState(false);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [isUnavailable, setIsUnavailable] = useState(false);
   const [status, setStatus] = useState(
     "Video chỉ được tải sau khi bạn mở thiệp.",
   );
@@ -111,11 +121,14 @@ export function YouTubeSection({ settings }: { settings: YouTubeSettings }) {
           events: {
             onReady: (event) => {
               event.target.setVolume(28);
+              setIsReady(true);
+              setIsUnavailable(false);
               setStatus("Trình phát đã sẵn sàng.");
               event.target.playVideo();
             },
             onStateChange: (event) => {
               const playing = event.data === youtube.PlayerState.PLAYING;
+              setIsPlaying(playing);
               setStatus(
                 playing
                   ? "Đang phát nhạc từ YouTube."
@@ -125,16 +138,26 @@ export function YouTubeSection({ settings }: { settings: YouTubeSettings }) {
                 window.dispatchEvent(new Event("wedding-youtube-playing"));
               }
             },
-            onError: () =>
-              setStatus("Không thể phát video YouTube trên thiết bị này."),
-            onAutoplayBlocked: () =>
+            onError: () => {
+              setIsPlaying(false);
+              setIsUnavailable(true);
+              setStatus("Không thể phát video YouTube trên thiết bị này.");
+            },
+            onAutoplayBlocked: () => {
+              setIsPlaying(false);
+              setIsReady(true);
               setStatus(
                 "Trình duyệt đã chặn autoplay. Hãy bấm phát trực tiếp trên video.",
-              ),
+              );
+            },
           },
         });
       })
-      .catch(() => setStatus("Chưa thể kết nối với YouTube."));
+      .catch(() => {
+        setIsPlaying(false);
+        setIsUnavailable(true);
+        setStatus("Chưa thể kết nối với YouTube.");
+      });
 
     const pauseForBackgroundAudio = () => playerRef.current?.pauseVideo();
     window.addEventListener(
@@ -151,6 +174,16 @@ export function YouTubeSection({ settings }: { settings: YouTubeSettings }) {
       playerRef.current = null;
     };
   }, [isOpened, settings.enabled, videoId]);
+
+  function handleToggle() {
+    if (!playerRef.current || !isReady || isUnavailable) return;
+    if (isPlaying) {
+      playerRef.current.pauseVideo();
+      return;
+    }
+    window.dispatchEvent(new Event("wedding-youtube-playing"));
+    playerRef.current.playVideo();
+  }
 
   if (!settings.enabled || !videoId) return null;
 
@@ -197,6 +230,16 @@ export function YouTubeSection({ settings }: { settings: YouTubeSettings }) {
           </div>
         </div>
       </div>
+      {isOpened ? (
+        <MusicPlayer
+          isPlaying={isPlaying}
+          isLoading={!isReady && !isUnavailable}
+          isUnavailable={isUnavailable}
+          onToggle={handleToggle}
+          sourceLabel="nhạc YouTube"
+          stacked={stackPlayer}
+        />
+      ) : null}
     </section>
   );
 }
