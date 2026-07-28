@@ -56,6 +56,7 @@ export type CoverSettings = {
   backgroundStoragePath?: string;
   backgroundAlt: string;
   background: ImageFraming;
+  textColor: string;
   overlayColor: string;
   overlayOpacity: number;
   blurPx: number;

@@ -1,4 +1,4 @@
-import type { Ref } from "react";
+import type { CSSProperties, Ref } from "react";
 import { WeddingImage } from "@/src/components/WeddingImage";
 import type { CoverSettings } from "@/src/types/wedding";
 
@@ -25,6 +25,11 @@ export function CoverRenderer({
       data-preview={preview || undefined}
       data-has-background={
         cover.backgroundEnabled && Boolean(cover.backgroundSrc)
+      }
+      style={
+        {
+          "--cover-text-color": cover.textColor,
+        } as CSSProperties
       }
     >
       {cover.backgroundEnabled && cover.backgroundSrc ? (

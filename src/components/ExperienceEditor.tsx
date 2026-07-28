@@ -208,6 +208,20 @@ export function CoverEditor({
           </select>
         </Field>
         <Field
+          label="Màu chữ cover"
+          error={errors["experience.cover.textColor"]}
+          path="textColor"
+        >
+          <input
+            {...inputProps("textColor")}
+            type="color"
+            value={value.textColor}
+            onChange={(event) =>
+              update({ textColor: event.target.value }, "textColor")
+            }
+          />
+        </Field>
+        <Field
           label="Màu lớp phủ"
           error={errors["experience.cover.overlayColor"]}
           path="overlayColor"

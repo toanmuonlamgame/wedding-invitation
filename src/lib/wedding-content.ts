@@ -228,6 +228,7 @@ const experienceSchema = z
         backgroundStoragePath: optionalStoragePathSchema,
         backgroundAlt: z.string().trim().max(200),
         background: framingSchema,
+        textColor: hexColorSchema,
         overlayColor: hexColorSchema,
         overlayOpacity: z
           .number()

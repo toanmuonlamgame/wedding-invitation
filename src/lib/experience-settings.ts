@@ -17,6 +17,7 @@ export const defaultExperienceSettings: WeddingExperienceSettings = {
       fitMode: "cover",
       backgroundColor: "#ffffff",
     },
+    textColor: "#27362d",
     overlayColor: "#1d2d25",
     overlayOpacity: 0.28,
     blurPx: 0,
