@@ -8,7 +8,8 @@ import {
   useRef,
   useState,
 } from "react";
-import { wedding } from "@/src/lib/wedding-details";
+import Image from "next/image";
+import { WeddingImage } from "@/src/components/WeddingImage";
 import {
   FONT_PRESETS,
   getAppearanceStyle,
@@ -17,6 +18,7 @@ import {
 import type {
   FontPresetId,
   ThemePresetId,
+  CoverSettings,
 } from "@/src/types/wedding";
 
 type WeddingExperienceProps = {
@@ -24,6 +26,8 @@ type WeddingExperienceProps = {
   recipientText?: string;
   themePreset: ThemePresetId;
   fontPreset: FontPresetId;
+  cover: CoverSettings;
+  adminUrl?: string;
 };
 
 type WeddingExperienceContextValue = {
@@ -61,6 +65,8 @@ export function WeddingExperience({
   recipientText,
   themePreset,
   fontPreset,
+  cover,
+  adminUrl,
 }: WeddingExperienceProps) {
   const rootRef = useRef<HTMLDivElement>(null);
   const openButtonRef = useRef<HTMLButtonElement>(null);
@@ -337,6 +343,11 @@ export function WeddingExperience({
         data-theme={themePreset}
         data-font={fontPreset}
       >
+        {adminUrl && !showCover ? (
+          <a className="admin-shortcut" href={adminUrl} aria-label="Mở trang quản trị" title="Mở trang quản trị">
+            <WrenchIcon />
+          </a>
+        ) : null}
         {showCover ? (
           <div
             className="invitation-cover"
@@ -344,6 +355,25 @@ export function WeddingExperience({
             aria-modal="true"
             aria-labelledby="cover-title"
           >
+            {cover.backgroundEnabled && cover.backgroundSrc ? (
+              <WeddingImage
+                src={cover.backgroundSrc}
+                available
+                alt={cover.backgroundAlt}
+                sizes="100vw"
+                className="cover-background"
+                framing={cover.background}
+              />
+            ) : null}
+            <div
+              className="cover-overlay"
+              aria-hidden="true"
+              style={{
+                backgroundColor: cover.overlayColor,
+                opacity: cover.overlayOpacity,
+                backdropFilter: `blur(${cover.blurPx}px)`,
+              }}
+            />
             <div className="cover-panel cover-panel-left" aria-hidden="true" />
             <div className="cover-panel cover-panel-right" aria-hidden="true" />
             <div
@@ -354,29 +384,37 @@ export function WeddingExperience({
               className="cover-flourish cover-flourish-right"
               aria-hidden="true"
             />
-            <div className="cover-content">
-              <p className="cover-kicker">Trân trọng kính mời</p>
+            {adminUrl ? (
+              <a className="admin-shortcut admin-shortcut-cover" href={adminUrl} aria-label="Mở trang quản trị" title="Mở trang quản trị">
+                <WrenchIcon />
+              </a>
+            ) : null}
+            <div className="cover-content" data-align={cover.alignment} data-name-size={cover.nameSize}>
+              <p className="cover-kicker">{cover.kicker}</p>
               {recipientText ? (
                 <p className="cover-recipient">{recipientText}</p>
               ) : null}
-              <p className="cover-monogram" aria-hidden="true">
-                {wedding.monogram}
-              </p>
+              {cover.logoMode === "monogram" ? (
+                <p className="cover-monogram" aria-hidden="true">{cover.monogramText}</p>
+              ) : null}
+              {cover.logoMode === "image" && cover.logoSrc ? (
+                <span className="cover-logo" data-size={cover.logoSize}>
+                  <Image src={cover.logoSrc} alt={cover.logoAlt} fill sizes="10rem" />
+                </span>
+              ) : null}
               <h1 className="cover-title" id="cover-title">
-                {wedding.bride}
-                <span>&amp;</span>
-                {wedding.groom}
+                {cover.brideName}
+                <span>{cover.connector}</span>
+                {cover.groomName}
               </h1>
-              <p className="cover-note">
-                Có một lời mời nhỏ đang chờ bạn mở ra
-              </p>
+              <p className="cover-note">{cover.note}</p>
               <button
                 ref={openButtonRef}
                 className="cover-button"
                 type="button"
                 onClick={handleOpen}
               >
-                Mở thiệp
+                {cover.buttonText}
                 <span aria-hidden="true">↓</span>
               </button>
             </div>
@@ -418,5 +456,13 @@ export function WeddingExperience({
         </div>
       </div>
     </WeddingExperienceContext.Provider>
+  );
+}
+
+function WrenchIcon() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M14.7 6.3a4.5 4.5 0 0 0-5.9 5.9L3 18l3 3 5.8-5.8a4.5 4.5 0 0 0 5.9-5.9l-2.6 2.6-3-3 2.6-2.6Z" />
+    </svg>
   );
 }

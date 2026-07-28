@@ -692,6 +692,11 @@ export function normalizeFontPreset(value: unknown): FontPresetId {
 
 export function getAppearanceStyle(themePreset: ThemePresetId) {
   const tokens = THEME_PRESETS[themePreset].tokens;
+  const softTheme =
+    themePreset === "ivory-sage" ||
+    themePreset === "blush-romance" ||
+    themePreset === "lavender-dream" ||
+    themePreset === "peach-garden";
   return {
     "--paper": tokens.paper,
     "--paper-deep": tokens.paperDeep,
@@ -718,6 +723,10 @@ export function getAppearanceStyle(themePreset: ThemePresetId) {
     "--theme-album": tokens.album,
     "--theme-button-hover": tokens.buttonHover,
     "--theme-focus": tokens.focus,
+    "--radius-sm": softTheme ? "0.75rem" : "0.5rem",
+    "--radius-md": softTheme ? "1.25rem" : "0.85rem",
+    "--radius-lg": softTheme ? "2rem" : "1.25rem",
+    "--radius-pill": "999px",
   };
 }
 

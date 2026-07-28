@@ -25,6 +25,11 @@ export const wishInputSchema = z
 
 export const rsvpInputSchema = z
   .object({
+    guestName: z
+      .string()
+      .trim()
+      .min(2, "Vui lòng nhập tên người xác nhận.")
+      .max(120, "Tên người xác nhận không được quá 120 ký tự."),
     attending: z.boolean({
       error: "Vui lòng chọn trạng thái tham dự.",
     }),
@@ -39,6 +44,7 @@ export const rsvpInputSchema = z
       .trim()
       .max(500, "Ghi chú không được quá 500 ký tự.")
       .nullable(),
+    invitationSide: z.enum(["groom", "bride", "unspecified"]).nullable(),
   })
   .strict()
   .superRefine((value, context) => {
@@ -133,6 +139,11 @@ export async function getInvitationRsvp(
   return rsvp
     ? {
         attending: rsvp.attending,
+        guestName: rsvp.guestName,
+        invitationSide:
+          rsvp.invitationSide === "groom" || rsvp.invitationSide === "bride"
+            ? rsvp.invitationSide
+            : "unspecified",
         confirmedCount: rsvp.confirmedCount,
         note: rsvp.note,
         updatedAt: rsvp.updatedAt.toISOString(),
@@ -154,8 +165,13 @@ export async function getAdminRsvps(): Promise<{
     prisma.invitation.count(),
   ]);
 
-  const entries = rsvps.map((rsvp) => ({
+  const entries: AdminRsvp[] = rsvps.map((rsvp) => ({
     recipientText: rsvp.invitation.recipientText,
+    guestName: rsvp.guestName,
+    invitationSide:
+      rsvp.invitationSide === "groom" || rsvp.invitationSide === "bride"
+        ? rsvp.invitationSide
+        : "unspecified",
     attending: rsvp.attending,
     confirmedCount: rsvp.confirmedCount,
     note: rsvp.note,

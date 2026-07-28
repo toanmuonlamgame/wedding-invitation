@@ -40,6 +40,7 @@ async function createInvitation(
           recipientText: data.recipientText,
           guestCount: data.guestCount,
           privateMessage: data.privateMessage,
+          invitationSide: data.invitationSide,
         },
         select: { token: true },
       });
@@ -99,6 +100,7 @@ export async function POST(request: NextRequest) {
       recipientText: parsed.data.recipientText,
       guestCount: parsed.data.guestCount,
       privateMessage: parsed.data.privateMessage,
+      invitationSide: parsed.data.invitationSide,
     };
     const invitation = await createInvitation(invitationData);
     const invitationUrl = new URL(

@@ -1,7 +1,9 @@
 import type { WeddingContentData } from "@/src/types/wedding";
+import { defaultExperienceSettings } from "@/src/lib/experience-settings";
 export { wedding } from "@/src/lib/wedding-details";
 
 export const defaultWeddingContent: WeddingContentData = {
+  experience: defaultExperienceSettings,
   themePreset: "ivory-sage",
   fontPreset: "elegant-editorial",
   weddingDateTime: null,

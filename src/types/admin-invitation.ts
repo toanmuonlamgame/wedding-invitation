@@ -20,6 +20,7 @@ export type AdminInvitationItem = {
   token: string;
   recipientText: string;
   guestCount: number | null;
+  invitationSide: "groom" | "bride" | "unspecified";
   privateMessage: string | null;
   label: string | null;
   adminNotes: string | null;

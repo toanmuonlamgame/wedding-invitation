@@ -12,6 +12,8 @@ export type AdminWeddingWish = PublicWeddingWish & {
 };
 
 export type InvitationRsvp = {
+  guestName: string | null;
+  invitationSide: InvitationSide;
   attending: boolean;
   confirmedCount: number | null;
   note: string | null;
@@ -34,3 +36,4 @@ export type FieldErrors = Record<string, string>;
 
 export type WishExportStatus = "all" | "visible" | "hidden";
 export type RsvpExportStatus = "all" | "attending" | "declined";
+import type { InvitationSide } from "@/src/types/wedding";

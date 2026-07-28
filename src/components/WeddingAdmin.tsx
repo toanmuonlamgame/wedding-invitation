@@ -36,6 +36,20 @@ const AppearanceEditor = dynamic(
     ),
   { loading: adminLoading },
 );
+const CoverEditor = dynamic(
+  () =>
+    import("@/src/components/ExperienceEditor").then(
+      (module) => module.CoverEditor,
+    ),
+  { loading: adminLoading },
+);
+const ExperienceEditor = dynamic(
+  () =>
+    import("@/src/components/ExperienceEditor").then(
+      (module) => module.ExperienceEditor,
+    ),
+  { loading: adminLoading },
+);
 const ImageFramingEditor = dynamic(
   () =>
     import("@/src/components/ImageFramingEditor").then(
@@ -81,6 +95,8 @@ type AdminTab =
   | "overview"
   | "invitations"
   | "appearance"
+  | "cover"
+  | "experience"
   | "general"
   | "venues"
   | "story"
@@ -146,6 +162,7 @@ function normalizeContent(content: WeddingContentData): WeddingContentData {
   return {
     themePreset: content.themePreset,
     fontPreset: content.fontPreset,
+    experience: content.experience,
     weddingDateTime: normalizeDateTime(content.weddingDateTime),
     expiredCountdownMessage: content.expiredCountdownMessage.trim(),
     albumIntervalMs: Number(content.albumIntervalMs),
@@ -192,6 +209,8 @@ function normalizeContent(content: WeddingContentData): WeddingContentData {
 
 function tabForField(path: string): AdminTab {
   if (path === "themePreset" || path === "fontPreset") return "appearance";
+  if (path.startsWith("experience.cover.")) return "cover";
+  if (path.startsWith("experience.")) return "experience";
   if (path.startsWith("venues.")) return "venues";
   if (path.startsWith("storyChapters.")) return "story";
   if (path.startsWith("galleryImages.")) return "album";
@@ -530,6 +549,8 @@ export function WeddingAdmin({
                 ["overview", "Tổng quan & preview"],
                 ["invitations", "Quản lý thiệp mời"],
                 ["appearance", "Giao diện thiệp"],
+                ["cover", "Cover / Mở thiệp"],
+                ["experience", "Trải nghiệm"],
                 ["general", "Countdown"],
                 ["venues", "Địa điểm"],
                 ["story", "Quản lý câu chuyện"],
@@ -657,6 +678,29 @@ export function WeddingAdmin({
                   setDraft((current) => ({ ...current, ...appearance }));
                 }}
                 onSave={() => void handleSave()}
+              />
+            ) : null}
+
+            {activeTab === "cover" ? (
+              <CoverEditor
+                value={draft.experience.cover}
+                creatorSecret={creatorSecret}
+                onChange={(cover) =>
+                  setDraft((current) => ({
+                    ...current,
+                    experience: { ...current.experience, cover },
+                  }))
+                }
+              />
+            ) : null}
+
+            {activeTab === "experience" ? (
+              <ExperienceEditor
+                value={draft.experience}
+                creatorSecret={creatorSecret}
+                onChange={(experience) =>
+                  setDraft((current) => ({ ...current, experience }))
+                }
               />
             ) : null}
 

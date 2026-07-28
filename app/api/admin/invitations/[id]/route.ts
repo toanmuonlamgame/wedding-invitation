@@ -75,6 +75,7 @@ export async function PATCH(request: Request, { params }: RouteContext) {
       data: {
         recipientText: parsed.data.recipientText,
         guestCount: parsed.data.guestCount,
+        invitationSide: parsed.data.invitationSide,
         privateMessage: parsed.data.privateMessage,
         label: parsed.data.label,
         adminNotes: parsed.data.adminNotes,

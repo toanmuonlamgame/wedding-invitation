@@ -1,13 +1,14 @@
 import { AlbumGallery } from "@/src/components/AlbumGallery";
 import { SectionHeading } from "@/src/components/SectionHeading";
-import type { GalleryMoment } from "@/src/types/wedding";
+import type { AlbumLayout, GalleryMoment } from "@/src/types/wedding";
 
 type GallerySectionProps = {
   images: GalleryMoment[];
   intervalMs: number;
+  layout: AlbumLayout;
 };
 
-export function GallerySection({ images, intervalMs }: GallerySectionProps) {
+export function GallerySection({ images, intervalMs, layout }: GallerySectionProps) {
   return (
     <section className="section gallery-section" aria-labelledby="gallery-title">
       <div className="section-shell">
@@ -20,7 +21,7 @@ export function GallerySection({ images, intervalMs }: GallerySectionProps) {
           />
         </div>
         <div data-gallery-reveal>
-          <AlbumGallery images={images} intervalMs={intervalMs} />
+          <AlbumGallery images={images} intervalMs={intervalMs} layout={layout} />
         </div>
       </div>
     </section>

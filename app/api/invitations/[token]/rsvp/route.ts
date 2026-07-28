@@ -20,6 +20,7 @@ async function findInvitation(token: string) {
       id: true,
       recipientText: true,
       guestCount: true,
+      invitationSide: true,
       isActive: true,
     },
   });
@@ -53,6 +54,8 @@ export async function GET(_request: Request, { params }: RouteContext) {
       rsvp: rsvp
         ? {
             attending: rsvp.attending,
+            guestName: rsvp.guestName,
+            invitationSide: rsvp.invitationSide ?? invitation.invitationSide,
             confirmedCount: rsvp.confirmedCount,
             note: rsvp.note,
             updatedAt: rsvp.updatedAt.toISOString(),
@@ -91,12 +94,33 @@ export async function PUT(request: Request, { params }: RouteContext) {
       );
     }
 
+    const maximumGuests = Math.max(1, invitation.guestCount ?? 1);
+    if (
+      parsed.data.attending &&
+      parsed.data.confirmedCount !== null &&
+      parsed.data.confirmedCount > maximumGuests
+    ) {
+      return Response.json(
+        {
+          error: "VALIDATION_ERROR",
+          message: "Dữ liệu chưa hợp lệ.",
+          fieldErrors: {
+            confirmedCount: `Thiệp này xác nhận tối đa ${maximumGuests} người.`,
+          },
+        },
+        { status: 400 },
+      );
+    }
+
     const normalized = {
+      guestName: parsed.data.guestName,
       attending: parsed.data.attending,
       confirmedCount: parsed.data.attending
         ? parsed.data.confirmedCount
         : null,
       note: parsed.data.note || null,
+      invitationSide:
+        parsed.data.invitationSide ?? invitation.invitationSide,
     };
     const rsvp = await prisma.rsvp.upsert({
       where: { invitationId: invitation.id },
@@ -109,6 +133,8 @@ export async function PUT(request: Request, { params }: RouteContext) {
 
     return Response.json({
       attending: rsvp.attending,
+      guestName: rsvp.guestName,
+      invitationSide: rsvp.invitationSide ?? invitation.invitationSide,
       confirmedCount: rsvp.confirmedCount,
       note: rsvp.note,
       updatedAt: rsvp.updatedAt.toISOString(),

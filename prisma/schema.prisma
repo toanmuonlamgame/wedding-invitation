@@ -16,6 +16,7 @@ model Invitation {
   privateMessage String?
   label          String?
   adminNotes     String?
+  invitationSide String   @default("unspecified")
   isActive       Boolean  @default(true)
   disabledAt     DateTime?
   createdAt      DateTime @default(now())
@@ -37,6 +38,7 @@ model WeddingContent {
   albumIntervalMs         Int      @default(5000)
   themePreset             String   @default("ivory-sage")
   fontPreset              String   @default("elegant-editorial")
+  experienceJson          Json?
   updatedAt               DateTime @updatedAt
 }
 
@@ -61,6 +63,8 @@ model Rsvp {
   attending      Boolean
   confirmedCount Int?
   note           String?
+  guestName      String?
+  invitationSide String?
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 

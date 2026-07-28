@@ -230,9 +230,22 @@ export function AdminInvitationManager({
     if (!editing) return;
     const form = new FormData(event.currentTarget);
     const guestCountValue = String(form.get("guestCount") || "").trim();
-    const updatedValues = {
+    const sideValue = String(form.get("invitationSide") || "unspecified");
+    const updatedValues: Pick<
+      AdminInvitationItem,
+      | "recipientText"
+      | "guestCount"
+      | "invitationSide"
+      | "privateMessage"
+      | "label"
+      | "adminNotes"
+    > = {
       recipientText: String(form.get("recipientText") || "").trim(),
       guestCount: guestCountValue ? Number(guestCountValue) : null,
+      invitationSide:
+        sideValue === "groom" || sideValue === "bride"
+          ? sideValue
+          : ("unspecified" as const),
       privateMessage: String(form.get("privateMessage") || "").trim() || null,
       label: String(form.get("label") || "").trim() || null,
       adminNotes: String(form.get("adminNotes") || "").trim() || null,
@@ -395,6 +408,7 @@ export function AdminInvitationManager({
 
             <dl className="invitation-card-details">
               <div><dt>Số khách mời</dt><dd>{invitation.guestCount ?? "Không giới hạn"}</dd></div>
+              <div><dt>Nhóm khách</dt><dd>{invitation.invitationSide === "groom" ? "Nhà trai" : invitation.invitationSide === "bride" ? "Nhà gái" : "Không phân loại"}</dd></div>
               <div><dt>RSVP xác nhận</dt><dd>{invitation.rsvp?.confirmedCount ?? "—"}</dd></div>
               <div><dt>Lời chúc</dt><dd>{invitation.wishCount}</dd></div>
               <div><dt>Tạo lúc</dt><dd>{formatDate(invitation.createdAt)}</dd></div>
@@ -454,6 +468,14 @@ export function AdminInvitationManager({
               <span>Số người được mời</span>
               <input name="guestCount" type="number" min={1} max={20} defaultValue={editing.guestCount ?? ""} aria-invalid={Boolean(editErrors.guestCount)} />
               {editErrors.guestCount ? <span className="field-error">{editErrors.guestCount}</span> : null}
+            </label>
+            <label className="field">
+              <span>Nhóm khách mặc định</span>
+              <select name="invitationSide" defaultValue={editing.invitationSide}>
+                <option value="unspecified">Không phân loại</option>
+                <option value="groom">Nhà trai</option>
+                <option value="bride">Nhà gái</option>
+              </select>
             </label>
             <label className="field">
               <span>Lời nhắn riêng</span>

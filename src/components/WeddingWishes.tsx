@@ -5,11 +5,13 @@ import type {
   FieldErrors,
   PublicWeddingWish,
 } from "@/src/types/engagement";
+import type { WishLayout } from "@/src/types/wedding";
 
 type WeddingWishesProps = {
   initialWishes: PublicWeddingWish[];
   invitationToken?: string;
   defaultSenderName?: string;
+  layout: WishLayout;
 };
 
 type ErrorPayload = {
@@ -29,6 +31,7 @@ export function WeddingWishes({
   initialWishes,
   invitationToken,
   defaultSenderName = "",
+  layout,
 }: WeddingWishesProps) {
   const [wishes, setWishes] = useState(initialWishes);
   const [senderName, setSenderName] = useState(defaultSenderName);
@@ -36,6 +39,7 @@ export function WeddingWishes({
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const [status, setStatus] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [visibleCount, setVisibleCount] = useState(6);
 
   function clearFieldError(field: string) {
     setFieldErrors((current) => {
@@ -138,8 +142,8 @@ export function WeddingWishes({
         </header>
 
         {wishes.length > 0 ? (
-          <div className="wishes-list">
-            {wishes.map((wish, index) => (
+          <div className={`wishes-list wishes-layout-${layout}`} data-layout={layout}>
+            {wishes.slice(0, visibleCount).map((wish, index) => (
               <blockquote
                 className="wish-note"
                 key={`${wish.createdAt}-${wish.senderName}-${index}`}
@@ -159,6 +163,15 @@ export function WeddingWishes({
             Hãy là người đầu tiên gửi lời chúc đến Vũ Bình & Thành Long.
           </p>
         )}
+        {wishes.length > visibleCount ? (
+          <button
+            className="button button-secondary wishes-load-more"
+            type="button"
+            onClick={() => setVisibleCount((count) => count + 6)}
+          >
+            Xem thêm lời chúc
+          </button>
+        ) : null}
 
         {invitationToken ? (
           <form className="wish-form" onSubmit={handleSubmit} noValidate>

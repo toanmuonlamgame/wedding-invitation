@@ -2,11 +2,15 @@
 
 import { useEffect, useState } from "react";
 import type { FieldErrors, InvitationRsvp } from "@/src/types/engagement";
+import type { InvitationSide } from "@/src/types/wedding";
 
 type RsvpFormProps = {
   token: string;
   recipientText: string;
   suggestedCount: number;
+  maximumGuests: number;
+  defaultSide: InvitationSide;
+  allowSideSelection: boolean;
 };
 
 type RsvpLoadPayload = {
@@ -17,7 +21,14 @@ export function RsvpForm({
   token,
   recipientText,
   suggestedCount,
+  maximumGuests,
+  defaultSide,
+  allowSideSelection,
 }: RsvpFormProps) {
+  const safeMaximumGuests = Math.max(1, maximumGuests);
+  const [guestName, setGuestName] = useState(recipientText);
+  const [invitationSide, setInvitationSide] =
+    useState<InvitationSide>(defaultSide);
   const [attending, setAttending] = useState<boolean | null>(null);
   const [confirmedCount, setConfirmedCount] = useState(
     String(suggestedCount || 1),
@@ -43,6 +54,8 @@ export function RsvpForm({
           return;
         }
         setAttending(payload.rsvp.attending);
+        setGuestName(payload.rsvp.guestName ?? recipientText);
+        setInvitationSide(payload.rsvp.invitationSide ?? defaultSide);
         setConfirmedCount(
           payload.rsvp.confirmedCount === null
             ? String(suggestedCount || 1)
@@ -60,7 +73,7 @@ export function RsvpForm({
     return () => {
       active = false;
     };
-  }, [suggestedCount, token]);
+  }, [defaultSide, recipientText, suggestedCount, token]);
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -69,13 +82,16 @@ export function RsvpForm({
     }
 
     const errors: FieldErrors = {};
+    if (guestName.trim().length < 2) {
+      errors.guestName = "Vui lòng nhập tên người xác nhận.";
+    }
     if (attending === null) {
       errors.attending = "Vui lòng chọn trạng thái tham dự.";
     }
     const count = Number(confirmedCount);
     if (
       attending === true &&
-      (!Number.isInteger(count) || count < 1 || count > 20)
+      (!Number.isInteger(count) || count < 1 || count > safeMaximumGuests)
     ) {
       errors.confirmedCount = "Số người phải là số nguyên từ 1 đến 20.";
     }
@@ -97,9 +113,11 @@ export function RsvpForm({
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          guestName: guestName.trim(),
           attending,
           confirmedCount: attending ? count : null,
           note: note.trim() || null,
+          invitationSide,
         }),
       });
       const payload = (await response.json()) as {
@@ -145,6 +163,27 @@ export function RsvpForm({
         </header>
 
         <form className="rsvp-form" onSubmit={handleSubmit} noValidate>
+          <div className="field">
+            <label htmlFor="rsvpGuestName">Tên người xác nhận</label>
+            <input
+              id="rsvpGuestName"
+              value={guestName}
+              maxLength={120}
+              aria-invalid={Boolean(fieldErrors.guestName)}
+              aria-describedby={
+                fieldErrors.guestName ? "rsvpGuestNameError" : undefined
+              }
+              onChange={(event) => {
+                setGuestName(event.target.value);
+                setFieldErrors((current) => ({ ...current, guestName: "" }));
+              }}
+            />
+            {fieldErrors.guestName ? (
+              <p className="field-error" id="rsvpGuestNameError">
+                {fieldErrors.guestName}
+              </p>
+            ) : null}
+          </div>
           <fieldset
             className="rsvp-options"
             aria-invalid={Boolean(fieldErrors.attending)}
@@ -198,7 +237,7 @@ export function RsvpForm({
                 id="confirmedCount"
                 type="number"
                 min={1}
-                max={20}
+                max={safeMaximumGuests}
                 step={1}
                 value={confirmedCount}
                 aria-invalid={Boolean(fieldErrors.confirmedCount)}
@@ -215,11 +254,29 @@ export function RsvpForm({
                   }));
                 }}
               />
+              <small>Tối đa {safeMaximumGuests} người theo thiệp mời này.</small>
               {fieldErrors.confirmedCount ? (
                 <p className="field-error" id="confirmedCountError">
                   {fieldErrors.confirmedCount}
                 </p>
               ) : null}
+            </div>
+          ) : null}
+
+          {allowSideSelection ? (
+            <div className="field">
+              <label htmlFor="rsvpInvitationSide">Bạn là khách bên nào?</label>
+              <select
+                id="rsvpInvitationSide"
+                value={invitationSide}
+                onChange={(event) =>
+                  setInvitationSide(event.target.value as InvitationSide)
+                }
+              >
+                <option value="unspecified">Không phân loại</option>
+                <option value="groom">Nhà trai</option>
+                <option value="bride">Nhà gái</option>
+              </select>
             </div>
           ) : null}
 

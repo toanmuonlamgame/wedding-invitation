@@ -13,14 +13,15 @@ import {
   getNextAlbumIndex,
   normalizeAlbumInterval,
 } from "@/src/lib/album-autoplay";
-import type { GalleryMoment } from "@/src/types/wedding";
+import type { AlbumLayout, GalleryMoment } from "@/src/types/wedding";
 
 type AlbumGalleryProps = {
   images: GalleryMoment[];
   intervalMs: number;
+  layout: AlbumLayout;
 };
 
-export function AlbumGallery({ images, intervalMs }: AlbumGalleryProps) {
+export function AlbumGallery({ images, intervalMs, layout }: AlbumGalleryProps) {
   const slides = useMemo(() => {
     const carouselImages = images.filter((image) => image.carousel);
     return carouselImages.length > 0 ? carouselImages : images;
@@ -135,7 +136,8 @@ export function AlbumGallery({ images, intervalMs }: AlbumGalleryProps) {
 
   return (
     <div
-      className="album-carousel"
+      className={`album-carousel album-layout-${layout}`}
+      data-layout={layout}
       tabIndex={0}
       aria-label="Album ảnh tự động"
       onKeyDown={handleCarouselKeyDown}
@@ -164,6 +166,30 @@ export function AlbumGallery({ images, intervalMs }: AlbumGalleryProps) {
           ) : null}
         </figcaption>
       </figure>
+
+      <div className="album-secondary-grid" aria-label="Chọn ảnh trong album">
+        {slides.slice(0, layout === "mosaic" ? 4 : 3).map((slide, index) => (
+          <button
+            type="button"
+            key={slide.id}
+            aria-label={`Xem ảnh ${index + 1}: ${slide.caption}`}
+            aria-current={index === safeCurrentIndex ? "true" : undefined}
+            onClick={() => {
+              resetAutoplayTimer();
+              setCurrentIndex(index);
+            }}
+          >
+            <WeddingImage
+              src={slide.src}
+              available={slide.available}
+              alt=""
+              sizes="(max-width: 896px) 33vw, 14rem"
+              className="album-secondary-image"
+              framing={slide}
+            />
+          </button>
+        ))}
+      </div>
 
       {slides.length > 1 ? (
         <>

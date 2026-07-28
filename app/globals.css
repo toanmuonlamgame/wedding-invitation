@@ -3853,3 +3853,336 @@ textarea {
     box-shadow: 0 1rem 2.4rem rgba(36, 42, 37, 0.08);
   }
 }
+
+/* Shared shape system and CM04 experience extensions */
+.button,
+.cover-button,
+.field input,
+.field textarea,
+.field select {
+  border-radius: var(--radius-sm);
+}
+
+.admin-item,
+.wish-note,
+.venue-layout,
+.rsvp-form,
+.youtube-lazy-player,
+.wedding-calendar {
+  border-radius: var(--radius-md);
+}
+
+.hero-collage-main,
+.album-slide,
+.cover-admin-preview {
+  border-radius: var(--radius-lg);
+}
+
+.admin-shortcut {
+  position: fixed;
+  z-index: 120;
+  top: max(0.8rem, env(safe-area-inset-top));
+  right: max(0.8rem, env(safe-area-inset-right));
+  display: grid;
+  width: 2.65rem;
+  height: 2.65rem;
+  place-items: center;
+  color: var(--ink);
+  background: color-mix(in srgb, var(--paper) 82%, transparent);
+  border: 1px solid color-mix(in srgb, var(--line) 78%, transparent);
+  border-radius: var(--radius-pill);
+  box-shadow: 0 0.6rem 1.8rem rgba(20, 28, 24, 0.12);
+  backdrop-filter: blur(12px);
+  transition: transform 180ms ease, background 180ms ease;
+}
+
+.admin-shortcut:hover {
+  transform: rotate(-9deg) scale(1.04);
+}
+
+.admin-shortcut svg {
+  width: 1.25rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.admin-shortcut-cover {
+  position: absolute;
+}
+
+.cover-background,
+.cover-overlay {
+  position: absolute !important;
+  inset: 0;
+}
+
+.cover-background {
+  z-index: 0;
+}
+
+.cover-overlay {
+  z-index: 1;
+  pointer-events: none;
+}
+
+.cover-content,
+.cover-flourish,
+.cover-panel {
+  z-index: 2;
+}
+
+.cover-content[data-align="left"] {
+  align-items: flex-start;
+  text-align: left;
+}
+
+.cover-content[data-align="right"] {
+  align-items: flex-end;
+  text-align: right;
+}
+
+.cover-content[data-name-size="compact"] .cover-title {
+  font-size: clamp(2.2rem, 8vw, 4.4rem);
+}
+
+.cover-content[data-name-size="grand"] .cover-title {
+  font-size: clamp(3.5rem, 13vw, 7.5rem);
+}
+
+.cover-logo {
+  position: relative;
+  display: block;
+  width: 6rem;
+  height: 6rem;
+}
+
+.cover-logo[data-size="small"] { width: 4rem; height: 4rem; }
+.cover-logo[data-size="large"] { width: 9rem; height: 9rem; }
+.cover-logo img { object-fit: contain; }
+
+.hero-collage-section {
+  padding: 1.5rem 0 4rem;
+  overflow: clip;
+}
+
+.hero-collage {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.hero-collage-main {
+  position: relative;
+  min-height: clamp(21rem, 90vw, 34rem);
+  overflow: hidden;
+  background: var(--theme-album);
+}
+
+.hero-collage-main figcaption {
+  position: absolute;
+  z-index: 2;
+  inset: auto 1rem 1rem;
+  color: white;
+  text-shadow: 0 2px 18px rgba(0, 0, 0, 0.55);
+}
+
+.hero-collage-secondary {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.55rem;
+}
+
+.hero-collage-secondary button,
+.album-secondary-grid button {
+  position: relative;
+  min-width: 0;
+  aspect-ratio: 1;
+  overflow: hidden;
+  padding: 0;
+  border: 2px solid transparent;
+  border-radius: var(--radius-sm);
+  background: var(--theme-album);
+}
+
+.hero-collage-secondary button[aria-current="true"],
+.album-secondary-grid button[aria-current="true"] {
+  border-color: var(--sage);
+}
+
+.album-secondary-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.65rem;
+  margin-top: 0.75rem;
+}
+
+.album-layout-mosaic .album-secondary-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.album-layout-editorial .album-slide {
+  margin-left: auto;
+  width: min(88%, 62rem);
+}
+
+.schedule-section {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+}
+
+.schedule-section[data-has-background="true"]::after {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  background: var(--countdown-overlay);
+  opacity: var(--countdown-overlay-opacity);
+}
+
+.schedule-background {
+  z-index: -2;
+}
+
+.wedding-calendar {
+  width: min(100%, 32rem);
+  margin: 2rem auto;
+  padding: 1.2rem;
+  background: color-mix(in srgb, var(--theme-card) 90%, transparent);
+  border: 1px solid var(--line);
+}
+
+.wedding-calendar > p {
+  text-align: center;
+  font-family: var(--theme-heading-font);
+  font-size: 1.25rem;
+}
+
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 0.25rem;
+  text-align: center;
+}
+
+.calendar-grid > * {
+  display: grid;
+  min-height: 2.15rem;
+  place-items: center;
+}
+
+.calendar-grid span {
+  position: relative;
+}
+
+.calendar-grid span[aria-current="date"] {
+  color: var(--white);
+  background: var(--forest);
+  border-radius: var(--radius-pill);
+}
+
+.calendar-grid i {
+  position: absolute;
+  top: -0.6rem;
+  right: -0.15rem;
+  color: var(--gold);
+  font-style: normal;
+}
+
+.youtube-lazy-player {
+  position: relative;
+  width: min(100%, 58rem);
+  aspect-ratio: 16 / 9;
+  margin-inline: auto;
+  overflow: hidden;
+  background: linear-gradient(135deg, var(--theme-album), var(--paper-deep));
+}
+
+.youtube-lazy-player iframe,
+.youtube-lazy-player button {
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+
+.youtube-lazy-player button {
+  display: grid;
+  place-content: center;
+  gap: 0.5rem;
+  color: var(--ink);
+  background: transparent;
+  font: inherit;
+  cursor: pointer;
+}
+
+.youtube-lazy-player button span {
+  font-size: 2.2rem;
+}
+
+.wishes-layout-bubble {
+  align-items: flex-start;
+}
+
+.wishes-layout-bubble .wish-note {
+  position: relative;
+  border-radius: var(--radius-lg) var(--radius-lg) var(--radius-lg) var(--radius-sm);
+}
+
+.wishes-layout-bubble .wish-note:nth-child(even) {
+  margin-left: clamp(0.5rem, 5vw, 4rem);
+  border-radius: var(--radius-lg) var(--radius-lg) var(--radius-sm) var(--radius-lg);
+}
+
+.wishes-load-more {
+  display: block;
+  margin: 1.25rem auto 0;
+}
+
+.cover-admin-preview {
+  display: grid;
+  width: min(100%, 24rem);
+  min-height: 35rem;
+  margin-inline: auto;
+  padding: 2rem;
+  align-content: center;
+  gap: 1rem;
+  text-align: center;
+  color: var(--ink);
+  background: var(--theme-card);
+  border: 1px solid var(--line);
+}
+
+.cover-admin-preview[data-align="left"] { text-align: left; }
+.cover-admin-preview[data-align="right"] { text-align: right; }
+.cover-admin-preview strong { font-family: var(--theme-couple-font); font-size: 2rem; }
+.cover-admin-preview[data-name-size="compact"] strong { font-size: 1.55rem; }
+.cover-admin-preview[data-name-size="grand"] strong { font-size: 2.65rem; }
+
+@media (min-width: 56rem) {
+  .hero-collage {
+    grid-template-columns: minmax(0, 1fr) 10rem;
+  }
+  .hero-collage-main {
+    min-height: 38rem;
+  }
+  .hero-collage-secondary {
+    grid-template-columns: 1fr;
+    align-content: center;
+  }
+  .album-layout-mosaic .album-secondary-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+  .album-layout-editorial .album-secondary-grid {
+    width: 62%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .admin-shortcut,
+  .hero-collage-image,
+  .album-secondary-image {
+    transition: none !important;
+  }
+}

@@ -3,6 +3,7 @@ import { cache } from "react";
 import { connection } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/src/lib/prisma";
+import type { InvitationSide } from "@/src/types/wedding";
 
 export const invitationRequestSchema = z
   .object({
@@ -18,6 +19,10 @@ export const invitationRequestSchema = z
       .max(500, "Lời nhắn riêng không được quá 500 ký tự.")
       .optional()
       .transform((value) => value || undefined),
+    invitationSide: z
+      .enum(["groom", "bride", "unspecified"])
+      .optional()
+      .default("unspecified"),
     creatorSecret: z.string().min(1).max(256),
   })
   .strict();
@@ -49,13 +54,25 @@ export const getInvitationByToken = cache(async (token: string) => {
 
   await connection();
 
-  return prisma.invitation.findUnique({
+  const invitation = await prisma.invitation.findUnique({
     where: { token },
     select: {
       recipientText: true,
       guestCount: true,
       privateMessage: true,
+      invitationSide: true,
       isActive: true,
     },
   });
+
+  if (!invitation) return null;
+  const invitationSide: InvitationSide =
+    invitation.invitationSide === "groom" ||
+    invitation.invitationSide === "bride"
+      ? invitation.invitationSide
+      : "unspecified";
+  return {
+    ...invitation,
+    invitationSide,
+  };
 });

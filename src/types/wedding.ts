@@ -40,6 +40,76 @@ export type ImageFraming = {
   backgroundColor: string;
 };
 
+export type AlbumLayout = "spotlight" | "mosaic" | "editorial";
+export type WishLayout = "elegant" | "bubble";
+export type InvitationSide = "groom" | "bride" | "unspecified";
+
+export type CoverSettings = {
+  kicker: string;
+  brideName: string;
+  connector: string;
+  groomName: string;
+  note: string;
+  buttonText: string;
+  backgroundEnabled: boolean;
+  backgroundSrc?: string;
+  backgroundStoragePath?: string;
+  backgroundAlt: string;
+  background: ImageFraming;
+  overlayColor: string;
+  overlayOpacity: number;
+  blurPx: number;
+  alignment: "left" | "center" | "right";
+  nameSize: "compact" | "balanced" | "grand";
+  logoMode: "monogram" | "image" | "hidden";
+  monogramText: string;
+  logoSrc?: string;
+  logoStoragePath?: string;
+  logoAlt: string;
+  logoSize: "small" | "medium" | "large";
+};
+
+export type MusicSettings = {
+  enabled: boolean;
+  src: string;
+  title: string;
+  volume: number;
+  loop: boolean;
+  autoplayAfterOpen: boolean;
+};
+
+export type YouTubeSettings = {
+  enabled: boolean;
+  url: string;
+  title: string;
+  description: string;
+};
+
+export type CountdownSettings = {
+  backgroundEnabled: boolean;
+  backgroundSrc?: string;
+  backgroundStoragePath?: string;
+  backgroundAlt: string;
+  background: ImageFraming;
+  overlayColor: string;
+  overlayOpacity: number;
+  showCalendar: boolean;
+  showLunarDate: boolean;
+  showTime: boolean;
+  showCountdown: boolean;
+  markerStyle: "circle" | "dot" | "heart";
+};
+
+export type WeddingExperienceSettings = {
+  cover: CoverSettings;
+  music: MusicSettings;
+  youtube: YouTubeSettings;
+  countdown: CountdownSettings;
+  albumLayout: AlbumLayout;
+  wishLayout: WishLayout;
+  allowGuestSideSelection: boolean;
+};
+
 export type WeddingEvent = {
   id: string;
   title: string;
@@ -106,6 +176,7 @@ export type WeddingContentData = {
   albumIntervalMs: number;
   themePreset: ThemePresetId;
   fontPreset: FontPresetId;
+  experience: WeddingExperienceSettings;
 };
 
 export type WeddingDetails = {

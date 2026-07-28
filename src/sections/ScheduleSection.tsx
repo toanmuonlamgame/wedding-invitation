@@ -1,17 +1,22 @@
 import { Countdown } from "@/src/components/Countdown";
+import { WeddingCalendar } from "@/src/components/WeddingCalendar";
+import { WeddingImage } from "@/src/components/WeddingImage";
 import { SectionHeading } from "@/src/components/SectionHeading";
 import { wedding } from "@/src/lib/wedding-details";
 import { formatWeddingDateTime } from "@/src/lib/wedding-format";
 import { formatVietnameseLunarDate } from "@/src/lib/lunar-date";
+import type { CountdownSettings } from "@/src/types/wedding";
 
 type ScheduleSectionProps = {
   weddingDateTime: string | null;
   expiredMessage: string;
+  settings: CountdownSettings;
 };
 
 export function ScheduleSection({
   weddingDateTime,
   expiredMessage,
+  settings,
 }: ScheduleSectionProps) {
   const formattedDate = formatWeddingDateTime(weddingDateTime);
   const lunarDate = formatVietnameseLunarDate(weddingDateTime);
@@ -19,7 +24,24 @@ export function ScheduleSection({
     <section
       className="section schedule-section"
       aria-labelledby="schedule-title"
+      data-has-background={settings.backgroundEnabled && Boolean(settings.backgroundSrc)}
+      style={
+        {
+          "--countdown-overlay": settings.overlayColor,
+          "--countdown-overlay-opacity": settings.overlayOpacity,
+        } as React.CSSProperties
+      }
     >
+      {settings.backgroundEnabled && settings.backgroundSrc ? (
+        <WeddingImage
+          src={settings.backgroundSrc}
+          available
+          alt={settings.backgroundAlt}
+          sizes="100vw"
+          className="schedule-background"
+          framing={settings.background}
+        />
+      ) : null}
       <div className="section-shell">
         <div data-reveal>
           <SectionHeading
@@ -33,8 +55,8 @@ export function ScheduleSection({
         <div className="date-composition" data-reveal>
           <p className="date-label">Ngày cưới</p>
           <p className="date-placeholder">{formattedDate.date}</p>
-          <span>{formattedDate.time}</span>
-          {lunarDate ? (
+          {settings.showTime ? <span>{formattedDate.time}</span> : null}
+          {settings.showLunarDate && lunarDate ? (
             <small className="lunar-date">
               <span aria-hidden="true">☾</span>
               {lunarDate}
@@ -44,12 +66,21 @@ export function ScheduleSection({
           )}
         </div>
 
-        <div data-reveal>
+        {settings.showCalendar ? (
+          <div data-reveal>
+            <WeddingCalendar
+              dateTime={weddingDateTime}
+              markerStyle={settings.markerStyle}
+            />
+          </div>
+        ) : null}
+
+        {settings.showCountdown ? <div data-reveal>
           <Countdown
             targetDate={weddingDateTime}
             expiredMessage={expiredMessage}
           />
-        </div>
+        </div> : null}
       </div>
     </section>
   );

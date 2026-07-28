@@ -3,6 +3,7 @@ import { unstable_cache } from "next/cache";
 import { z } from "zod";
 import { prisma } from "@/src/lib/prisma";
 import { defaultWeddingContent } from "@/src/lib/wedding-data";
+import { defaultExperienceSettings } from "@/src/lib/experience-settings";
 import {
   DEFAULT_FONT_PRESET,
   DEFAULT_THEME_PRESET,
@@ -73,7 +74,7 @@ const storagePathSchema = z
   .min(1)
   .max(300)
   .regex(
-    /^(album|story|venues)\/[A-Za-z0-9._/-]+$/,
+    /^(album|story|venues|cover|countdown|logo)\/[A-Za-z0-9._/-]+$/,
     "Đường dẫn Storage không hợp lệ.",
   )
   .refine(
@@ -92,6 +93,30 @@ const mapsUrlSchema = z
     (value) => /^https?:\/\//.test(value),
     "Link Google Maps không hợp lệ.",
   );
+
+const audioSourceSchema = z
+  .string()
+  .trim()
+  .min(1)
+  .max(600)
+  .refine((value) => {
+    if (
+      /^\/music\/[A-Za-z0-9._/-]+\.(mp3|wav|ogg|m4a)$/i.test(value) &&
+      !value.includes("..")
+    ) {
+      return true;
+    }
+    try {
+      const url = new URL(value);
+      if (url.protocol !== "https:") return false;
+      const configuredUrl = process.env.SUPABASE_URL?.trim();
+      return configuredUrl
+        ? url.origin === new URL(configuredUrl).origin
+        : url.hostname.endsWith(".supabase.co");
+    } catch {
+      return false;
+    }
+  }, "Nhạc phải dùng /music/ hoặc URL HTTPS từ Supabase Storage.");
 
 function emptyStringToNull(value: unknown) {
   return typeof value === "string" && value.trim() === "" ? null : value;
@@ -137,6 +162,100 @@ const imageBackgroundSchema = z
   .trim()
   .regex(/^#[0-9a-f]{6}$/i, "Màu nền ảnh phải là mã hex hợp lệ.")
   .default("#ffffff");
+
+const framingSchema = z
+  .object({
+    positionX: imagePositionSchema,
+    positionY: imagePositionSchema,
+    zoom: imageZoomSchema,
+    fitMode: imageFitModeSchema,
+    backgroundColor: imageBackgroundSchema,
+  })
+  .strict()
+  .transform(normalizeImageFraming);
+
+const hexColorSchema = z
+  .string()
+  .trim()
+  .regex(/^#[0-9a-f]{6}$/i, "Màu phải là mã hex hợp lệ.");
+
+const experienceSchema = z
+  .object({
+    cover: z
+      .object({
+        kicker: z.string().trim().min(1).max(100),
+        brideName: z.string().trim().min(1).max(80),
+        connector: z.string().trim().min(1).max(12),
+        groomName: z.string().trim().min(1).max(80),
+        note: z.string().trim().max(240),
+        buttonText: z.string().trim().min(1).max(60),
+        backgroundEnabled: z.boolean(),
+        backgroundSrc: optionalImageSchema,
+        backgroundStoragePath: optionalStoragePathSchema,
+        backgroundAlt: z.string().trim().max(200),
+        background: framingSchema,
+        overlayColor: hexColorSchema,
+        overlayOpacity: z.number().min(0).max(0.85),
+        blurPx: z.number().min(0).max(12),
+        alignment: z.enum(["left", "center", "right"]),
+        nameSize: z.enum(["compact", "balanced", "grand"]),
+        logoMode: z.enum(["monogram", "image", "hidden"]),
+        monogramText: z.string().trim().max(20),
+        logoSrc: optionalImageSchema,
+        logoStoragePath: optionalStoragePathSchema,
+        logoAlt: z.string().trim().max(200),
+        logoSize: z.enum(["small", "medium", "large"]),
+      })
+      .strict(),
+    music: z
+      .object({
+        enabled: z.boolean(),
+        src: audioSourceSchema,
+        title: z.string().trim().min(1).max(120),
+        volume: z.number().min(0.2).max(0.35),
+        loop: z.boolean(),
+        autoplayAfterOpen: z.boolean(),
+      })
+      .strict(),
+    youtube: z
+      .object({
+        enabled: z.boolean(),
+        url: z
+          .string()
+          .trim()
+          .url()
+          .max(500)
+          .refine(
+            (value) =>
+              /^(https:\/\/)?(www\.)?(youtube\.com|youtu\.be)\//.test(value),
+            "URL YouTube không hợp lệ.",
+          ),
+        title: z.string().trim().min(1).max(120),
+        description: z.string().trim().max(300),
+      })
+      .strict(),
+    countdown: z
+      .object({
+        backgroundEnabled: z.boolean(),
+        backgroundSrc: optionalImageSchema,
+        backgroundStoragePath: optionalStoragePathSchema,
+        backgroundAlt: z.string().trim().max(200),
+        background: framingSchema,
+        overlayColor: hexColorSchema,
+        overlayOpacity: z.number().min(0).max(0.85),
+        showCalendar: z.boolean(),
+        showLunarDate: z.boolean(),
+        showTime: z.boolean(),
+        showCountdown: z.boolean(),
+        markerStyle: z.enum(["circle", "dot", "heart"]),
+      })
+      .strict(),
+    albumLayout: z.enum(["spotlight", "mosaic", "editorial"]),
+    wishLayout: z.enum(["elegant", "bubble"]),
+    allowGuestSideSelection: z.boolean(),
+  })
+  .strict()
+  .default(defaultExperienceSettings);
 
 export const weddingEventSchema = z
   .object({
@@ -240,6 +359,7 @@ export const weddingContentSchema = z
       ),
     themePreset: z.enum(THEME_IDS).default(DEFAULT_THEME_PRESET),
     fontPreset: z.enum(FONT_IDS).default(DEFAULT_FONT_PRESET),
+    experience: experienceSchema,
   })
   .strict();
 
@@ -264,6 +384,7 @@ function parseStoredContent(record: {
   albumIntervalMs: number;
   themePreset: string;
   fontPreset: string;
+  experienceJson: unknown;
 }): WeddingContentData {
   const parsed = weddingContentSchema.safeParse({
     weddingDateTime: record.weddingDateTime?.toISOString() ?? null,
@@ -276,6 +397,7 @@ function parseStoredContent(record: {
     albumIntervalMs: record.albumIntervalMs,
     themePreset: normalizeThemePreset(record.themePreset),
     fontPreset: normalizeFontPreset(record.fontPreset),
+    experience: record.experienceJson ?? defaultExperienceSettings,
   });
 
   return parsed.success ? parsed.data : defaultWeddingContent;
@@ -294,6 +416,7 @@ async function loadWeddingContent(): Promise<WeddingContentData> {
         albumIntervalMs: true,
         themePreset: true,
         fontPreset: true,
+        experienceJson: true,
       },
     });
 
@@ -334,6 +457,7 @@ export async function saveWeddingContent(
       albumIntervalMs: content.albumIntervalMs,
       themePreset: content.themePreset,
       fontPreset: content.fontPreset,
+      experienceJson: content.experience,
     },
     update: {
       weddingDateTime: content.weddingDateTime
@@ -346,6 +470,7 @@ export async function saveWeddingContent(
       albumIntervalMs: content.albumIntervalMs,
       themePreset: content.themePreset,
       fontPreset: content.fontPreset,
+      experienceJson: content.experience,
     },
     select: {
       weddingDateTime: true,
@@ -356,6 +481,7 @@ export async function saveWeddingContent(
       albumIntervalMs: true,
       themePreset: true,
       fontPreset: true,
+      experienceJson: true,
     },
   });
 

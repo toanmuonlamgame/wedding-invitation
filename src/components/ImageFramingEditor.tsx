@@ -16,7 +16,7 @@ type ImageFramingEditorProps = {
   src: string;
   alt: string;
   value: Partial<ImageFraming>;
-  variant: "album" | "story" | "venue";
+  variant: "album" | "story" | "venue" | "cover" | "countdown";
   onChange: (value: ImageFraming) => void;
 };
 

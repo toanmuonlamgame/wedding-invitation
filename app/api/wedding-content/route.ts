@@ -80,6 +80,7 @@ export async function PUT(request: NextRequest) {
       albumIntervalMs: parsed.data.albumIntervalMs,
       themePreset: parsed.data.themePreset,
       fontPreset: parsed.data.fontPreset,
+      experience: parsed.data.experience,
     };
     const savedContent = await saveWeddingContent(content);
     revalidateTag("wedding-content", { expire: 0 });

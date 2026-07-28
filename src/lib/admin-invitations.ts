@@ -44,6 +44,7 @@ export async function listAdminInvitations({
         token: true,
         recipientText: true,
         guestCount: true,
+        invitationSide: true,
         privateMessage: true,
         label: true,
         adminNotes: true,
@@ -85,6 +86,11 @@ export async function listAdminInvitations({
         token: invitation.token,
         recipientText: invitation.recipientText,
         guestCount: invitation.guestCount,
+        invitationSide:
+          invitation.invitationSide === "groom" ||
+          invitation.invitationSide === "bride"
+            ? invitation.invitationSide
+            : "unspecified",
         privateMessage: invitation.privateMessage,
         label: invitation.label,
         adminNotes: invitation.adminNotes,

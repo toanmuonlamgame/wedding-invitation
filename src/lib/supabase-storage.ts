@@ -2,7 +2,14 @@ import "server-only";
 
 import { randomBytes } from "node:crypto";
 
-export const MEDIA_CATEGORIES = ["album", "story", "venues"] as const;
+export const MEDIA_CATEGORIES = [
+  "album",
+  "story",
+  "venues",
+  "cover",
+  "countdown",
+  "logo",
+] as const;
 export type MediaCategory = (typeof MEDIA_CATEGORIES)[number];
 
 export const MAX_MEDIA_FILE_SIZE = 10 * 1024 * 1024;
@@ -59,7 +66,7 @@ export function isMediaCategory(value: string): value is MediaCategory {
 
 export function isAllowedStoragePath(value: string) {
   return (
-    /^(album|story|venues)\/[A-Za-z0-9._/-]+$/.test(value) &&
+    /^(album|story|venues|cover|countdown|logo)\/[A-Za-z0-9._/-]+$/.test(value) &&
     !value.includes("..") &&
     !value.includes("\\") &&
     !value.includes("://")
