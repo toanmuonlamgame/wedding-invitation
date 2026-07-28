@@ -1,64 +1,328 @@
 "use client";
 
+import { CoverRenderer } from "@/src/components/CoverRenderer";
 import { ImageFramingEditor } from "@/src/components/ImageFramingEditor";
 import { MediaUploader } from "@/src/components/MediaUploader";
+import { defaultExperienceSettings } from "@/src/lib/experience-settings";
+import type { FieldErrors } from "@/src/types/engagement";
 import type {
   CoverSettings,
   WeddingExperienceSettings,
+  WishOverlayPreset,
 } from "@/src/types/wedding";
+
+type CoverEditorProps = {
+  value: CoverSettings;
+  creatorSecret: string;
+  errors: FieldErrors;
+  onClearError: (path: string) => void;
+  onChange: (value: CoverSettings) => void;
+};
 
 export function CoverEditor({
   value,
   creatorSecret,
+  errors,
+  onClearError,
   onChange,
-}: {
-  value: CoverSettings;
-  creatorSecret: string;
-  onChange: (value: CoverSettings) => void;
-}) {
-  const update = (patch: Partial<CoverSettings>) => onChange({ ...value, ...patch });
+}: CoverEditorProps) {
+  const update = (patch: Partial<CoverSettings>, path?: string) => {
+    if (path) onClearError(`experience.cover.${path}`);
+    onChange({ ...value, ...patch });
+  };
+  const inputProps = (path: string) => {
+    const fullPath = `experience.cover.${path}`;
+    const hasError = Boolean(errors[fullPath]);
+    return {
+      "aria-invalid": hasError,
+      "aria-describedby": hasError
+        ? `cover-error-${path.replaceAll(".", "-")}`
+        : undefined,
+      "data-field-path": fullPath,
+    } as const;
+  };
+
+  const coverErrors = Object.entries(errors).filter(([path]) =>
+    path.startsWith("experience.cover."),
+  );
+  const clearFramingErrors = (prefix: string) => {
+    ["fitMode", "positionX", "positionY", "zoom", "backgroundColor"].forEach(
+      (field) => onClearError(`${prefix}.${field}`),
+    );
+  };
+
   return (
     <div className="admin-list">
+      {coverErrors.length ? (
+        <div className="admin-validation-summary" role="alert">
+          <strong>Cover còn dữ liệu chưa hợp lệ:</strong>
+          <ul>
+            {coverErrors.map(([path, message]) => (
+              <li key={path}>{message}</li>
+            ))}
+          </ul>
+        </div>
+      ) : null}
+
       <div className="admin-form-grid">
-        <Field label="Dòng mở đầu"><input value={value.kicker} onChange={(e) => update({ kicker: e.target.value })} /></Field>
-        <Field label="Tên cô dâu"><input value={value.brideName} onChange={(e) => update({ brideName: e.target.value })} /></Field>
-        <Field label="Ký hiệu nối"><input value={value.connector} maxLength={12} onChange={(e) => update({ connector: e.target.value })} /></Field>
-        <Field label="Tên chú rể"><input value={value.groomName} onChange={(e) => update({ groomName: e.target.value })} /></Field>
-        <Field label="Ghi chú"><textarea value={value.note} onChange={(e) => update({ note: e.target.value })} /></Field>
-        <Field label="Nhãn nút mở"><input value={value.buttonText} onChange={(e) => update({ buttonText: e.target.value })} /></Field>
-        <Field label="Căn nội dung"><select value={value.alignment} onChange={(e) => update({ alignment: e.target.value as CoverSettings["alignment"] })}><option value="left">Trái</option><option value="center">Giữa</option><option value="right">Phải</option></select></Field>
-        <Field label="Cỡ tên"><select value={value.nameSize} onChange={(e) => update({ nameSize: e.target.value as CoverSettings["nameSize"] })}><option value="compact">Gọn</option><option value="balanced">Cân bằng</option><option value="grand">Lớn</option></select></Field>
-        <Field label="Kiểu biểu trưng"><select value={value.logoMode} onChange={(e) => update({ logoMode: e.target.value as CoverSettings["logoMode"] })}><option value="monogram">Monogram</option><option value="image">Ảnh logo</option><option value="hidden">Ẩn</option></select></Field>
-        <Field label="Chữ monogram"><input value={value.monogramText} onChange={(e) => update({ monogramText: e.target.value })} /></Field>
-        <Field label="Màu lớp phủ"><input type="color" value={value.overlayColor} onChange={(e) => update({ overlayColor: e.target.value })} /></Field>
-        <Field label={`Độ phủ ${Math.round(value.overlayOpacity * 100)}%`}><input type="range" min={0} max={0.85} step={0.05} value={value.overlayOpacity} onChange={(e) => update({ overlayOpacity: Number(e.target.value) })} /></Field>
-        <Field label={`Độ mờ ${value.blurPx}px`}><input type="range" min={0} max={12} value={value.blurPx} onChange={(e) => update({ blurPx: Number(e.target.value) })} /></Field>
-        <label className="admin-toggle"><input type="checkbox" checked={value.backgroundEnabled} onChange={(e) => update({ backgroundEnabled: e.target.checked })} /> Dùng ảnh nền cover</label>
+        <Field label="Dòng mở đầu" error={errors["experience.cover.kicker"]} path="kicker">
+          <input
+            {...inputProps("kicker")}
+            value={value.kicker}
+            maxLength={100}
+            onChange={(event) => update({ kicker: event.target.value }, "kicker")}
+          />
+        </Field>
+        <Field label="Tên cô dâu" error={errors["experience.cover.brideName"]} path="brideName">
+          <input
+            {...inputProps("brideName")}
+            value={value.brideName}
+            maxLength={80}
+            onChange={(event) =>
+              update({ brideName: event.target.value }, "brideName")
+            }
+          />
+        </Field>
+        <Field label="Ký hiệu nối" error={errors["experience.cover.connector"]} path="connector">
+          <input
+            {...inputProps("connector")}
+            value={value.connector}
+            maxLength={12}
+            onChange={(event) =>
+              update({ connector: event.target.value }, "connector")
+            }
+          />
+        </Field>
+        <Field label="Tên chú rể" error={errors["experience.cover.groomName"]} path="groomName">
+          <input
+            {...inputProps("groomName")}
+            value={value.groomName}
+            maxLength={80}
+            onChange={(event) =>
+              update({ groomName: event.target.value }, "groomName")
+            }
+          />
+        </Field>
+        <Field label="Dòng mô tả" error={errors["experience.cover.note"]} path="note">
+          <textarea
+            {...inputProps("note")}
+            value={value.note}
+            maxLength={240}
+            onChange={(event) => update({ note: event.target.value }, "note")}
+          />
+        </Field>
+        <Field label="Nhãn nút mở" error={errors["experience.cover.buttonText"]} path="buttonText">
+          <input
+            {...inputProps("buttonText")}
+            value={value.buttonText}
+            maxLength={60}
+            onChange={(event) =>
+              update({ buttonText: event.target.value }, "buttonText")
+            }
+          />
+        </Field>
+        <Field label="Căn nội dung">
+          <select
+            value={value.alignment}
+            onChange={(event) =>
+              update({
+                alignment: event.target.value as CoverSettings["alignment"],
+              })
+            }
+          >
+            <option value="left">Trái</option>
+            <option value="center">Giữa</option>
+            <option value="right">Phải</option>
+          </select>
+        </Field>
+        <Field label="Cỡ tên">
+          <select
+            value={value.nameSize}
+            onChange={(event) =>
+              update({
+                nameSize: event.target.value as CoverSettings["nameSize"],
+              })
+            }
+          >
+            <option value="compact">Gọn</option>
+            <option value="balanced">Cân bằng</option>
+            <option value="grand">Lớn</option>
+          </select>
+        </Field>
+        <Field label="Kiểu biểu trưng">
+          <select
+            value={value.logoMode}
+            onChange={(event) =>
+              update({
+                logoMode: event.target.value as CoverSettings["logoMode"],
+              })
+            }
+          >
+            <option value="monogram">Monogram</option>
+            <option value="image">Ảnh logo</option>
+            <option value="hidden">Ẩn</option>
+          </select>
+        </Field>
+        <Field label="Chữ monogram" error={errors["experience.cover.monogramText"]} path="monogramText">
+          <input
+            {...inputProps("monogramText")}
+            value={value.monogramText}
+            maxLength={20}
+            onChange={(event) =>
+              update({ monogramText: event.target.value }, "monogramText")
+            }
+          />
+        </Field>
+        <Field label="Kích thước logo">
+          <select
+            value={value.logoSize}
+            onChange={(event) =>
+              update({
+                logoSize: event.target.value as CoverSettings["logoSize"],
+              })
+            }
+          >
+            <option value="small">Nhỏ</option>
+            <option value="medium">Vừa</option>
+            <option value="large">Lớn</option>
+          </select>
+        </Field>
+        <Field label="Màu lớp phủ">
+          <input
+            type="color"
+            value={value.overlayColor}
+            onChange={(event) => update({ overlayColor: event.target.value })}
+          />
+        </Field>
+        <Field label={`Độ phủ ${Math.round(value.overlayOpacity * 100)}%`}>
+          <input
+            type="range"
+            min={0}
+            max={0.85}
+            step={0.05}
+            value={value.overlayOpacity}
+            onChange={(event) =>
+              update({ overlayOpacity: Number(event.target.value) })
+            }
+          />
+        </Field>
+        <Field label={`Độ mờ ${value.blurPx}px`}>
+          <input
+            type="range"
+            min={0}
+            max={12}
+            value={value.blurPx}
+            onChange={(event) => update({ blurPx: Number(event.target.value) })}
+          />
+        </Field>
+        <label className="admin-toggle">
+          <input
+            type="checkbox"
+            checked={value.backgroundEnabled}
+            onChange={(event) =>
+              update({ backgroundEnabled: event.target.checked })
+            }
+          />
+          Dùng ảnh nền cover
+        </label>
       </div>
+
       <MediaUploader
         category="cover"
         creatorSecret={creatorSecret}
-        existingMedia={value.backgroundSrc ? { src: value.backgroundSrc, storagePath: value.backgroundStoragePath, alt: value.backgroundAlt } : undefined}
-        onUploaded={(media, file) => update({ backgroundEnabled: true, backgroundSrc: media.publicUrl, backgroundStoragePath: media.storagePath, backgroundAlt: file.name })}
-        onRemoveMetadata={() => update({ backgroundEnabled: false, backgroundSrc: undefined, backgroundStoragePath: undefined })}
+        existingMedia={
+          value.backgroundSrc
+            ? {
+                src: value.backgroundSrc,
+                storagePath: value.backgroundStoragePath,
+                alt: value.backgroundAlt,
+              }
+            : undefined
+        }
+        onUploaded={(media, file) =>
+          update({
+            backgroundEnabled: true,
+            backgroundSrc: media.publicUrl,
+            backgroundStoragePath: media.storagePath,
+            backgroundAlt: file.name,
+          })
+        }
+        onRemoveMetadata={() =>
+          update({
+            backgroundEnabled: false,
+            backgroundSrc: undefined,
+            backgroundStoragePath: undefined,
+          })
+        }
       />
-      {value.backgroundSrc ? <ImageFramingEditor src={value.backgroundSrc} alt={value.backgroundAlt} variant="cover" value={value.background} onChange={(background) => update({ background })} /> : null}
-      {value.logoMode === "image" ? (
-        <MediaUploader
-          category="logo"
-          creatorSecret={creatorSecret}
-          existingMedia={value.logoSrc ? { src: value.logoSrc, storagePath: value.logoStoragePath, alt: value.logoAlt } : undefined}
-          onUploaded={(media, file) => update({ logoSrc: media.publicUrl, logoStoragePath: media.storagePath, logoAlt: file.name })}
-          onRemoveMetadata={() => update({ logoSrc: undefined, logoStoragePath: undefined })}
+      {value.backgroundSrc ? (
+        <ImageFramingEditor
+          src={value.backgroundSrc}
+          alt={value.backgroundAlt}
+          variant="cover"
+          fieldPathPrefix="experience.cover.background"
+          value={value.background}
+          onChange={(background) => {
+            clearFramingErrors("experience.cover.background");
+            update({ background });
+          }}
         />
       ) : null}
-      <div className="cover-admin-preview" data-align={value.alignment} data-name-size={value.nameSize}>
-        <small>Preview mobile cover</small>
-        <p>{value.kicker}</p>
-        <strong>{value.brideName} {value.connector} {value.groomName}</strong>
-        <span>{value.note}</span>
-        <button type="button">{value.buttonText}</button>
+
+      {value.logoMode === "image" ? (
+        <>
+          <MediaUploader
+            category="logo"
+            creatorSecret={creatorSecret}
+            existingMedia={
+              value.logoSrc
+                ? {
+                    src: value.logoSrc,
+                    storagePath: value.logoStoragePath,
+                    alt: value.logoAlt,
+                  }
+                : undefined
+            }
+            onUploaded={(media, file) =>
+              update({
+                logoSrc: media.publicUrl,
+                logoStoragePath: media.storagePath,
+                logoAlt: file.name,
+              })
+            }
+            onRemoveMetadata={() =>
+              update({ logoSrc: undefined, logoStoragePath: undefined })
+            }
+          />
+          {value.logoSrc ? (
+            <ImageFramingEditor
+              src={value.logoSrc}
+              alt={value.logoAlt}
+              variant="logo"
+              fieldPathPrefix="experience.cover.logoFrame"
+              value={value.logoFrame}
+              onChange={(logoFrame) => {
+                clearFramingErrors("experience.cover.logoFrame");
+                update({ logoFrame });
+              }}
+            />
+          ) : null}
+        </>
+      ) : null}
+
+      <div className="cover-admin-preview" aria-label="Preview cover">
+        <CoverRenderer cover={value} preview />
       </div>
+      <button
+        className="button button-secondary"
+        type="button"
+        onClick={() => {
+          coverErrors.forEach(([path]) => onClearError(path));
+          onChange(structuredClone(defaultExperienceSettings.cover));
+        }}
+      >
+        Khôi phục cover mặc định
+      </button>
     </div>
   );
 }
@@ -72,39 +336,406 @@ export function ExperienceEditor({
   creatorSecret: string;
   onChange: (value: WeddingExperienceSettings) => void;
 }) {
-  const update = <K extends keyof WeddingExperienceSettings>(key: K, next: WeddingExperienceSettings[K]) =>
-    onChange({ ...value, [key]: next });
+  const update = <K extends keyof WeddingExperienceSettings>(
+    key: K,
+    next: WeddingExperienceSettings[K],
+  ) => onChange({ ...value, [key]: next });
+
+  function applyWishPreset(preset: WishOverlayPreset) {
+    const values = {
+      soft: { intervalMs: 7_500, opacity: 0.56, visibleCount: 2 },
+      balanced: { intervalMs: 5_500, opacity: 0.66, visibleCount: 3 },
+      prominent: { intervalMs: 4_000, opacity: 0.75, visibleCount: 4 },
+    }[preset];
+    update("wishes", { ...value.wishes, preset, ...values });
+  }
+
   return (
     <div className="admin-list">
-      <fieldset className="admin-item"><legend>Album & lời chúc</legend><div className="admin-form-grid">
-        <Field label="Bố cục album"><select value={value.albumLayout} onChange={(e) => update("albumLayout", e.target.value as WeddingExperienceSettings["albumLayout"])}><option value="spotlight">Ảnh chính + ảnh phụ</option><option value="mosaic">Mosaic</option><option value="editorial">Editorial</option></select></Field>
-        <Field label="Bố cục lời chúc"><select value={value.wishLayout} onChange={(e) => update("wishLayout", e.target.value as WeddingExperienceSettings["wishLayout"])}><option value="elegant">Elegant</option><option value="bubble">Bubble</option></select></Field>
-      </div></fieldset>
-      <fieldset className="admin-item"><legend>Nhạc nền</legend><div className="admin-form-grid">
-        <label className="admin-toggle"><input type="checkbox" checked={value.music.enabled} onChange={(e) => update("music", { ...value.music, enabled: e.target.checked })} /> Bật nhạc nền</label>
-        <Field label="Tệp nhạc nội bộ / URL an toàn"><input value={value.music.src} onChange={(e) => update("music", { ...value.music, src: e.target.value })} /></Field>
-        <Field label="Tên bài nhạc"><input value={value.music.title} onChange={(e) => update("music", { ...value.music, title: e.target.value })} /></Field>
-        <Field label={`Âm lượng ${Math.round(value.music.volume * 100)}%`}><input type="range" min={0.2} max={0.35} step={0.01} value={value.music.volume} onChange={(e) => update("music", { ...value.music, volume: Number(e.target.value) })} /></Field>
-        <label className="admin-toggle"><input type="checkbox" checked={value.music.autoplayAfterOpen} onChange={(e) => update("music", { ...value.music, autoplayAfterOpen: e.target.checked })} /> Thử phát sau khi mở thiệp</label>
-      </div></fieldset>
-      <fieldset className="admin-item"><legend>YouTube</legend><div className="admin-form-grid">
-        <label className="admin-toggle"><input type="checkbox" checked={value.youtube.enabled} onChange={(e) => update("youtube", { ...value.youtube, enabled: e.target.checked })} /> Hiện khu vực video</label>
-        <Field label="URL YouTube"><input value={value.youtube.url} onChange={(e) => update("youtube", { ...value.youtube, url: e.target.value })} /></Field>
-        <Field label="Tiêu đề"><input value={value.youtube.title} onChange={(e) => update("youtube", { ...value.youtube, title: e.target.value })} /></Field>
-        <Field label="Mô tả"><textarea value={value.youtube.description} onChange={(e) => update("youtube", { ...value.youtube, description: e.target.value })} /></Field>
-      </div></fieldset>
-      <fieldset className="admin-item"><legend>Countdown & lịch</legend><div className="admin-form-grid">
-        {(["showCalendar", "showLunarDate", "showTime", "showCountdown"] as const).map((key) => <label className="admin-toggle" key={key}><input type="checkbox" checked={value.countdown[key]} onChange={(e) => update("countdown", { ...value.countdown, [key]: e.target.checked })} /> {key}</label>)}
-        <Field label="Đánh dấu ngày cưới"><select value={value.countdown.markerStyle} onChange={(e) => update("countdown", { ...value.countdown, markerStyle: e.target.value as "circle" | "dot" | "heart" })}><option value="heart">Trái tim</option><option value="circle">Vòng tròn</option><option value="dot">Chấm</option></select></Field>
-      </div>
-      <MediaUploader category="countdown" creatorSecret={creatorSecret} existingMedia={value.countdown.backgroundSrc ? { src: value.countdown.backgroundSrc, storagePath: value.countdown.backgroundStoragePath, alt: value.countdown.backgroundAlt } : undefined} onUploaded={(media, file) => update("countdown", { ...value.countdown, backgroundEnabled: true, backgroundSrc: media.publicUrl, backgroundStoragePath: media.storagePath, backgroundAlt: file.name })} onRemoveMetadata={() => update("countdown", { ...value.countdown, backgroundEnabled: false, backgroundSrc: undefined, backgroundStoragePath: undefined })} />
-      {value.countdown.backgroundSrc ? <ImageFramingEditor src={value.countdown.backgroundSrc} alt={value.countdown.backgroundAlt} variant="countdown" value={value.countdown.background} onChange={(background) => update("countdown", { ...value.countdown, background })} /> : null}
+      <fieldset className="admin-item">
+        <legend>Hiển thị section</legend>
+        <div className="admin-form-grid">
+          {(
+            [
+              ["heroCollage", "Hiện album collage"],
+              ["story", "Hiện chuyện chúng mình"],
+              ["rsvp", "Hiện RSVP trên thiệp khách"],
+            ] as const
+          ).map(([key, label]) => (
+            <label className="admin-toggle" key={key}>
+              <input
+                type="checkbox"
+                checked={value.sections[key]}
+                onChange={(event) =>
+                  update("sections", {
+                    ...value.sections,
+                    [key]: event.target.checked,
+                  })
+                }
+              />
+              {label}
+            </label>
+          ))}
+        </div>
       </fieldset>
-      <fieldset className="admin-item"><legend>RSVP</legend><label className="admin-toggle"><input type="checkbox" checked={value.allowGuestSideSelection} onChange={(e) => update("allowGuestSideSelection", e.target.checked)} /> Cho khách tự chọn nhà trai / nhà gái</label></fieldset>
+
+      <fieldset className="admin-item">
+        <legend>Lời chúc</legend>
+        <div className="admin-form-grid">
+          <label className="admin-toggle">
+            <input
+              type="checkbox"
+              checked={value.wishes.overlayEnabled}
+              onChange={(event) =>
+                update("wishes", {
+                  ...value.wishes,
+                  overlayEnabled: event.target.checked,
+                })
+              }
+            />
+            Hiển thị lời chúc chạy
+          </label>
+          <label className="admin-toggle">
+            <input
+              type="checkbox"
+              checked={value.wishes.showList}
+              onChange={(event) =>
+                update("wishes", {
+                  ...value.wishes,
+                  showList: event.target.checked,
+                })
+              }
+            />
+            Hiển thị danh sách lời chúc
+          </label>
+          <Field label="Preset lời chúc chạy">
+            <select
+              value={value.wishes.preset}
+              onChange={(event) =>
+                applyWishPreset(event.target.value as WishOverlayPreset)
+              }
+            >
+              <option value="soft">Nhẹ</option>
+              <option value="balanced">Vừa</option>
+              <option value="prominent">Nổi bật</option>
+            </select>
+          </Field>
+          <Field label={`Tốc độ ${value.wishes.intervalMs / 1000}s`}>
+            <input
+              type="range"
+              min={3_500}
+              max={15_000}
+              step={500}
+              value={value.wishes.intervalMs}
+              onChange={(event) =>
+                update("wishes", {
+                  ...value.wishes,
+                  intervalMs: Number(event.target.value),
+                })
+              }
+            />
+          </Field>
+          <Field label={`Độ mờ ${Math.round(value.wishes.opacity * 100)}%`}>
+            <input
+              type="range"
+              min={0.55}
+              max={0.75}
+              step={0.01}
+              value={value.wishes.opacity}
+              onChange={(event) =>
+                update("wishes", {
+                  ...value.wishes,
+                  opacity: Number(event.target.value),
+                })
+              }
+            />
+          </Field>
+          <Field label="Số lời chúc cùng lúc">
+            <select
+              value={value.wishes.visibleCount}
+              onChange={(event) =>
+                update("wishes", {
+                  ...value.wishes,
+                  visibleCount: Number(event.target.value),
+                })
+              }
+            >
+              {[2, 3, 4].map((count) => (
+                <option value={count} key={count}>
+                  {count}
+                </option>
+              ))}
+            </select>
+          </Field>
+          <label className="admin-toggle">
+            <input
+              type="checkbox"
+              checked={value.wishes.autoHideWhenTyping}
+              onChange={(event) =>
+                update("wishes", {
+                  ...value.wishes,
+                  autoHideWhenTyping: event.target.checked,
+                })
+              }
+            />
+            Tự ẩn khi đang nhập form hoặc mở modal
+          </label>
+          <Field label="Bố cục danh sách tĩnh">
+            <select
+              value={value.wishLayout}
+              onChange={(event) =>
+                update(
+                  "wishLayout",
+                  event.target.value as WeddingExperienceSettings["wishLayout"],
+                )
+              }
+            >
+              <option value="elegant">Elegant</option>
+              <option value="bubble">Bubble</option>
+            </select>
+          </Field>
+        </div>
+      </fieldset>
+
+      <fieldset className="admin-item">
+        <legend>Nhạc nền</legend>
+        <div className="admin-form-grid">
+          <label className="admin-toggle">
+            <input
+              type="checkbox"
+              checked={value.music.enabled}
+              onChange={(event) =>
+                update("music", {
+                  ...value.music,
+                  enabled: event.target.checked,
+                })
+              }
+            />
+            Bật nhạc nền
+          </label>
+          <Field label="Tệp nhạc nội bộ / URL an toàn">
+            <input
+              value={value.music.src}
+              onChange={(event) =>
+                update("music", { ...value.music, src: event.target.value })
+              }
+            />
+          </Field>
+          <Field label="Tên bài nhạc">
+            <input
+              value={value.music.title}
+              onChange={(event) =>
+                update("music", { ...value.music, title: event.target.value })
+              }
+            />
+          </Field>
+          <Field label={`Âm lượng ${Math.round(value.music.volume * 100)}%`}>
+            <input
+              type="range"
+              min={0.2}
+              max={0.35}
+              step={0.01}
+              value={value.music.volume}
+              onChange={(event) =>
+                update("music", {
+                  ...value.music,
+                  volume: Number(event.target.value),
+                })
+              }
+            />
+          </Field>
+          <label className="admin-toggle">
+            <input
+              type="checkbox"
+              checked={value.music.autoplayAfterOpen}
+              onChange={(event) =>
+                update("music", {
+                  ...value.music,
+                  autoplayAfterOpen: event.target.checked,
+                })
+              }
+            />
+            Thử phát sau khi mở thiệp
+          </label>
+        </div>
+      </fieldset>
+
+      <fieldset className="admin-item">
+        <legend>YouTube</legend>
+        <div className="admin-form-grid">
+          <label className="admin-toggle">
+            <input
+              type="checkbox"
+              checked={value.youtube.enabled}
+              onChange={(event) =>
+                update("youtube", {
+                  ...value.youtube,
+                  enabled: event.target.checked,
+                })
+              }
+            />
+            Hiện khu vực video YouTube
+          </label>
+          <Field label="URL YouTube">
+            <input
+              value={value.youtube.url}
+              onChange={(event) =>
+                update("youtube", {
+                  ...value.youtube,
+                  url: event.target.value,
+                })
+              }
+            />
+          </Field>
+          <Field label="Tiêu đề">
+            <input
+              value={value.youtube.title}
+              onChange={(event) =>
+                update("youtube", {
+                  ...value.youtube,
+                  title: event.target.value,
+                })
+              }
+            />
+          </Field>
+          <Field label="Mô tả">
+            <textarea
+              value={value.youtube.description}
+              onChange={(event) =>
+                update("youtube", {
+                  ...value.youtube,
+                  description: event.target.value,
+                })
+              }
+            />
+          </Field>
+        </div>
+      </fieldset>
+
+      <fieldset className="admin-item">
+        <legend>Countdown & lịch</legend>
+        <div className="admin-form-grid">
+          {(
+            [
+              ["showCalendar", "Hiện lịch tháng"],
+              ["showLunarDate", "Hiện ngày âm"],
+              ["showTime", "Hiện giờ cưới"],
+              ["showCountdown", "Hiện bộ đếm ngược"],
+            ] as const
+          ).map(([key, label]) => (
+            <label className="admin-toggle" key={key}>
+              <input
+                type="checkbox"
+                checked={value.countdown[key]}
+                onChange={(event) =>
+                  update("countdown", {
+                    ...value.countdown,
+                    [key]: event.target.checked,
+                  })
+                }
+              />
+              {label}
+            </label>
+          ))}
+          <Field label="Đánh dấu ngày cưới">
+            <select
+              value={value.countdown.markerStyle}
+              onChange={(event) =>
+                update("countdown", {
+                  ...value.countdown,
+                  markerStyle: event.target.value as
+                    | "circle"
+                    | "dot"
+                    | "heart",
+                })
+              }
+            >
+              <option value="heart">Trái tim</option>
+              <option value="circle">Vòng tròn</option>
+              <option value="dot">Chấm</option>
+            </select>
+          </Field>
+        </div>
+        <MediaUploader
+          category="countdown"
+          creatorSecret={creatorSecret}
+          existingMedia={
+            value.countdown.backgroundSrc
+              ? {
+                  src: value.countdown.backgroundSrc,
+                  storagePath: value.countdown.backgroundStoragePath,
+                  alt: value.countdown.backgroundAlt,
+                }
+              : undefined
+          }
+          onUploaded={(media, file) =>
+            update("countdown", {
+              ...value.countdown,
+              backgroundEnabled: true,
+              backgroundSrc: media.publicUrl,
+              backgroundStoragePath: media.storagePath,
+              backgroundAlt: file.name,
+            })
+          }
+          onRemoveMetadata={() =>
+            update("countdown", {
+              ...value.countdown,
+              backgroundEnabled: false,
+              backgroundSrc: undefined,
+              backgroundStoragePath: undefined,
+            })
+          }
+        />
+        {value.countdown.backgroundSrc ? (
+          <ImageFramingEditor
+            src={value.countdown.backgroundSrc}
+            alt={value.countdown.backgroundAlt}
+            variant="countdown"
+            value={value.countdown.background}
+            onChange={(background) =>
+              update("countdown", { ...value.countdown, background })
+            }
+          />
+        ) : null}
+      </fieldset>
+
+      <fieldset className="admin-item">
+        <legend>RSVP</legend>
+        <label className="admin-toggle">
+          <input
+            type="checkbox"
+            checked={value.allowGuestSideSelection}
+            onChange={(event) =>
+              update("allowGuestSideSelection", event.target.checked)
+            }
+          />
+          Cho khách tự chọn nhà trai / nhà gái
+        </label>
+      </fieldset>
     </div>
   );
 }
 
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
-  return <label className="field"><span>{label}</span>{children}</label>;
+function Field({
+  label,
+  children,
+  error,
+  path,
+}: {
+  label: string;
+  children: React.ReactNode;
+  error?: string;
+  path?: string;
+}) {
+  return (
+    <label className="field">
+      <span>{label}</span>
+      {children}
+      {error && path ? (
+        <span className="field-error" id={`cover-error-${path.replaceAll(".", "-")}`}>
+          {error}
+        </span>
+      ) : null}
+    </label>
+  );
 }

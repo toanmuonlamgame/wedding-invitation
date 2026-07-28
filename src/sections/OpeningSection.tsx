@@ -35,12 +35,11 @@ export function OpeningSection({ weddingDateTime }: OpeningSectionProps) {
         <div data-hero-reveal>
           <Ornament />
         </div>
-        <p className="hero-date" data-hero-reveal>
-          {formattedDate.date}
-        </p>
-        <p className="hero-scroll" data-hero-reveal>
-          Cuộn xuống để cùng xem câu chuyện của chúng mình
-        </p>
+        {weddingDateTime ? (
+          <p className="hero-date" data-hero-reveal>
+            {formattedDate.date}
+          </p>
+        ) : null}
       </div>
     </section>
   );

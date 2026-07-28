@@ -34,10 +34,9 @@ export function InvitationSection({ invitation }: InvitationSectionProps) {
           <Ornament />
         </div>
         <p className="invitation-body" data-invitation-reveal>
-          Với niềm hân hoan của hai gia đình, trân trọng kính mời{" "}
-          {invitation ? invitation.recipientText : "bạn"} tới tham dự lễ thành
-          hôn của {wedding.coupleDisplay}. Sự hiện diện của bạn là món quà ấm
-          áp và quý giá.
+          Hai gia đình trân trọng kính mời{" "}
+          {invitation ? invitation.recipientText : "bạn"} tới chung vui trong
+          lễ thành hôn. Sự hiện diện của bạn là món quà quý giá với chúng mình.
         </p>
 
         {invitation?.guestCount ? (

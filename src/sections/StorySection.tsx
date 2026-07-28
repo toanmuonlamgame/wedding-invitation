@@ -7,6 +7,8 @@ type StorySectionProps = {
 };
 
 export function StorySection({ chapters }: StorySectionProps) {
+  if (!chapters.length) return null;
+
   return (
     <section className="section story-section" aria-labelledby="story-title">
       <div className="section-shell">

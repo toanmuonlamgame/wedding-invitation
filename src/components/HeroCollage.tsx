@@ -1,8 +1,18 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import {
+  type KeyboardEvent,
+  type TouchEvent,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { WeddingImage } from "@/src/components/WeddingImage";
-import { getNextAlbumIndex, normalizeAlbumInterval } from "@/src/lib/album-autoplay";
+import {
+  getNextAlbumIndex,
+  normalizeAlbumInterval,
+} from "@/src/lib/album-autoplay";
 import type { GalleryMoment } from "@/src/types/wedding";
 
 export function HeroCollage({
@@ -13,11 +23,17 @@ export function HeroCollage({
   intervalMs: number;
 }) {
   const slides = useMemo(
-    () => images.filter((image) => image.visible).slice(0, 7),
+    () =>
+      images
+        .filter((image) => image.visible && image.available && Boolean(image.src))
+        .slice(0, 12),
     [images],
   );
   const [currentIndex, setCurrentIndex] = useState(0);
   const [paused, setPaused] = useState(false);
+  const [hovered, setHovered] = useState(false);
+  const [autoplayEpoch, setAutoplayEpoch] = useState(0);
+  const touchStartX = useRef<number | null>(null);
 
   useEffect(() => {
     const media = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -32,51 +48,115 @@ export function HeroCollage({
   }, []);
 
   useEffect(() => {
-    if (paused || slides.length < 2) return;
+    if (paused || hovered || slides.length < 2) return;
     const timer = window.setInterval(
       () => setCurrentIndex((index) => getNextAlbumIndex(index, slides.length)),
       normalizeAlbumInterval(intervalMs),
     );
     return () => window.clearInterval(timer);
-  }, [intervalMs, paused, slides.length]);
+  }, [autoplayEpoch, hovered, intervalMs, paused, slides.length]);
 
   if (!slides.length) return null;
-  const current = slides[Math.min(currentIndex, slides.length - 1)];
+  const safeIndex = Math.min(currentIndex, slides.length - 1);
+  const current = slides[safeIndex];
+
+  function select(index: number) {
+    setAutoplayEpoch((epoch) => epoch + 1);
+    setCurrentIndex(index);
+  }
+
+  function move(direction: -1 | 1) {
+    if (slides.length < 2) return;
+    setAutoplayEpoch((epoch) => epoch + 1);
+    setCurrentIndex((index) =>
+      getNextAlbumIndex(index, slides.length, direction),
+    );
+  }
+
+  function onKeyDown(event: KeyboardEvent<HTMLElement>) {
+    if (event.key === "ArrowLeft") {
+      event.preventDefault();
+      move(-1);
+    } else if (event.key === "ArrowRight") {
+      event.preventDefault();
+      move(1);
+    }
+  }
+
+  function onTouchEnd(event: TouchEvent<HTMLElement>) {
+    const start = touchStartX.current;
+    const end = event.changedTouches[0]?.clientX;
+    touchStartX.current = null;
+    if (start === null || end === undefined || Math.abs(start - end) < 45) return;
+    move(start > end ? 1 : -1);
+  }
 
   return (
-    <section className="hero-collage-section" aria-label="Ảnh nổi bật của Vũ Bình và Thành Long">
-      <div className="section-shell hero-collage">
-        <figure className="hero-collage-main">
-          <WeddingImage
-            src={current.src}
-            available={current.available}
-            alt={current.alt}
-            sizes="(max-width: 896px) 100vw, 60vw"
-            className="hero-collage-image"
-            framing={current}
-          />
-          <figcaption>{current.caption}</figcaption>
-        </figure>
-        <div className="hero-collage-secondary">
-          {slides.map((slide, index) => (
-            <button
-              type="button"
-              key={slide.id}
-              aria-label={`Chọn ảnh ${index + 1}: ${slide.caption}`}
-              aria-current={index === currentIndex ? "true" : undefined}
-              onClick={() => setCurrentIndex(index)}
-            >
-              <WeddingImage
-                src={slide.src}
-                available={slide.available}
-                alt=""
-                sizes="10rem"
-                className="hero-collage-thumb"
-                framing={slide}
-              />
-            </button>
-          ))}
+    <section
+      className="hero-collage-section"
+      aria-labelledby="album-title"
+      tabIndex={0}
+      onKeyDown={onKeyDown}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      onTouchStart={(event) => {
+        touchStartX.current = event.touches[0]?.clientX ?? null;
+      }}
+      onTouchEnd={onTouchEnd}
+    >
+      <div className="section-shell">
+        <header className="compact-section-heading">
+          <p className="section-eyebrow">Album</p>
+          <h2 className="section-title" id="album-title">
+            Khoảnh khắc của chúng mình
+          </h2>
+        </header>
+        <div className="hero-collage" data-count={Math.min(slides.length, 7)}>
+          <figure className="hero-collage-main">
+            <WeddingImage
+              src={current.src}
+              available
+              alt={current.alt}
+              sizes="(max-width: 896px) 100vw, 60vw"
+              className="hero-collage-image"
+              framing={current}
+            />
+            {current.caption ? <figcaption>{current.caption}</figcaption> : null}
+          </figure>
+          {slides.length > 1 ? (
+            <div className="hero-collage-secondary" aria-label="Chọn ảnh album">
+              {slides.slice(0, 7).map((slide, index) => (
+                <button
+                  type="button"
+                  key={slide.id}
+                  aria-label={`Chọn ảnh ${index + 1}: ${slide.caption || slide.alt}`}
+                  aria-current={index === safeIndex ? "true" : undefined}
+                  onClick={() => select(index)}
+                >
+                  <WeddingImage
+                    src={slide.src}
+                    available
+                    alt=""
+                    sizes="10rem"
+                    className="hero-collage-thumb"
+                    framing={slide}
+                  />
+                </button>
+              ))}
+            </div>
+          ) : null}
         </div>
+        {slides.length > 1 ? (
+          <div className="hero-collage-controls">
+            <button type="button" onClick={() => move(-1)} aria-label="Ảnh trước">
+              ←
+            </button>
+            <span>{safeIndex + 1} / {slides.length}</span>
+            <button type="button" onClick={() => move(1)} aria-label="Ảnh tiếp theo">
+              →
+            </button>
+          </div>
+        ) : null}
       </div>
     </section>
   );

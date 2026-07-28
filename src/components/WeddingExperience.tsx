@@ -8,8 +8,7 @@ import {
   useRef,
   useState,
 } from "react";
-import Image from "next/image";
-import { WeddingImage } from "@/src/components/WeddingImage";
+import { CoverRenderer } from "@/src/components/CoverRenderer";
 import {
   FONT_PRESETS,
   getAppearanceStyle,
@@ -207,31 +206,6 @@ export function WeddingExperience({
           },
         );
 
-        gsap.utils
-          .toArray<HTMLElement>("[data-gallery-reveal]")
-          .forEach((element, index) => {
-            gsap.fromTo(
-              element,
-              {
-                opacity: 0,
-                clipPath: "inset(12% 12% 12% 12%)",
-                scale: 1.05,
-              },
-              {
-                opacity: 1,
-                clipPath: "inset(0% 0% 0% 0%)",
-                scale: 1,
-                duration: 1.1,
-                delay: index * 0.05,
-                ease: "power2.out",
-                scrollTrigger: {
-                  trigger: element,
-                  start: "top 88%",
-                  once: true,
-                },
-              },
-            );
-          });
       });
 
       media.add(
@@ -355,25 +329,6 @@ export function WeddingExperience({
             aria-modal="true"
             aria-labelledby="cover-title"
           >
-            {cover.backgroundEnabled && cover.backgroundSrc ? (
-              <WeddingImage
-                src={cover.backgroundSrc}
-                available
-                alt={cover.backgroundAlt}
-                sizes="100vw"
-                className="cover-background"
-                framing={cover.background}
-              />
-            ) : null}
-            <div
-              className="cover-overlay"
-              aria-hidden="true"
-              style={{
-                backgroundColor: cover.overlayColor,
-                opacity: cover.overlayOpacity,
-                backdropFilter: `blur(${cover.blurPx}px)`,
-              }}
-            />
             <div className="cover-panel cover-panel-left" aria-hidden="true" />
             <div className="cover-panel cover-panel-right" aria-hidden="true" />
             <div
@@ -389,35 +344,12 @@ export function WeddingExperience({
                 <WrenchIcon />
               </a>
             ) : null}
-            <div className="cover-content" data-align={cover.alignment} data-name-size={cover.nameSize}>
-              <p className="cover-kicker">{cover.kicker}</p>
-              {recipientText ? (
-                <p className="cover-recipient">{recipientText}</p>
-              ) : null}
-              {cover.logoMode === "monogram" ? (
-                <p className="cover-monogram" aria-hidden="true">{cover.monogramText}</p>
-              ) : null}
-              {cover.logoMode === "image" && cover.logoSrc ? (
-                <span className="cover-logo" data-size={cover.logoSize}>
-                  <Image src={cover.logoSrc} alt={cover.logoAlt} fill sizes="10rem" />
-                </span>
-              ) : null}
-              <h1 className="cover-title" id="cover-title">
-                {cover.brideName}
-                <span>{cover.connector}</span>
-                {cover.groomName}
-              </h1>
-              <p className="cover-note">{cover.note}</p>
-              <button
-                ref={openButtonRef}
-                className="cover-button"
-                type="button"
-                onClick={handleOpen}
-              >
-                {cover.buttonText}
-                <span aria-hidden="true">↓</span>
-              </button>
-            </div>
+            <CoverRenderer
+              cover={cover}
+              recipientText={recipientText}
+              onOpen={handleOpen}
+              openButtonRef={openButtonRef}
+            />
           </div>
         ) : null}
 

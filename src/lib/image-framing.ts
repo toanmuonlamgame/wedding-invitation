@@ -57,7 +57,7 @@ export function imageFramingStyle(
       objectPosition: `${normalized.positionX}% ${normalized.positionY}%`,
       transform: `scale(${normalized.zoom})`,
       transformOrigin: `${normalized.positionX}% ${normalized.positionY}%`,
-      backgroundColor: "#ffffff",
+      backgroundColor: normalized.backgroundColor,
     };
   }
 

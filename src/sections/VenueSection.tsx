@@ -10,6 +10,9 @@ type VenueSectionProps = {
 };
 
 export function VenueSection({ venues }: VenueSectionProps) {
+  const visibleVenues = venues.filter((venue) => venue.available);
+  if (!visibleVenues.length) return null;
+
   return (
     <section className="section venue-section" aria-labelledby="venue-title">
       <div className="section-shell">
@@ -18,12 +21,12 @@ export function VenueSection({ venues }: VenueSectionProps) {
             eyebrow="Địa điểm"
             title="Hẹn bạn tại đây"
             titleId="venue-title"
-            description="Mỗi điểm hẹn đều được trình bày riêng để bạn dễ theo dõi hành trình ngày vui."
+            description="Thông tin điểm hẹn và chỉ đường."
           />
         </div>
 
         <div className="venue-list">
-          {venues.map((venue, index) => {
+          {visibleVenues.map((venue, index) => {
             const dateTime = formatWeddingDateTime(venue.dateTime);
 
             return (
@@ -69,13 +72,10 @@ export function VenueSection({ venues }: VenueSectionProps) {
                   <h3 className="venue-name">{venue.venueName}</h3>
                   <p className="venue-address">{venue.address}</p>
                   {venue.note ? <p className="venue-note">{venue.note}</p> : null}
-                  {!venue.available ? (
-                    <p className="placeholder-label">Thông tin mẫu chờ cập nhật</p>
-                  ) : null}
                   <VenueActions
                     address={venue.address}
                     mapsUrl={venue.mapsUrl}
-                    available={venue.available}
+                    available
                   />
                 </div>
               </article>

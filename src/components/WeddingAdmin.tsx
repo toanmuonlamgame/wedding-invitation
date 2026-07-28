@@ -685,6 +685,8 @@ export function WeddingAdmin({
               <CoverEditor
                 value={draft.experience.cover}
                 creatorSecret={creatorSecret}
+                errors={fieldErrors}
+                onClearError={clearFieldError}
                 onChange={(cover) =>
                   setDraft((current) => ({
                     ...current,

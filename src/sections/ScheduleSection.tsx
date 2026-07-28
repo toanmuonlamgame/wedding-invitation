@@ -18,6 +18,8 @@ export function ScheduleSection({
   expiredMessage,
   settings,
 }: ScheduleSectionProps) {
+  if (!weddingDateTime) return null;
+
   const formattedDate = formatWeddingDateTime(weddingDateTime);
   const lunarDate = formatVietnameseLunarDate(weddingDateTime);
   return (

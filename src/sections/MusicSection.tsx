@@ -32,6 +32,13 @@ export function MusicSection({ settings }: { settings: MusicSettings }) {
     return () => audio.pause();
   }, [isOpened, settings]);
 
+  useEffect(() => {
+    const pauseForYouTube = () => audioRef.current?.pause();
+    window.addEventListener("wedding-youtube-playing", pauseForYouTube);
+    return () =>
+      window.removeEventListener("wedding-youtube-playing", pauseForYouTube);
+  }, []);
+
   function handleToggle() {
     const audio = audioRef.current;
     if (!audio || isUnavailable) return;
@@ -41,6 +48,7 @@ export function MusicSection({ settings }: { settings: MusicSettings }) {
     } else {
       void audio.play().then(() => {
         window.sessionStorage.setItem(SESSION_KEY, "on");
+        window.dispatchEvent(new Event("wedding-background-audio-playing"));
       }).catch(() => setStatus("Thiết bị chưa cho phép phát nhạc. Vui lòng thử lại."));
     }
   }
@@ -65,6 +73,7 @@ export function MusicSection({ settings }: { settings: MusicSettings }) {
           onPlay={() => {
             setIsPlaying(true);
             setStatus("Đang phát nhạc nền.");
+            window.dispatchEvent(new Event("wedding-background-audio-playing"));
           }}
           onPause={() => {
             setIsPlaying(false);

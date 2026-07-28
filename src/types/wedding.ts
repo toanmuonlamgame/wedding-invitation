@@ -40,9 +40,9 @@ export type ImageFraming = {
   backgroundColor: string;
 };
 
-export type AlbumLayout = "spotlight" | "mosaic" | "editorial";
 export type WishLayout = "elegant" | "bubble";
 export type InvitationSide = "groom" | "bride" | "unspecified";
+export type WishOverlayPreset = "soft" | "balanced" | "prominent";
 
 export type CoverSettings = {
   kicker: string;
@@ -67,6 +67,7 @@ export type CoverSettings = {
   logoStoragePath?: string;
   logoAlt: string;
   logoSize: "small" | "medium" | "large";
+  logoFrame: ImageFraming;
 };
 
 export type MusicSettings = {
@@ -105,8 +106,21 @@ export type WeddingExperienceSettings = {
   music: MusicSettings;
   youtube: YouTubeSettings;
   countdown: CountdownSettings;
-  albumLayout: AlbumLayout;
   wishLayout: WishLayout;
+  wishes: {
+    overlayEnabled: boolean;
+    showList: boolean;
+    preset: WishOverlayPreset;
+    intervalMs: number;
+    opacity: number;
+    visibleCount: number;
+    autoHideWhenTyping: boolean;
+  };
+  sections: {
+    heroCollage: boolean;
+    story: boolean;
+    rsvp: boolean;
+  };
   allowGuestSideSelection: boolean;
 };
 

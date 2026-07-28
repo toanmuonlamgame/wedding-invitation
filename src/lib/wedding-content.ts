@@ -3,7 +3,10 @@ import { unstable_cache } from "next/cache";
 import { z } from "zod";
 import { prisma } from "@/src/lib/prisma";
 import { defaultWeddingContent } from "@/src/lib/wedding-data";
-import { defaultExperienceSettings } from "@/src/lib/experience-settings";
+import {
+  defaultExperienceSettings,
+  mergeExperienceSettings,
+} from "@/src/lib/experience-settings";
 import {
   DEFAULT_FONT_PRESET,
   DEFAULT_THEME_PRESET,
@@ -150,13 +153,21 @@ const optionalImageAltSchema = z.preprocess(
   emptyStringToUndefined,
   z.string().trim().max(200).optional(),
 );
-const imagePositionSchema = z.coerce.number().min(0).max(100).default(50);
+const imagePositionSchema = z.coerce
+  .number("Vị trí ảnh phải là một số.")
+  .min(0, "Vị trí ảnh phải từ 0 đến 100.")
+  .max(100, "Vị trí ảnh phải từ 0 đến 100.")
+  .default(50);
 const imageZoomSchema = z.coerce
-  .number()
-  .min(MIN_IMAGE_ZOOM)
-  .max(MAX_IMAGE_ZOOM)
+  .number("Zoom ảnh phải là một số.")
+  .min(MIN_IMAGE_ZOOM, "Zoom ảnh đang nhỏ hơn giới hạn.")
+  .max(MAX_IMAGE_ZOOM, "Zoom ảnh đang lớn hơn giới hạn.")
   .default(1);
-const imageFitModeSchema = z.enum(["cover", "contain"]).default("cover");
+const imageFitModeSchema = z
+  .enum(["cover", "contain"], {
+    error: "Chế độ hiển thị ảnh không hợp lệ.",
+  })
+  .default("cover");
 const imageBackgroundSchema = z
   .string()
   .trim()
@@ -183,12 +194,35 @@ const experienceSchema = z
   .object({
     cover: z
       .object({
-        kicker: z.string().trim().min(1).max(100),
-        brideName: z.string().trim().min(1).max(80),
-        connector: z.string().trim().min(1).max(12),
-        groomName: z.string().trim().min(1).max(80),
-        note: z.string().trim().max(240),
-        buttonText: z.string().trim().min(1).max(60),
+        kicker: z
+          .string()
+          .trim()
+          .min(1, "Vui lòng nhập dòng mở đầu cover.")
+          .max(100, "Dòng mở đầu không được quá 100 ký tự."),
+        brideName: z
+          .string()
+          .trim()
+          .min(1, "Vui lòng nhập tên cô dâu.")
+          .max(80, "Tên cô dâu không được quá 80 ký tự."),
+        connector: z
+          .string()
+          .trim()
+          .min(1, "Vui lòng nhập ký hiệu nối.")
+          .max(12, "Ký hiệu nối không được quá 12 ký tự."),
+        groomName: z
+          .string()
+          .trim()
+          .min(1, "Vui lòng nhập tên chú rể.")
+          .max(80, "Tên chú rể không được quá 80 ký tự."),
+        note: z
+          .string()
+          .trim()
+          .max(240, "Dòng mô tả không được quá 240 ký tự."),
+        buttonText: z
+          .string()
+          .trim()
+          .min(1, "Vui lòng nhập nhãn nút mở thiệp.")
+          .max(60, "Nhãn nút không được quá 60 ký tự."),
         backgroundEnabled: z.boolean(),
         backgroundSrc: optionalImageSchema,
         backgroundStoragePath: optionalStoragePathSchema,
@@ -200,11 +234,15 @@ const experienceSchema = z
         alignment: z.enum(["left", "center", "right"]),
         nameSize: z.enum(["compact", "balanced", "grand"]),
         logoMode: z.enum(["monogram", "image", "hidden"]),
-        monogramText: z.string().trim().max(20),
+        monogramText: z
+          .string()
+          .trim()
+          .max(20, "Monogram không được quá 20 ký tự."),
         logoSrc: optionalImageSchema,
         logoStoragePath: optionalStoragePathSchema,
         logoAlt: z.string().trim().max(200),
         logoSize: z.enum(["small", "medium", "large"]),
+        logoFrame: framingSchema,
       })
       .strict(),
     music: z
@@ -250,8 +288,25 @@ const experienceSchema = z
         markerStyle: z.enum(["circle", "dot", "heart"]),
       })
       .strict(),
-    albumLayout: z.enum(["spotlight", "mosaic", "editorial"]),
     wishLayout: z.enum(["elegant", "bubble"]),
+    wishes: z
+      .object({
+        overlayEnabled: z.boolean(),
+        showList: z.boolean(),
+        preset: z.enum(["soft", "balanced", "prominent"]),
+        intervalMs: z.number().int().min(3_500).max(15_000),
+        opacity: z.number().min(0.55).max(0.75),
+        visibleCount: z.number().int().min(2).max(4),
+        autoHideWhenTyping: z.boolean(),
+      })
+      .strict(),
+    sections: z
+      .object({
+        heroCollage: z.boolean(),
+        story: z.boolean(),
+        rsvp: z.boolean(),
+      })
+      .strict(),
     allowGuestSideSelection: z.boolean(),
   })
   .strict()
@@ -359,7 +414,7 @@ export const weddingContentSchema = z
       ),
     themePreset: z.enum(THEME_IDS).default(DEFAULT_THEME_PRESET),
     fontPreset: z.enum(FONT_IDS).default(DEFAULT_FONT_PRESET),
-    experience: experienceSchema,
+    experience: z.preprocess(mergeExperienceSettings, experienceSchema),
   })
   .strict();
 
@@ -397,7 +452,7 @@ function parseStoredContent(record: {
     albumIntervalMs: record.albumIntervalMs,
     themePreset: normalizeThemePreset(record.themePreset),
     fontPreset: normalizeFontPreset(record.fontPreset),
-    experience: record.experienceJson ?? defaultExperienceSettings,
+    experience: mergeExperienceSettings(record.experienceJson),
   });
 
   return parsed.success ? parsed.data : defaultWeddingContent;

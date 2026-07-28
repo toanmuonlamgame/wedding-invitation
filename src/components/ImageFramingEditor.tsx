@@ -16,7 +16,14 @@ type ImageFramingEditorProps = {
   src: string;
   alt: string;
   value: Partial<ImageFraming>;
-  variant: "album" | "story" | "venue" | "cover" | "countdown";
+  variant:
+    | "album"
+    | "story"
+    | "venue"
+    | "cover"
+    | "countdown"
+    | "logo";
+  fieldPathPrefix?: string;
   onChange: (value: ImageFraming) => void;
 };
 
@@ -33,6 +40,7 @@ export function ImageFramingEditor({
   alt,
   value,
   variant,
+  fieldPathPrefix,
   onChange,
 }: ImageFramingEditorProps) {
   const frameRef = useRef<HTMLDivElement>(null);
@@ -57,6 +65,9 @@ export function ImageFramingEditor({
         <label>
           <input
             type="radio"
+            data-field-path={
+              fieldPathPrefix ? `${fieldPathPrefix}.fitMode` : undefined
+            }
             name={fitGroupName}
             checked={framing.fitMode === "cover"}
             onChange={() => update({ fitMode: "cover" })}
@@ -71,11 +82,12 @@ export function ImageFramingEditor({
         <label>
           <input
             type="radio"
+            data-field-path={
+              fieldPathPrefix ? `${fieldPathPrefix}.fitMode` : undefined
+            }
             name={fitGroupName}
             checked={framing.fitMode === "contain"}
-            onChange={() =>
-              update({ fitMode: "contain", backgroundColor: "#ffffff" })
-            }
+            onChange={() => update({ fitMode: "contain" })}
           />
           <span>
             <strong>Hiển thị toàn ảnh</strong>
@@ -159,6 +171,9 @@ export function ImageFramingEditor({
           Zoom
           <input
             type="range"
+            data-field-path={
+              fieldPathPrefix ? `${fieldPathPrefix}.zoom` : undefined
+            }
             min={MIN_IMAGE_ZOOM}
             max={maxZoom}
             step={0.05}
@@ -171,6 +186,9 @@ export function ImageFramingEditor({
           Ngang
           <input
             type="range"
+            data-field-path={
+              fieldPathPrefix ? `${fieldPathPrefix}.positionX` : undefined
+            }
             min={0}
             max={100}
             step={1}
@@ -185,6 +203,9 @@ export function ImageFramingEditor({
           Dọc
           <input
             type="range"
+            data-field-path={
+              fieldPathPrefix ? `${fieldPathPrefix}.positionY` : undefined
+            }
             min={0}
             max={100}
             step={1}
@@ -195,12 +216,31 @@ export function ImageFramingEditor({
             }
           />
         </label>
+        {framing.fitMode === "contain" ? (
+          <label>
+            Màu nền
+            <input
+              type="color"
+              value={framing.backgroundColor}
+              data-field-path={
+                fieldPathPrefix
+                  ? `${fieldPathPrefix}.backgroundColor`
+                  : undefined
+              }
+              onChange={(event) =>
+                update({ backgroundColor: event.target.value })
+              }
+            />
+          </label>
+        ) : null}
       </div>
       <div className="image-framing-meta">
         <small>
           X {Math.round(framing.positionX)} · Y {Math.round(framing.positionY)} ·
           Zoom {Math.round(framing.zoom * 100)}%
-          {framing.fitMode === "contain" ? " · Nền #ffffff" : ""}
+          {framing.fitMode === "contain"
+            ? ` · Nền ${framing.backgroundColor}`
+            : ""}
         </small>
         <button
           type="button"

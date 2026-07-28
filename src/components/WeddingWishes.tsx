@@ -12,6 +12,7 @@ type WeddingWishesProps = {
   invitationToken?: string;
   defaultSenderName?: string;
   layout: WishLayout;
+  showList: boolean;
 };
 
 type ErrorPayload = {
@@ -32,6 +33,7 @@ export function WeddingWishes({
   invitationToken,
   defaultSenderName = "",
   layout,
+  showList,
 }: WeddingWishesProps) {
   const [wishes, setWishes] = useState(initialWishes);
   const [senderName, setSenderName] = useState(defaultSenderName);
@@ -124,6 +126,8 @@ export function WeddingWishes({
     }
   }
 
+  if ((!showList || !wishes.length) && !invitationToken) return null;
+
   return (
     <section
       className="section wishes-section"
@@ -141,7 +145,7 @@ export function WeddingWishes({
           </p>
         </header>
 
-        {wishes.length > 0 ? (
+        {showList && wishes.length > 0 ? (
           <div className={`wishes-list wishes-layout-${layout}`} data-layout={layout}>
             {wishes.slice(0, visibleCount).map((wish, index) => (
               <blockquote
@@ -158,12 +162,12 @@ export function WeddingWishes({
               </blockquote>
             ))}
           </div>
-        ) : (
+        ) : showList ? (
           <p className="wishes-empty">
             Hãy là người đầu tiên gửi lời chúc đến Vũ Bình & Thành Long.
           </p>
-        )}
-        {wishes.length > visibleCount ? (
+        ) : null}
+        {showList && wishes.length > visibleCount ? (
           <button
             className="button button-secondary wishes-load-more"
             type="button"

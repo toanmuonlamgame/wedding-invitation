@@ -26,6 +26,13 @@ export const defaultExperienceSettings: WeddingExperienceSettings = {
     monogramText: "B & L",
     logoAlt: "Biểu trưng Vũ Bình và Thành Long",
     logoSize: "medium",
+    logoFrame: {
+      positionX: 50,
+      positionY: 50,
+      zoom: 1,
+      fitMode: "contain",
+      backgroundColor: "#ffffff",
+    },
   },
   music: {
     enabled: true,
@@ -37,9 +44,11 @@ export const defaultExperienceSettings: WeddingExperienceSettings = {
   },
   youtube: {
     enabled: true,
-    url: "https://youtu.be/t-uuZb5PrUs",
-    title: "Bản nhạc chúng mình yêu thích",
-    description: "Video chỉ phát khi bạn chủ động bấm xem.",
+    url: "https://www.youtube.com/watch?v=t-uuZb5PrUs",
+    title:
+      "Wedding Music | TOP 20 ca khúc đám cưới được yêu thích nhất",
+    description:
+      "Video YouTube được tải sau khi mở thiệp và giữ nguyên bộ điều khiển phát.",
   },
   countdown: {
     backgroundEnabled: false,
@@ -59,7 +68,86 @@ export const defaultExperienceSettings: WeddingExperienceSettings = {
     showCountdown: true,
     markerStyle: "heart",
   },
-  albumLayout: "spotlight",
   wishLayout: "elegant",
+  wishes: {
+    overlayEnabled: true,
+    showList: true,
+    preset: "balanced",
+    intervalMs: 5_500,
+    opacity: 0.66,
+    visibleCount: 3,
+    autoHideWhenTyping: true,
+  },
+  sections: {
+    heroCollage: true,
+    story: true,
+    rsvp: true,
+  },
   allowGuestSideSelection: false,
 };
+
+function record(value: unknown): Record<string, unknown> {
+  return value && typeof value === "object" && !Array.isArray(value)
+    ? (value as Record<string, unknown>)
+    : {};
+}
+
+export function mergeExperienceSettings(value: unknown): unknown {
+  const source = record(value);
+  const cover = record(source.cover);
+  const countdown = record(source.countdown);
+  const youtube = record(source.youtube);
+  const usedTemporaryYouTubeDefault =
+    youtube.title === "Bản nhạc chúng mình yêu thích";
+
+  return {
+    cover: {
+      ...defaultExperienceSettings.cover,
+      ...cover,
+      background: {
+        ...defaultExperienceSettings.cover.background,
+        ...record(cover.background),
+      },
+      logoFrame: {
+        ...defaultExperienceSettings.cover.logoFrame,
+        ...record(cover.logoFrame),
+      },
+    },
+    music: {
+      ...defaultExperienceSettings.music,
+      ...record(source.music),
+    },
+    youtube: {
+      ...defaultExperienceSettings.youtube,
+      ...youtube,
+      ...(usedTemporaryYouTubeDefault
+        ? {
+            url: defaultExperienceSettings.youtube.url,
+            title: defaultExperienceSettings.youtube.title,
+            description: defaultExperienceSettings.youtube.description,
+          }
+        : {}),
+    },
+    countdown: {
+      ...defaultExperienceSettings.countdown,
+      ...countdown,
+      background: {
+        ...defaultExperienceSettings.countdown.background,
+        ...record(countdown.background),
+      },
+    },
+    wishLayout:
+      source.wishLayout ?? defaultExperienceSettings.wishLayout,
+    wishes: {
+      ...defaultExperienceSettings.wishes,
+      ...record(source.wishes),
+    },
+    sections: {
+      ...defaultExperienceSettings.sections,
+      ...record(source.sections),
+    },
+    allowGuestSideSelection:
+      source.allowGuestSideSelection ??
+      defaultExperienceSettings.allowGuestSideSelection,
+  };
+}
