@@ -42,6 +42,8 @@ export const defaultExperienceSettings: WeddingExperienceSettings = {
     body:
       "Hai gia đình trân trọng kính mời bạn tới chung vui trong lễ thành hôn. Sự hiện diện của bạn là món quà quý giá với chúng mình.",
     supportingText: "",
+    brideFamily: "Gia đình cô dâu Vũ Bình",
+    groomFamily: "Gia đình chú rể Thành Long",
   },
   music: {
     enabled: true,

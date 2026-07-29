@@ -282,6 +282,16 @@ const experienceSchema = z
           .string()
           .trim()
           .max(400, "Mô tả phụ không được quá 400 ký tự."),
+        brideFamily: z
+          .string()
+          .trim()
+          .min(1, "Vui lòng nhập thông tin nhà gái.")
+          .max(160, "Thông tin nhà gái không được quá 160 ký tự."),
+        groomFamily: z
+          .string()
+          .trim()
+          .min(1, "Vui lòng nhập thông tin nhà trai.")
+          .max(160, "Thông tin nhà trai không được quá 160 ký tự."),
       })
       .strict(),
     music: z

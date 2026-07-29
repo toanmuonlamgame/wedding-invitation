@@ -482,6 +482,34 @@ export function InvitationEditor({
               }
             />
           </Field>
+          <Field
+            label="Thông tin nhà gái"
+            error={errors["experience.invitation.brideFamily"]}
+            path="invitation-brideFamily"
+          >
+            <input
+              {...inputProps("brideFamily")}
+              value={value.brideFamily}
+              maxLength={160}
+              onChange={(event) =>
+                update("brideFamily", event.target.value)
+              }
+            />
+          </Field>
+          <Field
+            label="Thông tin nhà trai"
+            error={errors["experience.invitation.groomFamily"]}
+            path="invitation-groomFamily"
+          >
+            <input
+              {...inputProps("groomFamily")}
+              value={value.groomFamily}
+              maxLength={160}
+              onChange={(event) =>
+                update("groomFamily", event.target.value)
+              }
+            />
+          </Field>
         </div>
       </fieldset>
       <div className="admin-preview" aria-label="Xem trước lời mời">

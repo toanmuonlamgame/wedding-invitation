@@ -132,6 +132,8 @@ export type InvitationContentSettings = {
   title: string;
   body: string;
   supportingText: string;
+  brideFamily: string;
+  groomFamily: string;
 };
 
 export type WeddingEvent = {

@@ -1,5 +1,4 @@
 import { Ornament } from "@/src/components/Ornament";
-import { wedding } from "@/src/lib/wedding-details";
 import type { InvitationPersonalization } from "@/src/types/invitation";
 import type { InvitationContentSettings } from "@/src/types/wedding";
 
@@ -56,21 +55,22 @@ export function InvitationCopy({
         </blockquote>
       ) : null}
 
-      {!preview ? (
-        <div className="families" data-invitation-reveal>
-          <div className="family">
-            <span>Nhà gái</span>
-            <strong>{wedding.brideFamily}</strong>
-          </div>
-          <div className="family-separator" aria-hidden="true">
-            &amp;
-          </div>
-          <div className="family">
-            <span>Nhà trai</span>
-            <strong>{wedding.groomFamily}</strong>
-          </div>
+      <div
+        className="families"
+        data-invitation-reveal={!preview || undefined}
+      >
+        <div className="family">
+          <span>Nhà gái</span>
+          <strong>{settings.brideFamily}</strong>
         </div>
-      ) : null}
+        <div className="family-separator" aria-hidden="true">
+          &amp;
+        </div>
+        <div className="family">
+          <span>Nhà trai</span>
+          <strong>{settings.groomFamily}</strong>
+        </div>
+      </div>
     </div>
   );
 }

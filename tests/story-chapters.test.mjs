@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import {
   getStoryImageLayout,
+  getNextStoryImageIndex,
   hasDuplicateStoryImage,
   moveStoryImage,
   normalizeLegacyStoryChapterInput,
@@ -63,6 +64,14 @@ test("selects the intended responsive layout for every image count", () => {
   assert.equal(getStoryImageLayout(3), "feature");
   assert.equal(getStoryImageLayout(4), "mosaic");
   assert.equal(getStoryImageLayout(10), "mosaic");
+});
+
+test("cycles story carousel indexes in both directions", () => {
+  assert.equal(getNextStoryImageIndex(3, 0, 1), 1);
+  assert.equal(getNextStoryImageIndex(3, 2, 1), 0);
+  assert.equal(getNextStoryImageIndex(3, 0, -1), 2);
+  assert.equal(getNextStoryImageIndex(1, 0, 1), 0);
+  assert.equal(getNextStoryImageIndex(0, 0, -1), 0);
 });
 
 test("reorders images and preserves boundary order", () => {

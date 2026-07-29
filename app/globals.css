@@ -509,7 +509,10 @@ a {
 }
 
 .invitation-copy {
+  width: 100%;
   max-width: 44rem;
+  margin-inline: auto;
+  text-align: center;
 }
 
 .invitation-lead {
@@ -2546,6 +2549,100 @@ fieldset[aria-invalid="true"] {
 }
 
 /* Multi-image story chapters */
+.story-image-carousel {
+  position: relative;
+  min-width: 0;
+  overflow: hidden;
+  background: #ffffff;
+  touch-action: pan-y;
+}
+
+.story-image-carousel-card {
+  height: 18rem;
+}
+
+.story-image-carousel-dialog {
+  min-height: 45svh;
+  height: 100%;
+}
+
+.story-image-carousel .story-image-frame {
+  width: 100%;
+  height: 100%;
+  animation: storyImageFade 320ms ease both;
+}
+
+.story-carousel-button {
+  position: absolute;
+  z-index: 3;
+  top: 50%;
+  display: grid;
+  width: 2.55rem;
+  height: 2.55rem;
+  place-items: center;
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  border-radius: 50%;
+  padding: 0;
+  background: rgba(24, 34, 29, 0.62);
+  color: #ffffff;
+  font: inherit;
+  cursor: pointer;
+  transform: translateY(-50%);
+  backdrop-filter: blur(8px);
+}
+
+.story-carousel-previous {
+  left: 0.65rem;
+}
+
+.story-carousel-next {
+  right: 0.65rem;
+}
+
+.story-carousel-dots {
+  position: absolute;
+  z-index: 3;
+  bottom: 0.75rem;
+  left: 50%;
+  display: flex;
+  gap: 0.38rem;
+  transform: translateX(-50%);
+}
+
+.story-carousel-dots button {
+  width: 0.48rem;
+  height: 0.48rem;
+  border: 1px solid #ffffff;
+  border-radius: 50%;
+  padding: 0;
+  background: rgba(255, 255, 255, 0.36);
+  cursor: pointer;
+}
+
+.story-carousel-dots button[aria-current="true"] {
+  background: #ffffff;
+  transform: scale(1.25);
+}
+
+.story-carousel-counter {
+  position: absolute;
+  z-index: 3;
+  top: 0.7rem;
+  right: 0.7rem;
+  border-radius: 999px;
+  padding: 0.3rem 0.55rem;
+  background: rgba(24, 34, 29, 0.62);
+  color: #ffffff;
+  font-size: 0.62rem;
+  backdrop-filter: blur(8px);
+}
+
+@keyframes storyImageFade {
+  from {
+    opacity: 0.35;
+  }
+}
+
 .story-image-collection {
   display: grid;
   min-width: 0;
@@ -2634,7 +2731,9 @@ fieldset[aria-invalid="true"] {
 }
 
 .invitation-admin-preview {
+  width: 100%;
   max-width: 44rem;
+  margin-inline: auto;
   text-align: center;
 }
 
@@ -4319,6 +4418,10 @@ textarea {
   }
 
   .floating-wish-bubble {
+    animation: none;
+  }
+
+  .story-image-carousel .story-image-frame {
     animation: none;
   }
 }

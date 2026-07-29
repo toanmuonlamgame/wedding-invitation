@@ -87,6 +87,15 @@ export function getStoryImageLayout(count: number): StoryImageLayout {
   return "mosaic";
 }
 
+export function getNextStoryImageIndex(
+  count: number,
+  currentIndex: number,
+  direction: -1 | 1,
+): number {
+  if (count <= 1) return 0;
+  return (currentIndex + direction + count) % count;
+}
+
 export function hasDuplicateStoryImage(
   images: readonly Pick<StoryImage, "src">[],
   src: string,
