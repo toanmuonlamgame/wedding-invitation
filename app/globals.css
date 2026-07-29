@@ -526,12 +526,25 @@ a {
   margin: 1.5rem auto 0;
   color: var(--muted);
   font-size: 0.88rem;
+  white-space: pre-line;
+}
+
+.invitation-supporting-text {
+  max-width: 31rem;
+  margin: 0.9rem auto 0;
+  color: var(--gold);
+  font-size: 0.72rem;
+  white-space: pre-line;
 }
 
 .invitation-recipient {
   color: var(--forest);
   font-size: clamp(2.5rem, 11vw, 4.4rem);
   font-style: normal;
+}
+
+.invitation-lead {
+  white-space: pre-line;
 }
 
 .guest-count {
@@ -2532,6 +2545,168 @@ fieldset[aria-invalid="true"] {
   }
 }
 
+/* Multi-image story chapters */
+.story-image-collection {
+  display: grid;
+  min-width: 0;
+  overflow: hidden;
+  gap: 0.18rem;
+  background: #ffffff;
+}
+
+.story-image-collection-card {
+  height: 18rem;
+}
+
+.story-image-frame {
+  position: relative;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  background: var(--sage-soft);
+}
+
+.story-image-frame[data-fit-mode="contain"] {
+  background: #ffffff;
+}
+
+.story-image-layout-single {
+  grid-template-columns: 1fr;
+}
+
+.story-image-layout-split,
+.story-image-layout-mosaic {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.story-image-layout-feature {
+  grid-template-columns: 1.35fr 1fr;
+  grid-template-rows: repeat(2, minmax(0, 1fr));
+}
+
+.story-image-layout-feature .story-image-frame:first-child {
+  grid-row: 1 / -1;
+}
+
+.story-image-layout-mosaic .story-image-frame:nth-child(n + 5) {
+  min-height: 14rem;
+}
+
+.story-image-collection-dialog {
+  min-height: 45svh;
+  max-height: min(72svh, 52rem);
+  overflow-y: auto;
+}
+
+.story-image-collection-dialog.story-image-layout-single {
+  height: 100%;
+}
+
+.story-image-collection-dialog.story-image-layout-split,
+.story-image-collection-dialog.story-image-layout-feature {
+  grid-auto-rows: minmax(12rem, 1fr);
+}
+
+.story-image-collection-dialog.story-image-layout-mosaic {
+  grid-auto-rows: minmax(13rem, 30svh);
+}
+
+.story-image-more {
+  position: absolute;
+  z-index: 2;
+  right: 0.7rem;
+  bottom: 0.7rem;
+  display: grid;
+  min-width: 2.4rem;
+  min-height: 2.4rem;
+  place-items: center;
+  border-radius: 999px;
+  padding: 0.35rem;
+  background: rgba(22, 31, 26, 0.72);
+  color: #ffffff;
+  font-size: 0.75rem;
+}
+
+.editorial-dialog-media {
+  min-width: 0;
+  min-height: 45svh;
+  background: #ffffff;
+}
+
+.invitation-admin-preview {
+  max-width: 44rem;
+  text-align: center;
+}
+
+.invitation-admin-preview .invitation-lead {
+  margin-inline: auto;
+  font-size: clamp(1.8rem, 5vw, 3rem);
+}
+
+.story-images-editor {
+  display: grid;
+  gap: 1rem;
+}
+
+.story-image-add-row {
+  display: grid;
+  align-items: end;
+  gap: 0.75rem;
+}
+
+.story-image-admin-list {
+  display: grid;
+  gap: 1rem;
+}
+
+.story-image-admin-item {
+  min-width: 0;
+  border: 1px solid var(--line);
+  padding: 0.75rem;
+  background: var(--white);
+}
+
+.story-image-admin-thumbnail {
+  position: relative;
+  width: 7rem;
+  height: 7rem;
+  margin-bottom: 0.75rem;
+  overflow: hidden;
+  background: #ffffff;
+}
+
+.admin-danger-button {
+  color: #a23a34;
+}
+
+@media (min-width: 40rem) {
+  .story-image-add-row {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .story-image-admin-item {
+    display: grid;
+    grid-template-columns: 8rem minmax(0, 1fr);
+    gap: 0.75rem 1rem;
+  }
+
+  .story-image-admin-item .admin-item-actions,
+  .story-image-admin-item .image-framing-editor {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (min-width: 56rem) {
+  .editorial-dialog-media {
+    min-height: 100%;
+  }
+
+  .story-image-collection-dialog {
+    min-height: 100%;
+    max-height: calc(100svh - 4rem);
+  }
+}
+
 /* Theme and typography presets */
 .wedding-theme-root {
   min-width: 0;
@@ -2607,6 +2782,7 @@ fieldset[aria-invalid="true"] {
 }
 
 .wedding-theme-root .story-chapter-image::after,
+.wedding-theme-root .story-image-frame::after,
 .wedding-theme-root .venue-image::after {
   position: absolute;
   z-index: 1;
@@ -2618,6 +2794,7 @@ fieldset[aria-invalid="true"] {
 }
 
 .wedding-theme-root .story-chapter-image,
+.wedding-theme-root .story-image-frame,
 .wedding-theme-root .venue-image {
   position: relative;
 }
@@ -3277,6 +3454,7 @@ textarea {
 
 .wedding-theme-root :is(
     .story-chapter-image,
+    .story-image-frame,
     .editorial-dialog-image,
     .venue-image
   )[data-fit-mode="contain"] {
@@ -3285,6 +3463,7 @@ textarea {
 
 .wedding-theme-root :is(
     .story-chapter-image,
+    .story-image-frame,
     .venue-image
   )[data-fit-mode="contain"]::after {
   display: none;

@@ -34,6 +34,7 @@ type MediaUploaderProps = {
   category: MediaCategory;
   creatorSecret: string;
   multiple?: boolean;
+  maxFiles?: number;
   existingMedia?: ExistingMedia;
   onUploaded: (media: UploadedMedia, file: File) => void;
   onRemoveMetadata?: () => void;
@@ -56,6 +57,7 @@ export function MediaUploader({
   category,
   creatorSecret,
   multiple = false,
+  maxFiles = MAX_BATCH_SIZE,
   existingMedia,
   onUploaded,
   onRemoveMetadata,
@@ -174,14 +176,15 @@ export function MediaUploader({
 
   function addFiles(fileList: FileList | File[]) {
     const selected = Array.from(fileList);
+    const selectionLimit = Math.min(MAX_BATCH_SIZE, Math.max(0, maxFiles));
     const allowed = (multiple ? selected : selected.slice(0, 1)).slice(
       0,
-      MAX_BATCH_SIZE,
+      selectionLimit,
     );
     if (selected.length > allowed.length) {
       setMessage(
         multiple
-          ? `Mỗi lượt chọn tối đa ${MAX_BATCH_SIZE} ảnh.`
+          ? `Mỗi lượt chọn tối đa ${selectionLimit} ảnh.`
           : "Mỗi lượt chỉ chọn một ảnh.",
       );
     } else {

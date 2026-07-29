@@ -24,6 +24,7 @@ import {
   MIN_IMAGE_ZOOM,
   normalizeImageFraming,
 } from "@/src/lib/image-framing";
+import { normalizeLegacyStoryChapterInput } from "@/src/lib/story-chapters";
 import type { WeddingContentData } from "@/src/types/wedding";
 
 const idSchema = z.string().trim().min(1).max(80).regex(/^[A-Za-z0-9_-]+$/);
@@ -260,6 +261,29 @@ const experienceSchema = z
         logoFrame: framingSchema,
       })
       .strict(),
+    invitation: z
+      .object({
+        eyebrow: z
+          .string()
+          .trim()
+          .min(1, "Vui lòng nhập nhãn nhỏ cho phần lời mời.")
+          .max(80, "Nhãn nhỏ không được quá 80 ký tự."),
+        title: z
+          .string()
+          .trim()
+          .min(1, "Vui lòng nhập tiêu đề lời mời.")
+          .max(300, "Tiêu đề lời mời không được quá 300 ký tự."),
+        body: z
+          .string()
+          .trim()
+          .min(10, "Nội dung lời mời phải có ít nhất 10 ký tự.")
+          .max(1_200, "Nội dung lời mời không được quá 1.200 ký tự."),
+        supportingText: z
+          .string()
+          .trim()
+          .max(400, "Mô tả phụ không được quá 400 ký tự."),
+      })
+      .strict(),
     music: z
       .object({
         enabled: z.boolean(),
@@ -317,6 +341,7 @@ const experienceSchema = z
       .strict(),
     sections: z
       .object({
+        invitation: z.boolean(),
         heroCollage: z.boolean(),
         story: z.boolean(),
         rsvp: z.boolean(),
@@ -359,31 +384,61 @@ export const weddingEventSchema = z
   .strict()
   .transform((value) => ({ ...value, ...normalizeImageFraming(value) }));
 
-export const storyChapterSchema = z
+const storyImageSchema = z
   .object({
     id: idSchema,
-    chapterNumber: z.string().trim().min(1).max(40),
-    period: z.string().trim().min(1).max(100),
-    title: z.string().trim().min(1).max(120),
-    summary: z.string().trim().min(1).max(400),
-    fullStory: z
+    src: imageSourceSchema,
+    storagePath: optionalStoragePathSchema,
+    alt: z
       .string()
       .trim()
-      .min(10, "Nội dung chương phải có ít nhất 10 ký tự.")
-      .max(4_000),
-    imageSrc: optionalImageSchema,
-    imageStoragePath: optionalStoragePathSchema,
-    imageAlt: z.string().trim().min(1).max(200),
+      .min(1, "Vui lòng nhập alt text cho ảnh.")
+      .max(200, "Alt text ảnh không được quá 200 ký tự."),
+    available: z.boolean(),
     positionX: imagePositionSchema,
     positionY: imagePositionSchema,
     zoom: imageZoomSchema,
     fitMode: imageFitModeSchema,
     backgroundColor: imageBackgroundSchema,
-    available: z.boolean(),
-    visible: z.boolean(),
   })
   .strict()
   .transform((value) => ({ ...value, ...normalizeImageFraming(value) }));
+
+export const storyChapterSchema = z.preprocess(
+  normalizeLegacyStoryChapterInput,
+  z
+    .object({
+      id: idSchema,
+      chapterNumber: z.string().trim().min(1).max(40),
+      period: z.string().trim().min(1).max(100),
+      title: z.string().trim().min(1).max(120),
+      summary: z.string().trim().min(1).max(400),
+      fullStory: z
+        .string()
+        .trim()
+        .min(10, "Nội dung chương phải có ít nhất 10 ký tự.")
+        .max(4_000),
+      images: z
+        .array(storyImageSchema)
+        .max(10, "Mỗi chương chỉ được có tối đa 10 ảnh."),
+      available: z.boolean(),
+      visible: z.boolean(),
+    })
+    .strict()
+    .superRefine((chapter, context) => {
+      const seen = new Set<string>();
+      chapter.images.forEach((image, index) => {
+        if (seen.has(image.src)) {
+          context.addIssue({
+            code: "custom",
+            path: ["images", index, "src"],
+            message: "Ảnh này đã có trong chương.",
+          });
+        }
+        seen.add(image.src);
+      });
+    }),
+);
 
 export const galleryImageSchema = z
   .object({

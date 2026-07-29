@@ -6,7 +6,7 @@ import {
   useRef,
   useState,
 } from "react";
-import { WeddingImage } from "@/src/components/WeddingImage";
+import { StoryImageCollection } from "@/src/components/StoryImageCollection";
 import type { LoveStoryChapter } from "@/src/types/wedding";
 
 type StoryExplorerProps = {
@@ -113,11 +113,7 @@ export function StoryExplorer({ chapters }: StoryExplorerProps) {
   }
 
   if (chapters.length === 0) {
-    return (
-      <p className="album-empty">
-        Câu chuyện đang được gia đình chuẩn bị và sẽ sớm được cập nhật.
-      </p>
-    );
+    return null;
   }
 
   return (
@@ -125,28 +121,13 @@ export function StoryExplorer({ chapters }: StoryExplorerProps) {
       <div className="story-chapter-grid">
         {chapters.map((chapter, index) => (
           <article className="story-chapter-card" key={chapter.id} data-story-item>
-            <div
-              className="story-chapter-image"
-              data-fit-mode={chapter.fitMode === "contain" ? "contain" : "cover"}
-            >
-              <WeddingImage
-                src={chapter.imageSrc}
-                available={chapter.available}
-                alt={chapter.imageAlt}
-                sizes="(max-width: 896px) 100vw, 33vw"
-                className="story-image"
-                framing={chapter}
-              />
-            </div>
+            <StoryImageCollection images={chapter.images} context="card" />
             <div className="story-chapter-copy">
               <div className="story-chapter-meta">
                 <span>{chapter.chapterNumber}</span>
                 <span>{chapter.period}</span>
               </div>
               <h3>{chapter.title}</h3>
-              {!chapter.available ? (
-                <p className="placeholder-label">Nội dung mẫu chờ cập nhật</p>
-              ) : null}
               <p>{chapter.summary}</p>
               <button
                 ref={(element) => {
@@ -190,19 +171,10 @@ export function StoryExplorer({ chapters }: StoryExplorerProps) {
             >
               ×
             </button>
-            <div
-              className="editorial-dialog-image"
-              data-fit-mode={
-                selectedChapter.fitMode === "contain" ? "contain" : "cover"
-              }
-            >
-              <WeddingImage
-                src={selectedChapter.imageSrc}
-                available={selectedChapter.available}
-                alt={selectedChapter.imageAlt}
-                sizes="(max-width: 896px) 100vw, 46vw"
-                className="story-image"
-                framing={selectedChapter}
+            <div className="editorial-dialog-media">
+              <StoryImageCollection
+                images={selectedChapter.images}
+                context="dialog"
               />
             </div>
             <article className="editorial-dialog-copy">
@@ -210,9 +182,6 @@ export function StoryExplorer({ chapters }: StoryExplorerProps) {
                 {selectedChapter.chapterNumber} · {selectedChapter.period}
               </p>
               <h2 id="story-dialog-title">{selectedChapter.title}</h2>
-              {!selectedChapter.available ? (
-                <p className="placeholder-label">Nội dung mẫu chờ cập nhật</p>
-              ) : null}
               <p className="story-full-text">{selectedChapter.fullStory}</p>
               <nav className="story-reader-nav" aria-label="Điều hướng chương">
                 <button

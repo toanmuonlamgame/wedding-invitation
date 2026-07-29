@@ -12,6 +12,7 @@ import type { FieldErrors } from "@/src/types/engagement";
 import type {
   GalleryMoment,
   LoveStoryChapter,
+  StoryImage,
   WeddingContentData,
   WeddingEvent,
 } from "@/src/types/wedding";
@@ -47,6 +48,20 @@ const ExperienceEditor = dynamic(
   () =>
     import("@/src/components/ExperienceEditor").then(
       (module) => module.ExperienceEditor,
+    ),
+  { loading: adminLoading },
+);
+const InvitationEditor = dynamic(
+  () =>
+    import("@/src/components/ExperienceEditor").then(
+      (module) => module.InvitationEditor,
+    ),
+  { loading: adminLoading },
+);
+const StoryChapterImagesEditor = dynamic(
+  () =>
+    import("@/src/components/StoryChapterImagesEditor").then(
+      (module) => module.StoryChapterImagesEditor,
     ),
   { loading: adminLoading },
 );
@@ -96,6 +111,7 @@ type AdminTab =
   | "invitations"
   | "appearance"
   | "cover"
+  | "invitation"
   | "experience"
   | "general"
   | "venues"
@@ -184,16 +200,20 @@ function normalizeContent(content: WeddingContentData): WeddingContentData {
     })),
     storyChapters: content.storyChapters.map((chapter) => ({
       ...chapter,
-      ...normalizeImageFraming(chapter),
       id: chapter.id.trim(),
       chapterNumber: chapter.chapterNumber.trim(),
       period: chapter.period.trim(),
       title: chapter.title.trim(),
       summary: chapter.summary.trim(),
       fullStory: chapter.fullStory.trim(),
-      imageSrc: chapter.imageSrc?.trim() || undefined,
-      imageStoragePath: chapter.imageStoragePath?.trim() || undefined,
-      imageAlt: chapter.imageAlt.trim(),
+      images: chapter.images.map((image) => ({
+        ...image,
+        ...normalizeImageFraming(image),
+        id: image.id.trim(),
+        src: image.src.trim(),
+        storagePath: image.storagePath?.trim() || undefined,
+        alt: image.alt.trim(),
+      })),
     })),
     galleryImages: content.galleryImages.map((image) => ({
       ...image,
@@ -210,6 +230,12 @@ function normalizeContent(content: WeddingContentData): WeddingContentData {
 function tabForField(path: string): AdminTab {
   if (path === "themePreset" || path === "fontPreset") return "appearance";
   if (path.startsWith("experience.cover.")) return "cover";
+  if (
+    path.startsWith("experience.invitation.") ||
+    path === "experience.sections.invitation"
+  ) {
+    return "invitation";
+  }
   if (path.startsWith("experience.")) return "experience";
   if (path.startsWith("venues.")) return "venues";
   if (path.startsWith("storyChapters.")) return "story";
@@ -271,12 +297,7 @@ function newChapter(): LoveStoryChapter {
     title: "Tiêu đề chương",
     summary: "Tóm tắt chương",
     fullStory: "Nội dung đầy đủ",
-    imageAlt: "Ảnh minh họa câu chuyện",
-    positionX: 50,
-    positionY: 50,
-    zoom: 1,
-    fitMode: "cover",
-    backgroundColor: "#ffffff",
+    images: [],
     available: false,
     visible: true,
   };
@@ -494,6 +515,17 @@ export function WeddingAdmin({
     }));
   }
 
+  function updateChapterImages(index: number, images: StoryImage[]) {
+    setFieldErrors((current) =>
+      Object.fromEntries(
+        Object.entries(current).filter(
+          ([path]) => !path.startsWith(`storyChapters.${index}.images`),
+        ),
+      ),
+    );
+    updateChapter(index, { images });
+  }
+
   function updateImage(index: number, patch: Partial<GalleryMoment>) {
     Object.keys(patch).forEach((key) =>
       clearFieldError(`galleryImages.${index}.${key}`),
@@ -550,6 +582,7 @@ export function WeddingAdmin({
                 ["invitations", "Quản lý thiệp mời"],
                 ["appearance", "Giao diện thiệp"],
                 ["cover", "Cover / Mở thiệp"],
+                ["invitation", "Lời mời thân tình"],
                 ["experience", "Trải nghiệm"],
                 ["general", "Countdown"],
                 ["venues", "Địa điểm"],
@@ -703,6 +736,34 @@ export function WeddingAdmin({
                 onChange={(experience) =>
                   setDraft((current) => ({ ...current, experience }))
                 }
+              />
+            ) : null}
+
+            {activeTab === "invitation" ? (
+              <InvitationEditor
+                value={draft.experience.invitation}
+                enabled={draft.experience.sections.invitation}
+                errors={fieldErrors}
+                onClearError={clearFieldError}
+                onChange={(invitation) =>
+                  setDraft((current) => ({
+                    ...current,
+                    experience: { ...current.experience, invitation },
+                  }))
+                }
+                onEnabledChange={(enabled) => {
+                  clearFieldError("experience.sections.invitation");
+                  setDraft((current) => ({
+                    ...current,
+                    experience: {
+                      ...current.experience,
+                      sections: {
+                        ...current.experience.sections,
+                        invitation: enabled,
+                      },
+                    },
+                  }));
+                }}
               />
             ) : null}
 
@@ -1031,91 +1092,17 @@ export function WeddingAdmin({
                           path={`storyChapters.${index}.fullStory`}
                         />
                       </label>
-                      <label>
-                        Ảnh từ album
-                        <select
-                          {...fieldProps(`storyChapters.${index}.imageSrc`)}
-                          value={chapter.imageSrc ?? ""}
-                          onChange={(event) => {
-                            const selectedImage = draft.galleryImages.find(
-                              (image) => image.src === event.target.value,
-                            );
-                            updateChapter(index, {
-                              imageSrc: event.target.value || undefined,
-                              imageStoragePath:
-                                selectedImage?.storagePath || undefined,
-                              ...(selectedImage
-                                ? normalizeImageFraming(selectedImage)
-                                : normalizeImageFraming(undefined)),
-                            });
-                          }}
-                        >
-                          <option value="">Không chọn ảnh</option>
-                          {draft.galleryImages.map((image) => (
-                            <option value={image.src} key={image.id}>
-                              {image.src}
-                            </option>
-                          ))}
-                        </select>
-                        <AdminFieldError
-                          errors={fieldErrors}
-                          path={`storyChapters.${index}.imageSrc`}
-                        />
-                      </label>
-                      <div className="admin-wide-field">
-                        <MediaUploader
-                          category="story"
-                          creatorSecret={creatorSecret}
-                          existingMedia={
-                            chapter.imageSrc
-                              ? {
-                                  src: chapter.imageSrc,
-                                  storagePath: chapter.imageStoragePath,
-                                  alt: chapter.imageAlt,
-                                }
-                              : undefined
-                          }
-                          onUploaded={(media) =>
-                            updateChapter(index, {
-                              imageSrc: media.publicUrl,
-                              imageStoragePath: media.storagePath,
-                            })
-                          }
-                          onRemoveMetadata={() =>
-                            updateChapter(index, {
-                              imageSrc: undefined,
-                              imageStoragePath: undefined,
-                            })
-                          }
-                        />
-                        {chapter.imageSrc ? (
-                          <ImageFramingEditor
-                            src={chapter.imageSrc}
-                            alt={chapter.imageAlt}
-                            value={chapter}
-                            variant="story"
-                            onChange={(framing) =>
-                              updateChapter(index, framing)
-                            }
-                          />
-                        ) : null}
-                      </div>
-                      <label>
-                        Alt text
-                        <input
-                          {...fieldProps(`storyChapters.${index}.imageAlt`)}
-                          value={chapter.imageAlt}
-                          onChange={(event) =>
-                            updateChapter(index, {
-                              imageAlt: event.target.value,
-                            })
-                          }
-                        />
-                        <AdminFieldError
-                          errors={fieldErrors}
-                          path={`storyChapters.${index}.imageAlt`}
-                        />
-                      </label>
+                      <StoryChapterImagesEditor
+                        chapter={chapter}
+                        chapterIndex={index}
+                        galleryImages={draft.galleryImages}
+                        creatorSecret={creatorSecret}
+                        errors={fieldErrors}
+                        onClearError={clearFieldError}
+                        onChange={(images) =>
+                          updateChapterImages(index, images)
+                        }
+                      />
                       <label className="admin-checkbox">
                         <input
                           type="checkbox"
@@ -1145,6 +1132,7 @@ export function WeddingAdmin({
                       <span>Xem trước</span>
                       <strong>{chapter.title}</strong>
                       <p>{chapter.summary}</p>
+                      <small>{chapter.images.length} ảnh</small>
                     </div>
                     <AdminItemActions
                       index={index}

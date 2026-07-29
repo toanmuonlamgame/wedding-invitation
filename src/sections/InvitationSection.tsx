@@ -1,57 +1,62 @@
 import { Ornament } from "@/src/components/Ornament";
 import { wedding } from "@/src/lib/wedding-details";
 import type { InvitationPersonalization } from "@/src/types/invitation";
+import type { InvitationContentSettings } from "@/src/types/wedding";
 
-type InvitationSectionProps = {
+type InvitationCopyProps = {
   invitation?: InvitationPersonalization;
+  settings: InvitationContentSettings;
+  preview?: boolean;
 };
 
-export function InvitationSection({ invitation }: InvitationSectionProps) {
+export function InvitationCopy({
+  invitation,
+  settings,
+  preview = false,
+}: InvitationCopyProps) {
   return (
-    <section
-      className="section invitation-section"
-      aria-labelledby="invitation-title"
-    >
-      <div className="section-shell invitation-copy">
-        <p className="section-eyebrow" data-invitation-reveal>
-          {invitation ? "Trân trọng kính mời" : "Lời mời thân tình"}
-        </p>
-        <h2
-          className={`invitation-lead${invitation ? " invitation-recipient" : ""}`}
-          id="invitation-title"
-          data-invitation-reveal
-        >
-          {invitation ? (
-            invitation.recipientText
-          ) : (
-            <>
-              “Có những hành trình đẹp hơn khi được sẻ chia cùng những người
-              mình thương.”
-            </>
-          )}
-        </h2>
+    <div className={preview ? "invitation-admin-preview" : "invitation-copy"}>
+      <p className="section-eyebrow" data-invitation-reveal={!preview || undefined}>
+        {settings.eyebrow}
+      </p>
+      <h2
+        className={`invitation-lead${invitation ? " invitation-recipient" : ""}`}
+        id={preview ? undefined : "invitation-title"}
+        data-invitation-reveal={!preview || undefined}
+      >
+        {invitation ? invitation.recipientText : settings.title}
+      </h2>
+      {!preview ? (
         <div data-ornament-reveal>
           <Ornament />
         </div>
-        <p className="invitation-body" data-invitation-reveal>
-          Hai gia đình trân trọng kính mời{" "}
-          {invitation ? invitation.recipientText : "bạn"} tới chung vui trong
-          lễ thành hôn. Sự hiện diện của bạn là món quà quý giá với chúng mình.
+      ) : null}
+      <p className="invitation-body" data-invitation-reveal={!preview || undefined}>
+        {settings.body}
+      </p>
+      {settings.supportingText ? (
+        <p
+          className="invitation-supporting-text"
+          data-invitation-reveal={!preview || undefined}
+        >
+          {settings.supportingText}
         </p>
+      ) : null}
 
-        {invitation?.guestCount ? (
-          <p className="guest-count" data-invitation-reveal>
-            Lời mời dành cho {invitation.guestCount} người
-          </p>
-        ) : null}
+      {!preview && invitation?.guestCount ? (
+        <p className="guest-count" data-invitation-reveal>
+          Lời mời dành cho {invitation.guestCount} người
+        </p>
+      ) : null}
 
-        {invitation?.privateMessage ? (
-          <blockquote className="private-message" data-invitation-reveal>
-            <span>Lời nhắn riêng</span>
-            <p>{invitation.privateMessage}</p>
-          </blockquote>
-        ) : null}
+      {!preview && invitation?.privateMessage ? (
+        <blockquote className="private-message" data-invitation-reveal>
+          <span>Lời nhắn riêng</span>
+          <p>{invitation.privateMessage}</p>
+        </blockquote>
+      ) : null}
 
+      {!preview ? (
         <div className="families" data-invitation-reveal>
           <div className="family">
             <span>Nhà gái</span>
@@ -65,6 +70,28 @@ export function InvitationSection({ invitation }: InvitationSectionProps) {
             <strong>{wedding.groomFamily}</strong>
           </div>
         </div>
+      ) : null}
+    </div>
+  );
+}
+
+type InvitationSectionProps = {
+  invitation?: InvitationPersonalization;
+  settings: InvitationContentSettings;
+};
+
+export function InvitationSection({
+  invitation,
+  settings,
+}: InvitationSectionProps) {
+  return (
+    <section
+      className="section invitation-section"
+      aria-labelledby="invitation-title"
+      data-public-section="invitation"
+    >
+      <div className="section-shell">
+        <InvitationCopy invitation={invitation} settings={settings} />
       </div>
     </section>
   );

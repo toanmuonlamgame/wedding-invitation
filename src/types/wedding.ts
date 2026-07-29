@@ -104,6 +104,7 @@ export type CountdownSettings = {
 
 export type WeddingExperienceSettings = {
   cover: CoverSettings;
+  invitation: InvitationContentSettings;
   music: MusicSettings;
   youtube: YouTubeSettings;
   countdown: CountdownSettings;
@@ -118,11 +119,19 @@ export type WeddingExperienceSettings = {
     autoHideWhenTyping: boolean;
   };
   sections: {
+    invitation: boolean;
     heroCollage: boolean;
     story: boolean;
     rsvp: boolean;
   };
   allowGuestSideSelection: boolean;
+};
+
+export type InvitationContentSettings = {
+  eyebrow: string;
+  title: string;
+  body: string;
+  supportingText: string;
 };
 
 export type WeddingEvent = {
@@ -146,6 +155,14 @@ export type WeddingEvent = {
   available: boolean;
 };
 
+export type StoryImage = ImageFraming & {
+  id: string;
+  src: string;
+  storagePath?: string;
+  alt: string;
+  available: boolean;
+};
+
 export type LoveStoryChapter = {
   id: string;
   chapterNumber: string;
@@ -153,14 +170,7 @@ export type LoveStoryChapter = {
   title: string;
   summary: string;
   fullStory: string;
-  imageSrc?: string;
-  imageStoragePath?: string;
-  imageAlt: string;
-  positionX: number;
-  positionY: number;
-  zoom: number;
-  fitMode: "cover" | "contain";
-  backgroundColor: string;
+  images: StoryImage[];
   available: boolean;
   visible: boolean;
 };

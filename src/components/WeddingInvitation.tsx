@@ -45,11 +45,23 @@ export function WeddingInvitation({
     >
       <main className="invitation-main">
         <OpeningSection weddingDateTime={content.weddingDateTime} />
-        <InvitationSection invitation={invitation} />
+        {content.experience.sections.invitation ? (
+          <InvitationSection
+            invitation={invitation}
+            settings={content.experience.invitation}
+          />
+        ) : null}
         {content.experience.sections.heroCollage ? (
           <HeroCollage
             images={content.galleryImages}
             intervalMs={content.albumIntervalMs}
+          />
+        ) : null}
+        {content.experience.sections.story ? (
+          <StorySection
+            chapters={content.storyChapters.filter(
+              (chapter) => chapter.visible && chapter.available,
+            )}
           />
         ) : null}
         <ScheduleSection
@@ -75,19 +87,12 @@ export function WeddingInvitation({
           layout={content.experience.wishLayout}
           showList={content.experience.wishes.showList}
         />
-        {content.experience.sections.story ? (
-          <StorySection
-            chapters={content.storyChapters.filter(
-              (chapter) => chapter.visible && chapter.available,
-            )}
-          />
-        ) : null}
         <MusicSection settings={content.experience.music} />
+        {showCreator ? <CreatorSection /> : null}
         <YouTubeSection
           settings={content.experience.youtube}
           stackPlayer={content.experience.music.enabled}
         />
-        {showCreator ? <CreatorSection /> : null}
         <FooterSection />
       </main>
       <FloatingWishes

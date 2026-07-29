@@ -35,6 +35,14 @@ export const defaultExperienceSettings: WeddingExperienceSettings = {
       backgroundColor: "#ffffff",
     },
   },
+  invitation: {
+    eyebrow: "Lời mời thân tình",
+    title:
+      "“Có những hành trình đẹp hơn khi được sẻ chia cùng những người mình thương.”",
+    body:
+      "Hai gia đình trân trọng kính mời bạn tới chung vui trong lễ thành hôn. Sự hiện diện của bạn là món quà quý giá với chúng mình.",
+    supportingText: "",
+  },
   music: {
     enabled: true,
     src: "/music/wedding-theme.wav",
@@ -80,6 +88,7 @@ export const defaultExperienceSettings: WeddingExperienceSettings = {
     autoHideWhenTyping: true,
   },
   sections: {
+    invitation: true,
     heroCollage: true,
     story: true,
     rsvp: true,
@@ -113,6 +122,10 @@ export function mergeExperienceSettings(value: unknown): unknown {
         ...defaultExperienceSettings.cover.logoFrame,
         ...record(cover.logoFrame),
       },
+    },
+    invitation: {
+      ...defaultExperienceSettings.invitation,
+      ...record(source.invitation),
     },
     music: {
       ...defaultExperienceSettings.music,

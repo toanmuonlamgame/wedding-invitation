@@ -7,9 +7,11 @@ import { defaultExperienceSettings } from "@/src/lib/experience-settings";
 import type { FieldErrors } from "@/src/types/engagement";
 import type {
   CoverSettings,
+  InvitationContentSettings,
   WeddingExperienceSettings,
   WishOverlayPreset,
 } from "@/src/types/wedding";
+import { InvitationCopy } from "@/src/sections/InvitationSection";
 
 type CoverEditorProps = {
   value: CoverSettings;
@@ -379,6 +381,112 @@ export function CoverEditor({
       >
         Khôi phục cover mặc định
       </button>
+    </div>
+  );
+}
+
+export function InvitationEditor({
+  value,
+  enabled,
+  errors,
+  onClearError,
+  onChange,
+  onEnabledChange,
+}: {
+  value: InvitationContentSettings;
+  enabled: boolean;
+  errors: FieldErrors;
+  onClearError: (path: string) => void;
+  onChange: (value: InvitationContentSettings) => void;
+  onEnabledChange: (enabled: boolean) => void;
+}) {
+  const update = (
+    key: keyof InvitationContentSettings,
+    nextValue: string,
+  ) => {
+    onClearError(`experience.invitation.${key}`);
+    onChange({ ...value, [key]: nextValue });
+  };
+  const inputProps = (key: keyof InvitationContentSettings) => {
+    const path = `experience.invitation.${key}`;
+    const hasError = Boolean(errors[path]);
+    return {
+      "aria-invalid": hasError,
+      "aria-describedby": hasError
+        ? `cover-error-invitation-${key}`
+        : undefined,
+      "data-field-path": path,
+    } as const;
+  };
+
+  return (
+    <div className="admin-list">
+      <fieldset className="admin-item">
+        <legend>Lời mời thân tình</legend>
+        <label className="admin-toggle">
+          <input
+            type="checkbox"
+            checked={enabled}
+            onChange={(event) => onEnabledChange(event.target.checked)}
+          />
+          Hiển thị lời mời trên thiệp
+        </label>
+        <div className="admin-form-grid">
+          <Field
+            label="Dòng giới thiệu"
+            error={errors["experience.invitation.eyebrow"]}
+            path="invitation-eyebrow"
+          >
+            <input
+              {...inputProps("eyebrow")}
+              value={value.eyebrow}
+              maxLength={80}
+              onChange={(event) => update("eyebrow", event.target.value)}
+            />
+          </Field>
+          <Field
+            label="Tiêu đề"
+            error={errors["experience.invitation.title"]}
+            path="invitation-title"
+          >
+            <textarea
+              {...inputProps("title")}
+              value={value.title}
+              maxLength={300}
+              onChange={(event) => update("title", event.target.value)}
+            />
+          </Field>
+          <Field
+            label="Nội dung lời mời"
+            error={errors["experience.invitation.body"]}
+            path="invitation-body"
+          >
+            <textarea
+              {...inputProps("body")}
+              value={value.body}
+              maxLength={1200}
+              onChange={(event) => update("body", event.target.value)}
+            />
+          </Field>
+          <Field
+            label="Dòng bổ sung (không bắt buộc)"
+            error={errors["experience.invitation.supportingText"]}
+            path="invitation-supportingText"
+          >
+            <textarea
+              {...inputProps("supportingText")}
+              value={value.supportingText}
+              maxLength={400}
+              onChange={(event) =>
+                update("supportingText", event.target.value)
+              }
+            />
+          </Field>
+        </div>
+      </fieldset>
+      <div className="admin-preview" aria-label="Xem trước lời mời">
+        <InvitationCopy settings={value} preview />
+      </div>
     </div>
   );
 }
