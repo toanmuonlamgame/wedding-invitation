@@ -21,7 +21,6 @@ type YouTubeApi = {
       width: string;
       height: string;
       videoId: string;
-      host: string;
       playerVars: Record<string, string | number>;
       events: {
         onReady: (event: { target: YouTubePlayer }) => void;
@@ -111,7 +110,6 @@ export function YouTubeSection({
           width: "100%",
           height: "100%",
           videoId,
-          host: "https://www.youtube-nocookie.com",
           playerVars: {
             origin: window.location.origin,
             autoplay: 1,
