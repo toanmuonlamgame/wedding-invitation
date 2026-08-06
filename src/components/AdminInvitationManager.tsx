@@ -34,6 +34,9 @@ const DATE_FORMAT = new Intl.DateTimeFormat("vi-VN", {
   timeStyle: "short",
 });
 
+const GOOGLE_SHEET_URL =
+  "https://docs.google.com/spreadsheets/d/1awZOSqs3bApPgKgG1reDK4pAZFc6_7CIdOh8la-DXmE/edit?gid=1767942410#gid=1767942410";
+
 function formatDate(value: string | null) {
   return value ? DATE_FORMAT.format(new Date(value)) : "Chưa có";
 }
@@ -72,6 +75,7 @@ export function AdminInvitationManager({
   const [editing, setEditing] = useState<AdminInvitationItem | null>(null);
   const [editErrors, setEditErrors] = useState<FieldErrors>({});
   const [pendingAction, setPendingAction] = useState<PendingAction>(null);
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
 
   const loadInvitations = useCallback(async (preserveMessage = false) => {
     setLoading(true);
@@ -120,6 +124,7 @@ export function AdminInvitationManager({
   useEffect(() => {
     const timer = window.setTimeout(() => {
       setPage(1);
+      setSelectedIds([]);
       setSearch(searchInput.trim());
     }, 350);
     return () => window.clearTimeout(timer);
@@ -213,6 +218,9 @@ export function AdminInvitationManager({
         throw new Error(payload.message || "Không thể xóa thiệp.");
       }
       setPendingAction(null);
+      setSelectedIds((current) =>
+        current.filter((id) => id !== invitation.id),
+      );
       setMessage(`Đã xóa thiệp của ${invitation.recipientText}.`);
       setData((current) => ({
         ...current,
@@ -255,6 +263,91 @@ export function AdminInvitationManager({
         error instanceof Error
           ? error.message
           : "Không thể đồng bộ Google Sheets.",
+      );
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function deleteSelectedInvitations() {
+    if (selectedIds.length === 0) return;
+    const confirmed = window.confirm(
+      `Xóa vĩnh viễn ${selectedIds.length} thiệp đã chọn? RSVP liên quan sẽ bị xóa và thao tác không thể hoàn tác.`,
+    );
+    if (!confirmed) return;
+
+    setBusy(true);
+    setMessage("");
+    try {
+      const response = await fetch("/api/admin/invitations/bulk-delete", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ creatorSecret, ids: selectedIds }),
+      });
+      const payload = (await response.json()) as {
+        message?: string;
+        deletedCount?: number;
+        sheetsSync?: "success" | "failed" | "skipped";
+      };
+      if (!response.ok) {
+        throw new Error(payload.message || "Không thể xóa các thiệp đã chọn.");
+      }
+
+      const deletedIds = new Set(selectedIds);
+      const deletedCount = payload.deletedCount ?? selectedIds.length;
+      setData((current) => ({
+        ...current,
+        items: current.items.filter((item) => !deletedIds.has(item.id)),
+        total: Math.max(0, current.total - deletedCount),
+      }));
+      setSelectedIds([]);
+      setMessage(
+        payload.sheetsSync === "success"
+          ? `Đã xóa ${deletedCount} thiệp và đồng bộ Google Sheets.`
+          : `Đã xóa ${deletedCount} thiệp trong hệ thống, nhưng Google Sheets chưa đồng bộ.`,
+      );
+    } catch (error) {
+      setMessage(
+        error instanceof Error
+          ? error.message
+          : "Không thể xóa các thiệp đã chọn.",
+      );
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function clearGoogleSheetData() {
+    const confirmation = window.prompt(
+      "Thao tác này xóa toàn bộ dòng dữ liệu trong Google Sheet nhưng giữ hàng tiêu đề. Nhập XOA SHEET để xác nhận.",
+    );
+    if (confirmation !== "XOA SHEET") return;
+
+    setBusy(true);
+    setMessage("");
+    try {
+      const response = await fetch("/api/admin/google-sheets", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ creatorSecret, action: "clear" }),
+      });
+      const payload = (await response.json()) as {
+        message?: string;
+        sheetsSync?: "success" | "failed" | "skipped";
+      };
+      if (!response.ok) {
+        throw new Error(payload.message || "Không thể xóa dữ liệu Google Sheet.");
+      }
+      setMessage(
+        payload.sheetsSync === "success"
+          ? "Đã xóa toàn bộ dữ liệu Google Sheet và giữ nguyên hàng tiêu đề."
+          : "Chưa thể xóa dữ liệu Google Sheet. Hãy kiểm tra Apps Script và cấu hình Vercel.",
+      );
+    } catch (error) {
+      setMessage(
+        error instanceof Error
+          ? error.message
+          : "Không thể xóa dữ liệu Google Sheet.",
       );
     } finally {
       setBusy(false);
@@ -348,15 +441,64 @@ export function AdminInvitationManager({
           <h3 id="invitation-manager-title">Quản lý thiệp mời</h3>
           <p>{data.total} thiệp phù hợp với bộ lọc hiện tại.</p>
         </div>
-        <button className="button button-secondary" type="button" onClick={() => void loadInvitations()}>
-          Làm mới
-        </button>
+        <div className="invitation-manager-heading-actions">
+          <a
+            className="button button-secondary"
+            href={GOOGLE_SHEET_URL}
+            target="_blank"
+            rel="noreferrer"
+          >
+            Mở Google Sheet ↗
+          </a>
+          <button
+            className="button button-secondary"
+            type="button"
+            disabled={busy}
+            onClick={() => void clearGoogleSheetData()}
+          >
+            Xóa dữ liệu Sheet
+          </button>
+          <button
+            className="button button-secondary"
+            type="button"
+            onClick={() => void loadInvitations()}
+          >
+            Làm mới
+          </button>
+        </div>
       </div>
 
       <p className="admin-shared-note">
         Google Sheets tự đồng bộ khi tạo thiệp, cập nhật RSVP hoặc xóa thiệp.
         Với thiệp cũ, dùng nút “Đồng bộ Sheet” trên từng thiệp để đẩy lại dữ liệu.
       </p>
+
+      <div className="invitation-bulk-toolbar">
+        <label>
+          <input
+            type="checkbox"
+            checked={
+              data.items.length > 0 &&
+              data.items.every((item) => selectedIds.includes(item.id))
+            }
+            onChange={(event) =>
+              setSelectedIds(
+                event.target.checked ? data.items.map((item) => item.id) : [],
+              )
+            }
+          />
+          Chọn trang hiện tại
+        </label>
+        <span>Đã chọn {selectedIds.length} thiệp</span>
+        <button
+          className="button button-danger"
+          type="button"
+          disabled={busy || selectedIds.length === 0}
+          onClick={() => void deleteSelectedInvitations()}
+        >
+          Xóa thiệp đã chọn
+        </button>
+      </div>
 
       <div className="invitation-manager-tools">
         <label className="field invitation-search">
@@ -375,6 +517,7 @@ export function AdminInvitationManager({
             value={sort}
             onChange={(event) => {
               setPage(1);
+              setSelectedIds([]);
               setSort(event.target.value as AdminInvitationSort);
             }}
           >
@@ -395,6 +538,7 @@ export function AdminInvitationManager({
             aria-pressed={filter === value}
             onClick={() => {
               setPage(1);
+              setSelectedIds([]);
               setFilter(value);
             }}
           >
@@ -419,6 +563,20 @@ export function AdminInvitationManager({
           <article className="invitation-admin-card" key={invitation.id}>
             <div className="invitation-card-primary">
               <div>
+                <label className="invitation-select">
+                  <input
+                    type="checkbox"
+                    checked={selectedIds.includes(invitation.id)}
+                    onChange={(event) =>
+                      setSelectedIds((current) =>
+                        event.target.checked
+                          ? [...new Set([...current, invitation.id])]
+                          : current.filter((id) => id !== invitation.id),
+                      )
+                    }
+                  />
+                  Chọn thiệp này
+                </label>
                 <div className="invitation-badges">
                   <span className={invitation.isActive ? "status-active" : "status-inactive"}>
                     {invitation.isActive ? "Đang hoạt động" : "Đã vô hiệu hóa"}
@@ -498,11 +656,17 @@ export function AdminInvitationManager({
 
       {data.totalPages > 1 ? (
         <nav className="admin-pagination" aria-label="Phân trang danh sách thiệp">
-          <button type="button" disabled={page <= 1} onClick={() => setPage((value) => value - 1)}>
+          <button type="button" disabled={page <= 1} onClick={() => {
+            setSelectedIds([]);
+            setPage((value) => value - 1);
+          }}>
             Trang trước
           </button>
           <span>Trang {data.page}/{data.totalPages}</span>
-          <button type="button" disabled={page >= data.totalPages} onClick={() => setPage((value) => value + 1)}>
+          <button type="button" disabled={page >= data.totalPages} onClick={() => {
+            setSelectedIds([]);
+            setPage((value) => value + 1);
+          }}>
             Trang sau
           </button>
         </nav>

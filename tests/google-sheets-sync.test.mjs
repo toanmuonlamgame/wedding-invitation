@@ -1,9 +1,13 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import {
+  normalizeGoogleSheetsBulkDeletePayload,
+  normalizeGoogleSheetsClearPayload,
   normalizeGoogleSheetsDeletePayload,
   normalizeGoogleSheetsPayload,
+  postClearGoogleSheets,
   postInvitationDeletionToGoogleSheets,
+  postInvitationsDeletionToGoogleSheets,
   postInvitationToGoogleSheets,
 } from "../src/lib/google-sheets-sync-core.ts";
 
@@ -59,6 +63,32 @@ test("normalizes a deletion command without guest data", () => {
       token: "token-01",
     },
   );
+});
+
+test("normalizes bulk deletion and clear commands", () => {
+  assert.deepEqual(
+    normalizeGoogleSheetsBulkDeletePayload(
+      {
+        invitations: [
+          { invitationId: " invitation-01 ", token: " token-01 " },
+          { invitationId: " invitation-02 ", token: " token-02 " },
+        ],
+      },
+      "server-secret",
+    ),
+    {
+      secret: "server-secret",
+      action: "delete_many",
+      invitations: [
+        { invitationId: "invitation-01", token: "token-01" },
+        { invitationId: "invitation-02", token: "token-02" },
+      ],
+    },
+  );
+  assert.deepEqual(normalizeGoogleSheetsClearPayload("server-secret"), {
+    secret: "server-secret",
+    action: "clear",
+  });
 });
 
 test("returns skipped without making a request when configuration is missing", async () => {
@@ -182,4 +212,33 @@ test("deletion posts one delete command and accepts JSON ok", async () => {
       token: "token-01",
     },
   ]);
+});
+
+test("bulk deletion and clear each use one Apps Script request", async () => {
+  const bodies = [];
+  const fetchImpl = async (_url, options) => {
+    bodies.push(JSON.parse(String(options?.body)));
+    return Response.json({ ok: true });
+  };
+  const bulkStatus = await postInvitationsDeletionToGoogleSheets({
+    input: {
+      invitations: [
+        { invitationId: "invitation-01", token: "token-01" },
+        { invitationId: "invitation-02", token: "token-02" },
+      ],
+    },
+    webAppUrl,
+    secret: "server-secret",
+    fetchImpl,
+  });
+  const clearStatus = await postClearGoogleSheets({
+    webAppUrl,
+    secret: "server-secret",
+    fetchImpl,
+  });
+  assert.equal(bulkStatus, "success");
+  assert.equal(clearStatus, "success");
+  assert.equal(bodies.length, 2);
+  assert.equal(bodies[0].action, "delete_many");
+  assert.equal(bodies[1].action, "clear");
 });

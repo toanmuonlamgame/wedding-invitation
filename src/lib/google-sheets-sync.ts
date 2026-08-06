@@ -1,14 +1,18 @@
 import "server-only";
 
 import {
+  postClearGoogleSheets,
   postInvitationDeletionToGoogleSheets,
+  postInvitationsDeletionToGoogleSheets,
   postInvitationToGoogleSheets,
+  type GoogleSheetsBulkDeleteInput,
   type GoogleSheetsDeleteInput,
   type GoogleSheetsSyncInput,
   type GoogleSheetsSyncStatus,
 } from "@/src/lib/google-sheets-sync-core";
 
 export type {
+  GoogleSheetsBulkDeleteInput,
   GoogleSheetsDeleteInput,
   GoogleSheetsSyncInput,
   GoogleSheetsSyncStatus,
@@ -47,6 +51,27 @@ export async function syncInvitationDeletionToGoogleSheets(
   return reportSyncStatus(() =>
     postInvitationDeletionToGoogleSheets({
       input,
+      webAppUrl: process.env.GOOGLE_SHEETS_WEB_APP_URL,
+      secret: process.env.GOOGLE_SHEETS_SYNC_SECRET,
+    }),
+  );
+}
+
+export async function syncInvitationsDeletionToGoogleSheets(
+  input: GoogleSheetsBulkDeleteInput,
+): Promise<GoogleSheetsSyncStatus> {
+  return reportSyncStatus(() =>
+    postInvitationsDeletionToGoogleSheets({
+      input,
+      webAppUrl: process.env.GOOGLE_SHEETS_WEB_APP_URL,
+      secret: process.env.GOOGLE_SHEETS_SYNC_SECRET,
+    }),
+  );
+}
+
+export async function clearGoogleSheetsInvitations(): Promise<GoogleSheetsSyncStatus> {
+  return reportSyncStatus(() =>
+    postClearGoogleSheets({
       webAppUrl: process.env.GOOGLE_SHEETS_WEB_APP_URL,
       secret: process.env.GOOGLE_SHEETS_SYNC_SECRET,
     }),

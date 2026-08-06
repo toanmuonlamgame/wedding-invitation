@@ -116,6 +116,45 @@ function doPost(event) {
       return createJsonResponse_({ ok: false, error: "UNAUTHORIZED" });
     }
 
+    const action = cleanText_(body.action) || "upsert";
+    if (!["upsert", "delete", "delete_many", "clear"].includes(action)) {
+      return createJsonResponse_({
+        ok: false,
+        error: "VALIDATION_ERROR",
+        message: "Thao tác không hợp lệ.",
+      });
+    }
+
+    const sheet = getInvitationSheet_();
+    if (action === "clear") {
+      const clearedRows = Math.max(0, sheet.getLastRow() - 1);
+      if (clearedRows > 0) {
+        sheet
+          .getRange(2, 1, clearedRows, Math.max(14, sheet.getLastColumn()))
+          .clearContent();
+      }
+      return createJsonResponse_({ ok: true, action: "cleared", clearedRows });
+    }
+
+    if (action === "delete_many") {
+      const invitations = Array.isArray(body.invitations)
+        ? body.invitations.slice(0, 100)
+        : [];
+      if (invitations.length === 0) {
+        return createJsonResponse_({
+          ok: false,
+          error: "VALIDATION_ERROR",
+          message: "Danh sách thiệp cần xóa đang trống.",
+        });
+      }
+      const deletedRows = deleteInvitationRows_(sheet, invitations);
+      return createJsonResponse_({
+        ok: true,
+        action: "deleted_many",
+        deletedRows,
+      });
+    }
+
     const invitationId = cleanText_(body.invitationId);
     const token = cleanText_(body.token);
     if (!invitationId && !token) {
@@ -126,16 +165,6 @@ function doPost(event) {
       });
     }
 
-    const action = cleanText_(body.action) || "upsert";
-    if (action !== "upsert" && action !== "delete") {
-      return createJsonResponse_({
-        ok: false,
-        error: "VALIDATION_ERROR",
-        message: "Thao tác không hợp lệ.",
-      });
-    }
-
-    const sheet = getInvitationSheet_();
     const existingRow = findInvitationRow_(sheet, invitationId, token);
     if (action === "delete") {
       if (existingRow) sheet.deleteRow(existingRow);
@@ -259,6 +288,33 @@ function findInvitationRow_(sheet, invitationId, token) {
     }
   }
   return null;
+}
+
+function deleteInvitationRows_(sheet, invitations) {
+  const lastRow = sheet.getLastRow();
+  if (lastRow < 2) return 0;
+  const invitationIds = new Set();
+  const tokens = new Set();
+  invitations.forEach((invitation) => {
+    const invitationId = cleanText_(invitation && invitation.invitationId);
+    const token = cleanText_(invitation && invitation.token);
+    if (invitationId) invitationIds.add(invitationId);
+    if (token) tokens.add(token);
+  });
+  const rows = sheet.getRange(2, 1, lastRow - 1, 2).getDisplayValues();
+  const rowsToDelete = [];
+  rows.forEach((row, index) => {
+    if (
+      invitationIds.has(cleanText_(row[0])) ||
+      tokens.has(cleanText_(row[1]))
+    ) {
+      rowsToDelete.push(index + 2);
+    }
+  });
+  rowsToDelete
+    .sort((left, right) => right - left)
+    .forEach((rowNumber) => sheet.deleteRow(rowNumber));
+  return rowsToDelete.length;
 }
 
 function parseRequestBody_(event) {

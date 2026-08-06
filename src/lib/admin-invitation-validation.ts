@@ -69,3 +69,21 @@ export const adminInvitationDeleteSchema = z
     creatorSecret: z.string().min(1).max(256),
   })
   .strict();
+
+export const adminInvitationBulkDeleteSchema = z
+  .object({
+    creatorSecret: z.string().min(1).max(256),
+    ids: z
+      .array(z.string().trim().min(1).max(64))
+      .min(1)
+      .max(100)
+      .transform((ids) => [...new Set(ids)]),
+  })
+  .strict();
+
+export const adminGoogleSheetsActionSchema = z
+  .object({
+    creatorSecret: z.string().min(1).max(256),
+    action: z.literal("clear"),
+  })
+  .strict();

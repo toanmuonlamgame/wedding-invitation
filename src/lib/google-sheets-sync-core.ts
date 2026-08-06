@@ -29,6 +29,10 @@ export type GoogleSheetsDeleteInput = {
   token: string;
 };
 
+export type GoogleSheetsBulkDeleteInput = {
+  invitations: GoogleSheetsDeleteInput[];
+};
+
 export type GoogleSheetsPayload = {
   secret: string;
   action: "upsert";
@@ -52,6 +56,17 @@ export type GoogleSheetsDeletePayload = {
   action: "delete";
   invitationId: string;
   token: string;
+};
+
+export type GoogleSheetsBulkDeletePayload = {
+  secret: string;
+  action: "delete_many";
+  invitations: Array<{ invitationId: string; token: string }>;
+};
+
+export type GoogleSheetsClearPayload = {
+  secret: string;
+  action: "clear";
 };
 
 function normalizeLanguage(value: string): "vi" | "ko" {
@@ -103,6 +118,26 @@ export function normalizeGoogleSheetsDeletePayload(
   };
 }
 
+export function normalizeGoogleSheetsBulkDeletePayload(
+  input: GoogleSheetsBulkDeleteInput,
+  secret: string,
+): GoogleSheetsBulkDeletePayload {
+  return {
+    secret,
+    action: "delete_many",
+    invitations: input.invitations.map((invitation) => ({
+      invitationId: invitation.invitationId.trim(),
+      token: invitation.token.trim(),
+    })),
+  };
+}
+
+export function normalizeGoogleSheetsClearPayload(
+  secret: string,
+): GoogleSheetsClearPayload {
+  return { secret, action: "clear" };
+}
+
 function isAllowedWebAppUrl(value: string) {
   try {
     const url = new URL(value);
@@ -126,7 +161,9 @@ async function postGoogleSheetsPayload({
 }: {
   buildPayload: (secret: string) =>
     | GoogleSheetsPayload
-    | GoogleSheetsDeletePayload;
+    | GoogleSheetsDeletePayload
+    | GoogleSheetsBulkDeletePayload
+    | GoogleSheetsClearPayload;
   webAppUrl?: string;
   secret?: string;
   timeoutMs?: number;
@@ -189,5 +226,36 @@ export function postInvitationDeletionToGoogleSheets({
     ...options,
     buildPayload: (secret) =>
       normalizeGoogleSheetsDeletePayload(input, secret),
+  });
+}
+
+export function postInvitationsDeletionToGoogleSheets({
+  input,
+  ...options
+}: {
+  input: GoogleSheetsBulkDeleteInput;
+  webAppUrl?: string;
+  secret?: string;
+  timeoutMs?: number;
+  fetchImpl?: typeof fetch;
+}): Promise<GoogleSheetsSyncStatus> {
+  return postGoogleSheetsPayload({
+    ...options,
+    buildPayload: (secret) =>
+      normalizeGoogleSheetsBulkDeletePayload(input, secret),
+  });
+}
+
+export function postClearGoogleSheets({
+  ...options
+}: {
+  webAppUrl?: string;
+  secret?: string;
+  timeoutMs?: number;
+  fetchImpl?: typeof fetch;
+}): Promise<GoogleSheetsSyncStatus> {
+  return postGoogleSheetsPayload({
+    ...options,
+    buildPayload: normalizeGoogleSheetsClearPayload,
   });
 }
