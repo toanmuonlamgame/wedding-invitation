@@ -59,7 +59,7 @@ export const adminInvitationMutationSchema = z.discriminatedUnion("action", [
   z
     .object({
       creatorSecret: z.string().min(1).max(256),
-      action: z.enum(["disable", "enable", "regenerate"]),
+      action: z.enum(["disable", "enable", "regenerate", "sync-sheets"]),
     })
     .strict(),
 ]);

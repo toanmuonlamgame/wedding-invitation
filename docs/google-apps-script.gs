@@ -1,7 +1,17 @@
 const INVITATION_SHEET_NAME = "Invitations";
 
 function setupInvitationSheet() {
-  const spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
+  const spreadsheet = getSetupSpreadsheet_();
+  const sheet = ensureInvitationSheet_(spreadsheet);
+  PropertiesService.getScriptProperties().setProperty(
+    "SPREADSHEET_ID",
+    spreadsheet.getId(),
+  );
+  spreadsheet.setActiveSheet(sheet);
+  logSheetConnection_(spreadsheet, sheet, "setup");
+}
+
+function ensureInvitationSheet_(spreadsheet) {
   const headers = [
     "Invitation ID",
     "Token",
@@ -19,7 +29,17 @@ function setupInvitationSheet() {
     "Cập nhật lúc",
   ];
   let sheet = spreadsheet.getSheetByName(INVITATION_SHEET_NAME);
-  if (!sheet) sheet = spreadsheet.insertSheet(INVITATION_SHEET_NAME);
+  if (!sheet) {
+    const activeSheet = spreadsheet.getActiveSheet();
+    const canReuseBlankSheet =
+      spreadsheet.getSheets().length === 1 &&
+      activeSheet &&
+      activeSheet.getLastRow() === 0 &&
+      activeSheet.getLastColumn() === 0;
+    sheet = canReuseBlankSheet
+      ? activeSheet.setName(INVITATION_SHEET_NAME)
+      : spreadsheet.insertSheet(INVITATION_SHEET_NAME);
+  }
   if (sheet.getMaxColumns() < headers.length) {
     sheet.insertColumnsAfter(
       sheet.getMaxColumns(),
@@ -48,20 +68,37 @@ function setupInvitationSheet() {
   sheet.getRange("N2:N").setNumberFormat("dd/MM/yyyy HH:mm:ss");
   sheet.getRange(1, 1, sheet.getMaxRows(), headers.length).setWrap(true);
   SpreadsheetApp.flush();
+  return sheet;
 }
 
 function configureSheetsApi() {
-  const spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
+  const spreadsheet = getSetupSpreadsheet_();
   PropertiesService.getScriptProperties().setProperty(
     "SPREADSHEET_ID",
     spreadsheet.getId(),
   );
+  const sheet = ensureInvitationSheet_(spreadsheet);
+  spreadsheet.setActiveSheet(sheet);
+  logSheetConnection_(spreadsheet, sheet, "configure");
+}
+
+function diagnoseSheetsConnection() {
+  const spreadsheet = getConfiguredSpreadsheet_();
+  const sheet = spreadsheet.getSheetByName(INVITATION_SHEET_NAME);
+  if (!sheet) {
+    throw new Error("Không tìm thấy tab Invitations trong file đã cấu hình.");
+  }
+  logSheetConnection_(spreadsheet, sheet, "diagnose");
 }
 
 function doGet() {
+  const diagnostics = getPublicDiagnostics_();
   return createJsonResponse_({
     ok: true,
     service: "wedding-invitation-sheets",
+    configured: diagnostics.configured,
+    sheetReady: diagnostics.sheetReady,
+    rowCount: diagnostics.rowCount,
   });
 }
 
@@ -155,16 +192,56 @@ function doPost(event) {
 }
 
 function getInvitationSheet_() {
-  const spreadsheetId =
-    PropertiesService.getScriptProperties().getProperty("SPREADSHEET_ID");
-  if (!spreadsheetId) {
-    throw new Error("Chưa cấu hình SPREADSHEET_ID.");
-  }
-  const sheet = SpreadsheetApp.openById(spreadsheetId).getSheetByName(
+  const sheet = getConfiguredSpreadsheet_().getSheetByName(
     INVITATION_SHEET_NAME,
   );
   if (!sheet) throw new Error("Không tìm thấy sheet Invitations.");
   return sheet;
+}
+
+function getSetupSpreadsheet_() {
+  const activeSpreadsheet = SpreadsheetApp.getActiveSpreadsheet();
+  if (activeSpreadsheet) return activeSpreadsheet;
+  return getConfiguredSpreadsheet_();
+}
+
+function getConfiguredSpreadsheet_() {
+  const spreadsheetId = cleanText_(
+    PropertiesService.getScriptProperties().getProperty("SPREADSHEET_ID"),
+  );
+  if (!spreadsheetId) {
+    throw new Error(
+      "Chưa cấu hình SPREADSHEET_ID. Hãy mở Apps Script từ đúng Google Sheet hoặc thêm ID trong Script Properties.",
+    );
+  }
+  return SpreadsheetApp.openById(spreadsheetId);
+}
+
+function getPublicDiagnostics_() {
+  try {
+    const spreadsheet = getConfiguredSpreadsheet_();
+    const sheet = spreadsheet.getSheetByName(INVITATION_SHEET_NAME);
+    return {
+      configured: true,
+      sheetReady: Boolean(sheet),
+      rowCount: sheet ? Math.max(0, sheet.getLastRow() - 1) : 0,
+    };
+  } catch (error) {
+    return { configured: false, sheetReady: false, rowCount: 0 };
+  }
+}
+
+function logSheetConnection_(spreadsheet, sheet, operation) {
+  console.log(
+    JSON.stringify({
+      operation,
+      spreadsheetName: spreadsheet.getName(),
+      spreadsheetId: spreadsheet.getId(),
+      sheetName: sheet.getName(),
+      sheetUrl: spreadsheet.getUrl() + "#gid=" + sheet.getSheetId(),
+      rowCount: Math.max(0, sheet.getLastRow() - 1),
+    }),
+  );
 }
 
 function findInvitationRow_(sheet, invitationId, token) {

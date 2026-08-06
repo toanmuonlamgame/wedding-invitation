@@ -10,7 +10,11 @@ import {
 } from "@/src/lib/admin-invitation-validation";
 import { regenerateInvitationToken } from "@/src/lib/admin-invitations";
 import { prisma } from "@/src/lib/prisma";
-import { syncInvitationDeletionToGoogleSheets } from "@/src/lib/google-sheets-sync";
+import {
+  syncInvitationDeletionToGoogleSheets,
+  syncInvitationToGoogleSheets,
+} from "@/src/lib/google-sheets-sync";
+import { getInvitationUrl } from "@/src/lib/site-url";
 
 type RouteContext = {
   params: Promise<{ id: string }>;
@@ -44,6 +48,32 @@ export async function PATCH(request: Request, { params }: RouteContext) {
   }
 
   try {
+    if (parsed.data.action === "sync-sheets") {
+      const invitation = await prisma.invitation.findUnique({
+        where: { id },
+        select: {
+          id: true,
+          token: true,
+          recipientText: true,
+          privateMessage: true,
+          adminNotes: true,
+          guestCount: true,
+          invitationSide: true,
+          language: true,
+          createdAt: true,
+          rsvp: true,
+        },
+      });
+      if (!invitation) return notFoundResponse();
+
+      const sheetsSync = await syncInvitationToGoogleSheets({
+        invitation,
+        invitationUrl: getInvitationUrl(invitation.token, request.url),
+        rsvp: invitation.rsvp,
+      });
+      return Response.json({ success: sheetsSync === "success", sheetsSync });
+    }
+
     if (parsed.data.action === "regenerate") {
       return Response.json(await regenerateInvitationToken(id));
     }

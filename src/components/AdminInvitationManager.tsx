@@ -226,6 +226,41 @@ export function AdminInvitationManager({
     }
   }
 
+  async function syncInvitationToSheets(invitation: AdminInvitationItem) {
+    setBusy(true);
+    setMessage("");
+    try {
+      const response = await fetch(`/api/admin/invitations/${invitation.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ creatorSecret, action: "sync-sheets" }),
+      });
+      const payload = (await response.json()) as {
+        message?: string;
+        sheetsSync?: "success" | "failed" | "skipped";
+      };
+      if (!response.ok) {
+        throw new Error(payload.message || "Không thể đồng bộ Google Sheets.");
+      }
+
+      if (payload.sheetsSync === "success") {
+        setMessage(`Đã đồng bộ thiệp của ${invitation.recipientText} lên Google Sheets.`);
+      } else if (payload.sheetsSync === "skipped") {
+        setMessage("Google Sheets chưa được cấu hình đầy đủ trên máy chủ.");
+      } else {
+        setMessage("Google Sheets chưa nhận được dữ liệu. Hãy kiểm tra Apps Script và thử lại.");
+      }
+    } catch (error) {
+      setMessage(
+        error instanceof Error
+          ? error.message
+          : "Không thể đồng bộ Google Sheets.",
+      );
+    } finally {
+      setBusy(false);
+    }
+  }
+
   async function saveEdit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!editing) return;
@@ -318,6 +353,11 @@ export function AdminInvitationManager({
         </button>
       </div>
 
+      <p className="admin-shared-note">
+        Google Sheets tự đồng bộ khi tạo thiệp, cập nhật RSVP hoặc xóa thiệp.
+        Với thiệp cũ, dùng nút “Đồng bộ Sheet” trên từng thiệp để đẩy lại dữ liệu.
+      </p>
+
       <div className="invitation-manager-tools">
         <label className="field invitation-search">
           <span>Tìm khách, token, nhãn hoặc ghi chú</span>
@@ -408,6 +448,13 @@ export function AdminInvitationManager({
                 </a>
                 <button type="button" onClick={() => setEditing(invitation)}>
                   Chỉnh sửa
+                </button>
+                <button
+                  type="button"
+                  disabled={busy}
+                  onClick={() => void syncInvitationToSheets(invitation)}
+                >
+                  Đồng bộ Sheet
                 </button>
               </div>
             </div>
