@@ -113,6 +113,7 @@ export function YouTubeSection({
           videoId,
           host: "https://www.youtube-nocookie.com",
           playerVars: {
+            origin: window.location.origin,
             autoplay: 1,
             controls: 1,
             loop: 1,

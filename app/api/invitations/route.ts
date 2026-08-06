@@ -114,9 +114,13 @@ export async function POST(request: NextRequest) {
       { token: invitation.token, invitationUrl },
       { status: 201 },
     );
-  } catch {
+  } catch (error) {
+    console.error("[invitations:create] Prisma create failed", error);
     return Response.json(
-      { message: "Chưa thể tạo thiệp lúc này. Vui lòng thử lại sau." },
+      {
+        error: "INVITATION_CREATE_FAILED",
+        message: "Chưa thể tạo thiệp lúc này. Vui lòng thử lại sau.",
+      },
       { status: 500 },
     );
   }
