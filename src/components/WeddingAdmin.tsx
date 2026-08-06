@@ -1153,44 +1153,48 @@ export function WeddingAdmin({
                         </>
                       )}
                     </div>
-                    <AdminItemActions
-                      index={index}
-                      count={draft.venues.length}
-                      onMove={(direction) =>
-                        setDraft((current) => ({
-                          ...current,
-                          venues: moveItem(current.venues, index, direction),
-                        }))
-                      }
-                      onDelete={() => {
-                        if (
-                          draft.venues.length > 1 &&
-                          window.confirm("Xóa địa điểm này khỏi cấu hình?")
-                        ) {
+                    {editingLanguage === "vi" ? (
+                      <AdminItemActions
+                        index={index}
+                        count={draft.venues.length}
+                        onMove={(direction) =>
                           setDraft((current) => ({
                             ...current,
-                            venues: current.venues.filter(
-                              (_, venueIndex) => venueIndex !== index,
-                            ),
-                          }));
+                            venues: moveItem(current.venues, index, direction),
+                          }))
                         }
-                      }}
-                      canDelete={draft.venues.length > 1}
-                    />
+                        onDelete={() => {
+                          if (
+                            draft.venues.length > 1 &&
+                            window.confirm("Xóa địa điểm này khỏi cấu hình?")
+                          ) {
+                            setDraft((current) => ({
+                              ...current,
+                              venues: current.venues.filter(
+                                (_, venueIndex) => venueIndex !== index,
+                              ),
+                            }));
+                          }
+                        }}
+                        canDelete={draft.venues.length > 1}
+                      />
+                    ) : null}
                   </fieldset>
                 ))}
-                <button
-                  className="button button-secondary"
-                  type="button"
-                  onClick={() =>
-                    setDraft((current) => ({
-                      ...current,
-                      venues: [...current.venues, newVenue()],
-                    }))
-                  }
-                >
-                  Thêm địa điểm
-                </button>
+                {editingLanguage === "vi" ? (
+                  <button
+                    className="button button-secondary"
+                    type="button"
+                    onClick={() =>
+                      setDraft((current) => ({
+                        ...current,
+                        venues: [...current.venues, newVenue()],
+                      }))
+                    }
+                  >
+                    Thêm địa điểm
+                  </button>
+                ) : null}
               </div>
             ) : null}
 
@@ -1346,47 +1350,51 @@ export function WeddingAdmin({
                       <p>{editingLanguage === "ko" ? chapter.translations?.ko?.summary || chapter.summary : chapter.summary}</p>
                       <small>{chapter.images.length} ảnh</small>
                     </div>
-                    <AdminItemActions
-                      index={index}
-                      count={draft.storyChapters.length}
-                      onMove={(direction) =>
-                        setDraft((current) => ({
-                          ...current,
-                          storyChapters: moveItem(
-                            current.storyChapters,
-                            index,
-                            direction,
-                          ),
-                        }))
-                      }
-                      onDelete={() => {
-                        if (window.confirm("Xóa chương này khỏi câu chuyện?")) {
+                    {editingLanguage === "vi" ? (
+                      <AdminItemActions
+                        index={index}
+                        count={draft.storyChapters.length}
+                        onMove={(direction) =>
                           setDraft((current) => ({
                             ...current,
-                            storyChapters: current.storyChapters.filter(
-                              (_, chapterIndex) => chapterIndex !== index,
+                            storyChapters: moveItem(
+                              current.storyChapters,
+                              index,
+                              direction,
                             ),
-                          }));
+                          }))
                         }
-                      }}
-                    />
+                        onDelete={() => {
+                          if (window.confirm("Xóa chương này khỏi câu chuyện?")) {
+                            setDraft((current) => ({
+                              ...current,
+                              storyChapters: current.storyChapters.filter(
+                                (_, chapterIndex) => chapterIndex !== index,
+                              ),
+                            }));
+                          }
+                        }}
+                      />
+                    ) : null}
                   </fieldset>
                 ))}
-                <button
-                  className="button button-secondary"
-                  type="button"
-                  onClick={() =>
-                    setDraft((current) => ({
-                      ...current,
-                      storyChapters: [
-                        ...current.storyChapters,
-                        newChapter(),
-                      ],
-                    }))
-                  }
-                >
-                  Thêm chương
-                </button>
+                {editingLanguage === "vi" ? (
+                  <button
+                    className="button button-secondary"
+                    type="button"
+                    onClick={() =>
+                      setDraft((current) => ({
+                        ...current,
+                        storyChapters: [
+                          ...current.storyChapters,
+                          newChapter(),
+                        ],
+                      }))
+                    }
+                  >
+                    Thêm chương
+                  </button>
+                ) : null}
               </div>
             ) : null}
 
@@ -1397,6 +1405,8 @@ export function WeddingAdmin({
                   area="album"
                   onChange={updateLocalizedCopy}
                 />
+                {editingLanguage === "vi" ? (
+                  <>
                 <MediaUploader
                   category="album"
                   creatorSecret={creatorSecret}
@@ -1596,6 +1606,14 @@ export function WeddingAdmin({
                 >
                   Thêm ảnh
                 </button>
+                  </>
+                ) : (
+                  <p className="admin-shared-note">
+                    Ảnh, thứ tự, framing và trạng thái hiển thị của album dùng
+                    chung cho cả hai ngôn ngữ. Chuyển sang Tiếng Việt để quản lý
+                    ảnh; tab 한국어 chỉ chỉnh phần chữ.
+                  </p>
+                )}
               </div>
             ) : null}
 

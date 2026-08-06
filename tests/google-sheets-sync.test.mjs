@@ -1,7 +1,9 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import {
+  normalizeGoogleSheetsDeletePayload,
   normalizeGoogleSheetsPayload,
+  postInvitationDeletionToGoogleSheets,
   postInvitationToGoogleSheets,
 } from "../src/lib/google-sheets-sync-core.ts";
 
@@ -27,6 +29,7 @@ test("normalizes the Apps Script payload without inventing database fields", () 
   const payload = normalizeGoogleSheetsPayload(input, "server-secret");
   assert.deepEqual(payload, {
     secret: "server-secret",
+    action: "upsert",
     invitationId: "invitation-01",
     token: "token-01",
     recipientText: "Anh Tuấn và gia đình",
@@ -41,6 +44,21 @@ test("normalizes the Apps Script payload without inventing database fields", () 
     confirmedCount: 0,
     notes: "Mong gia đình tới chung vui",
   });
+});
+
+test("normalizes a deletion command without guest data", () => {
+  assert.deepEqual(
+    normalizeGoogleSheetsDeletePayload(
+      { invitationId: " invitation-01 ", token: " token-01 " },
+      "server-secret",
+    ),
+    {
+      secret: "server-secret",
+      action: "delete",
+      invitationId: "invitation-01",
+      token: "token-01",
+    },
+  );
 });
 
 test("returns skipped without making a request when configuration is missing", async () => {
@@ -142,4 +160,26 @@ test("RSVP resync keeps the same upsert identifiers", async () => {
   assert.equal(bodies[1].rsvpStatus, "Tham dự");
   assert.equal(bodies[1].confirmedCount, 2);
   assert.equal(bodies[1].notes, "Ăn chay");
+});
+
+test("deletion posts one delete command and accepts JSON ok", async () => {
+  const bodies = [];
+  const status = await postInvitationDeletionToGoogleSheets({
+    input: { invitationId: "invitation-01", token: "token-01" },
+    webAppUrl,
+    secret: "server-secret",
+    fetchImpl: async (_url, options) => {
+      bodies.push(JSON.parse(String(options?.body)));
+      return Response.json({ ok: true });
+    },
+  });
+  assert.equal(status, "success");
+  assert.deepEqual(bodies, [
+    {
+      secret: "server-secret",
+      action: "delete",
+      invitationId: "invitation-01",
+      token: "token-01",
+    },
+  ]);
 });

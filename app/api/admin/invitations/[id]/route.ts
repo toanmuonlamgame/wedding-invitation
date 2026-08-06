@@ -10,6 +10,7 @@ import {
 } from "@/src/lib/admin-invitation-validation";
 import { regenerateInvitationToken } from "@/src/lib/admin-invitations";
 import { prisma } from "@/src/lib/prisma";
+import { syncInvitationDeletionToGoogleSheets } from "@/src/lib/google-sheets-sync";
 
 type RouteContext = {
   params: Promise<{ id: string }>;
@@ -106,8 +107,15 @@ export async function DELETE(request: Request, { params }: RouteContext) {
   }
 
   try {
-    await prisma.invitation.delete({ where: { id } });
-    return new Response(null, { status: 204 });
+    const deleted = await prisma.invitation.delete({
+      where: { id },
+      select: { id: true, token: true },
+    });
+    const sheetsSync = await syncInvitationDeletionToGoogleSheets({
+      invitationId: deleted.id,
+      token: deleted.token,
+    });
+    return Response.json({ success: true, sheetsSync });
   } catch (error) {
     if (isNotFound(error)) return notFoundResponse();
     return Response.json(

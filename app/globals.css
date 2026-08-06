@@ -4180,6 +4180,12 @@ textarea {
   font-size: clamp(3.5rem, 13vw, 7.5rem);
 }
 
+@media (max-width: 30rem) {
+  .cover-renderer[data-name-size="grand"] .cover-title {
+    font-size: clamp(2.65rem, 12vw, 3.5rem);
+  }
+}
+
 .cover-logo {
   position: relative;
   display: block;

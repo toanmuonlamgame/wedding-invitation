@@ -793,69 +793,6 @@ export function ExperienceEditor({
       </fieldset>
 
       <fieldset className="admin-item">
-        <legend>Nhạc nền</legend>
-        <div className="admin-form-grid">
-          <label className="admin-toggle">
-            <input
-              type="checkbox"
-              checked={value.music.enabled}
-              onChange={(event) =>
-                update("music", {
-                  ...value.music,
-                  enabled: event.target.checked,
-                })
-              }
-            />
-            Bật nhạc nền
-          </label>
-          <Field label="Tệp nhạc nội bộ / URL an toàn">
-            <input
-              value={value.music.src}
-              onChange={(event) =>
-                update("music", { ...value.music, src: event.target.value })
-              }
-            />
-          </Field>
-          <Field label="Tên bài nhạc">
-            <input
-              value={value.music.title}
-              onChange={(event) =>
-                update("music", { ...value.music, title: event.target.value })
-              }
-            />
-          </Field>
-          <Field label={`Âm lượng ${Math.round(value.music.volume * 100)}%`}>
-            <input
-              type="range"
-              min={0.2}
-              max={0.35}
-              step={0.01}
-              value={value.music.volume}
-              onChange={(event) =>
-                update("music", {
-                  ...value.music,
-                  volume: Number(event.target.value),
-                })
-              }
-            />
-          </Field>
-          <label className="admin-toggle">
-            <input
-              type="checkbox"
-              checked={value.music.autoplayAfterOpen}
-              onChange={(event) =>
-                update("music", {
-                  ...value.music,
-                  autoplayAfterOpen: event.target.checked,
-                })
-              }
-            />
-            Thử phát sau khi mở thiệp
-          </label>
-        </div>
-      </fieldset>
-
-      <fieldset className="admin-item">
         <legend>YouTube</legend>
         <div className="admin-form-grid">
           <label className="admin-toggle">

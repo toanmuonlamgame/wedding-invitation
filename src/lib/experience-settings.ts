@@ -101,7 +101,7 @@ export const defaultExperienceSettings: WeddingExperienceSettings = {
     groomFamily: "Gia đình chú rể Thành Long",
   },
   music: {
-    enabled: true,
+    enabled: false,
     src: "/music/wedding-theme.wav",
     title: "Giai điệu ngày vui",
     volume: 0.28,
@@ -187,6 +187,18 @@ export function mergeExperienceSettings(value: unknown): unknown {
         }
       : {}),
   };
+  const legacyCoverCopy = {
+    kicker: mergedCover.kicker,
+    brideName: mergedCover.brideName,
+    connector: mergedCover.connector,
+    groomName: mergedCover.groomName,
+    note: mergedCover.note,
+    buttonText: mergedCover.buttonText,
+  };
+  const legacyYoutubeCopy = {
+    title: mergedYoutube.title,
+    description: mergedYoutube.description,
+  };
 
   const mergeCopy = (language: "vi" | "ko") => {
     const defaults = defaultExperienceSettings.localizedCopy[language];
@@ -196,7 +208,7 @@ export function mergeExperienceSettings(value: unknown): unknown {
       ...stored,
       cover: {
         ...defaults.cover,
-        ...(language === "vi" ? mergedCover : {}),
+        ...(language === "vi" ? legacyCoverCopy : {}),
         ...record(stored.cover),
       },
       invitation: {
@@ -212,7 +224,7 @@ export function mergeExperienceSettings(value: unknown): unknown {
       wishes: { ...defaults.wishes, ...record(stored.wishes) },
       youtube: {
         ...defaults.youtube,
-        ...(language === "vi" ? mergedYoutube : {}),
+        ...(language === "vi" ? legacyYoutubeCopy : {}),
         ...record(stored.youtube),
       },
       footer: { ...defaults.footer, ...record(stored.footer) },

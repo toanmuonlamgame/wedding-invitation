@@ -24,8 +24,14 @@ export type GoogleSheetsSyncInput = {
   rsvp?: StoredRsvpForSheets;
 };
 
+export type GoogleSheetsDeleteInput = {
+  invitationId: string;
+  token: string;
+};
+
 export type GoogleSheetsPayload = {
   secret: string;
+  action: "upsert";
   invitationId: string;
   token: string;
   recipientText: string;
@@ -39,6 +45,13 @@ export type GoogleSheetsPayload = {
   rsvpStatus: "Chưa phản hồi" | "Tham dự" | "Không tham dự";
   confirmedCount: number;
   notes: string;
+};
+
+export type GoogleSheetsDeletePayload = {
+  secret: string;
+  action: "delete";
+  invitationId: string;
+  token: string;
 };
 
 function normalizeLanguage(value: string): "vi" | "ko" {
@@ -57,6 +70,7 @@ export function normalizeGoogleSheetsPayload(
   const { invitation, rsvp = null } = input;
   return {
     secret,
+    action: "upsert",
     invitationId: invitation.id,
     token: invitation.token,
     recipientText: invitation.recipientText.trim(),
@@ -77,6 +91,18 @@ export function normalizeGoogleSheetsPayload(
   };
 }
 
+export function normalizeGoogleSheetsDeletePayload(
+  input: GoogleSheetsDeleteInput,
+  secret: string,
+): GoogleSheetsDeletePayload {
+  return {
+    secret,
+    action: "delete",
+    invitationId: input.invitationId.trim(),
+    token: input.token.trim(),
+  };
+}
+
 function isAllowedWebAppUrl(value: string) {
   try {
     const url = new URL(value);
@@ -91,14 +117,16 @@ function isAllowedWebAppUrl(value: string) {
   }
 }
 
-export async function postInvitationToGoogleSheets({
-  input,
+async function postGoogleSheetsPayload({
+  buildPayload,
   webAppUrl,
   secret,
   timeoutMs = 6_500,
   fetchImpl = fetch,
 }: {
-  input: GoogleSheetsSyncInput;
+  buildPayload: (secret: string) =>
+    | GoogleSheetsPayload
+    | GoogleSheetsDeletePayload;
   webAppUrl?: string;
   secret?: string;
   timeoutMs?: number;
@@ -115,9 +143,7 @@ export async function postInvitationToGoogleSheets({
     const response = await fetchImpl(normalizedUrl, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(
-        normalizeGoogleSheetsPayload(input, normalizedSecret),
-      ),
+      body: JSON.stringify(buildPayload(normalizedSecret)),
       cache: "no-store",
       redirect: "follow",
       signal: controller.signal,
@@ -131,4 +157,37 @@ export async function postInvitationToGoogleSheets({
   } finally {
     clearTimeout(timeout);
   }
+}
+
+export function postInvitationToGoogleSheets({
+  input,
+  ...options
+}: {
+  input: GoogleSheetsSyncInput;
+  webAppUrl?: string;
+  secret?: string;
+  timeoutMs?: number;
+  fetchImpl?: typeof fetch;
+}): Promise<GoogleSheetsSyncStatus> {
+  return postGoogleSheetsPayload({
+    ...options,
+    buildPayload: (secret) => normalizeGoogleSheetsPayload(input, secret),
+  });
+}
+
+export function postInvitationDeletionToGoogleSheets({
+  input,
+  ...options
+}: {
+  input: GoogleSheetsDeleteInput;
+  webAppUrl?: string;
+  secret?: string;
+  timeoutMs?: number;
+  fetchImpl?: typeof fetch;
+}): Promise<GoogleSheetsSyncStatus> {
+  return postGoogleSheetsPayload({
+    ...options,
+    buildPayload: (secret) =>
+      normalizeGoogleSheetsDeletePayload(input, secret),
+  });
 }

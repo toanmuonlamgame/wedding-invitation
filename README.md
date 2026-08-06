@@ -69,10 +69,15 @@ GOOGLE_SHEETS_SYNC_SECRET="..."
 
 ## Đồng bộ Google Sheets
 
-Sau khi tạo Invitation hoặc cập nhật RSVP thành công trong PostgreSQL, server
-gửi một bản snapshot sang Google Apps Script. PostgreSQL luôn là nguồn dữ liệu
-chính. Google Sheets dùng `invitationId`/`token` để upsert nên gửi lại cùng thiệp
-sẽ cập nhật dòng hiện có thay vì tạo dòng trùng.
+Sau khi tạo Invitation, cập nhật RSVP hoặc xóa thiệp trong admin thành công ở
+PostgreSQL, server gửi lệnh đồng bộ sang Google Apps Script. PostgreSQL luôn là
+nguồn dữ liệu chính. Google Sheets dùng `invitationId`/`token` để upsert nên gửi
+lại cùng thiệp sẽ cập nhật dòng hiện có thay vì tạo dòng trùng; lệnh `delete` sẽ
+xóa đúng dòng tương ứng.
+
+Mã Web App tham chiếu nằm tại `docs/google-apps-script.gs`. Khi file này thay
+đổi, cần dán lại vào Apps Script và tạo **New version** cho deployment `/exec`;
+chỉ sửa code nhưng không phát hành phiên bản mới thì Web App vẫn chạy bản cũ.
 
 Đồng bộ có timeout 6,5 giây và không retry vô hạn. Nếu thiếu cấu hình, trạng thái
 là `skipped`; nếu Apps Script lỗi, timeout hoặc trả JSON không có `ok: true`, trạng

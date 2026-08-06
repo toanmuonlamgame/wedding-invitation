@@ -6,7 +6,6 @@ import { WeddingWishes } from "@/src/components/WeddingWishes";
 import { CreatorSection } from "@/src/sections/CreatorSection";
 import { FooterSection } from "@/src/sections/FooterSection";
 import { InvitationSection } from "@/src/sections/InvitationSection";
-import { MusicSection } from "@/src/sections/MusicSection";
 import { YouTubeSection } from "@/src/sections/YouTubeSection";
 import { OpeningSection } from "@/src/sections/OpeningSection";
 import { ScheduleSection } from "@/src/sections/ScheduleSection";
@@ -106,12 +105,8 @@ export function WeddingInvitation({
           layout={content.experience.wishLayout}
           showList={content.experience.wishes.showList}
         />
-        <MusicSection settings={content.experience.music} />
         {showCreator ? <CreatorSection missingKoreanCount={missingKoreanCount} /> : null}
-        <YouTubeSection
-          settings={localized.youtube}
-          stackPlayer={content.experience.music.enabled}
-        />
+        <YouTubeSection settings={localized.youtube} />
         <FooterSection language={language} />
       </main>
       <FloatingWishes

@@ -1,5 +1,4 @@
 import { cache } from "react";
-import { unstable_cache } from "next/cache";
 import { z } from "zod";
 import { prisma } from "@/src/lib/prisma";
 import { defaultWeddingContent } from "@/src/lib/wedding-data";
@@ -585,7 +584,18 @@ function parseStoredContent(record: {
     experience: mergeExperienceSettings(record.experienceJson),
   });
 
-  return parsed.success ? parsed.data : defaultWeddingContent;
+  if (!parsed.success) {
+    console.error(
+      "[wedding-content] Stored content validation failed.",
+      parsed.error.issues.map((issue) => ({
+        code: issue.code,
+        path: issue.path.join("."),
+      })),
+    );
+    return defaultWeddingContent;
+  }
+
+  return parsed.data;
 }
 
 async function loadWeddingContent(): Promise<WeddingContentData> {
@@ -611,18 +621,9 @@ async function loadWeddingContent(): Promise<WeddingContentData> {
   }
 }
 
-const getCachedWeddingContent = unstable_cache(
-  loadWeddingContent,
-  ["wedding-content-main"],
-  {
-    tags: ["wedding-content"],
-    revalidate: 300,
-  },
-);
-
 export const getWeddingContent = cache(async (): Promise<WeddingContentData> => {
   if (!process.env.DATABASE_URL) return defaultWeddingContent;
-  return getCachedWeddingContent();
+  return loadWeddingContent();
 });
 
 export async function saveWeddingContent(

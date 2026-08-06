@@ -1,30 +1,54 @@
 import "server-only";
 
 import {
+  postInvitationDeletionToGoogleSheets,
   postInvitationToGoogleSheets,
+  type GoogleSheetsDeleteInput,
   type GoogleSheetsSyncInput,
   type GoogleSheetsSyncStatus,
 } from "@/src/lib/google-sheets-sync-core";
 
-export type { GoogleSheetsSyncInput, GoogleSheetsSyncStatus };
+export type {
+  GoogleSheetsDeleteInput,
+  GoogleSheetsSyncInput,
+  GoogleSheetsSyncStatus,
+};
+
+async function reportSyncStatus(
+  operation: () => Promise<GoogleSheetsSyncStatus>,
+) {
+  try {
+    const status = await operation();
+    if (status === "failed") {
+      console.error("[google-sheets-sync] Synchronization failed.");
+    }
+    return status;
+  } catch {
+    console.error("[google-sheets-sync] Synchronization failed.");
+    return "failed" as const;
+  }
+}
 
 export async function syncInvitationToGoogleSheets(
   input: GoogleSheetsSyncInput,
 ): Promise<GoogleSheetsSyncStatus> {
-  try {
-    const status = await postInvitationToGoogleSheets({
+  return reportSyncStatus(() =>
+    postInvitationToGoogleSheets({
       input,
       webAppUrl: process.env.GOOGLE_SHEETS_WEB_APP_URL,
       secret: process.env.GOOGLE_SHEETS_SYNC_SECRET,
-    });
+    }),
+  );
+}
 
-    if (status === "failed") {
-      console.error("[google-sheets-sync] Synchronization failed.");
-    }
-
-    return status;
-  } catch {
-    console.error("[google-sheets-sync] Synchronization failed.");
-    return "failed";
-  }
+export async function syncInvitationDeletionToGoogleSheets(
+  input: GoogleSheetsDeleteInput,
+): Promise<GoogleSheetsSyncStatus> {
+  return reportSyncStatus(() =>
+    postInvitationDeletionToGoogleSheets({
+      input,
+      webAppUrl: process.env.GOOGLE_SHEETS_WEB_APP_URL,
+      secret: process.env.GOOGLE_SHEETS_SYNC_SECRET,
+    }),
+  );
 }

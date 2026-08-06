@@ -5,7 +5,6 @@ import {
   useMemo,
   useRef,
   useState,
-  useSyncExternalStore,
 } from "react";
 import { MusicPlayer } from "@/src/components/MusicPlayer";
 import { SectionHeading } from "@/src/components/SectionHeading";
@@ -48,10 +47,6 @@ declare global {
 
 let youtubeApiPromise: Promise<YouTubeApi> | null = null;
 
-const subscribeToBrowserOrigin = () => () => undefined;
-const getBrowserOrigin = () => window.location.origin;
-const getServerOrigin = () => "";
-
 function loadYouTubeApi() {
   if (window.YT?.Player) return Promise.resolve(window.YT);
   if (youtubeApiPromise) return youtubeApiPromise;
@@ -88,63 +83,48 @@ function getYouTubeId(url: string) {
   }
 }
 
-export function YouTubeSection({
-  settings,
-  stackPlayer = false,
-}: {
-  settings: YouTubeSettings;
-  stackPlayer?: boolean;
-}) {
+export function YouTubeSection({ settings }: { settings: YouTubeSettings }) {
   const { language, messages } = useInvitationLocale();
   const { isOpened } = useWeddingExperience();
-  const playerIframeRef = useRef<HTMLIFrameElement>(null);
+  const playerHostRef = useRef<HTMLDivElement>(null);
   const playerRef = useRef<YouTubePlayer | null>(null);
   const [isReady, setIsReady] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isUnavailable, setIsUnavailable] = useState(false);
-  const [isIframeLoaded, setIsIframeLoaded] = useState(false);
   const [status, setStatus] = useState(
     messages.youtube.willLoad,
   );
   const videoId = useMemo(() => getYouTubeId(settings.url), [settings.url]);
-  const browserOrigin = useSyncExternalStore(
-    subscribeToBrowserOrigin,
-    getBrowserOrigin,
-    getServerOrigin,
-  );
-  const embedUrl = useMemo(() => {
-    if (!browserOrigin || !isOpened || !settings.enabled || !videoId) {
-      return "";
-    }
-    const params = new URLSearchParams({
-      origin: browserOrigin,
-      autoplay: "1",
-      controls: "1",
-      loop: "1",
-      playlist: videoId,
-      playsinline: "1",
-      rel: "0",
-      enablejsapi: "1",
-    });
-    return `https://www.youtube.com/embed/${encodeURIComponent(videoId)}?${params}`;
-  }, [browserOrigin, isOpened, settings.enabled, videoId]);
 
   useEffect(() => {
     if (
       !settings.enabled ||
       !isOpened ||
       !videoId ||
-      !isIframeLoaded ||
-      !playerIframeRef.current
+      !playerHostRef.current
     ) {
       return;
     }
 
     let cancelled = false;
+    setIsReady(false);
+    setIsPlaying(false);
+    setIsUnavailable(false);
     void loadYouTubeApi()
       .then((youtube) => {
-        if (cancelled || !playerIframeRef.current) return;
-        playerRef.current = new youtube.Player(playerIframeRef.current, {
+        if (cancelled || !playerHostRef.current) return;
+        playerRef.current = new youtube.Player(playerHostRef.current, {
+          videoId,
+          playerVars: {
+            origin: window.location.origin,
+            autoplay: 1,
+            controls: 1,
+            loop: 1,
+            playlist: videoId,
+            playsinline: 1,
+            rel: 0,
+            enablejsapi: 1,
+          },
           events: {
             onReady: (event) => {
               event.target.setVolume(28);
@@ -161,9 +141,6 @@ export function YouTubeSection({
                   ? messages.youtube.playing
                   : messages.youtube.paused,
               );
-              if (playing) {
-                window.dispatchEvent(new Event("wedding-youtube-playing"));
-              }
             },
             onError: () => {
               setIsPlaying(false);
@@ -186,22 +163,12 @@ export function YouTubeSection({
         setStatus(messages.youtube.connectionFailed);
       });
 
-    const pauseForBackgroundAudio = () => playerRef.current?.pauseVideo();
-    window.addEventListener(
-      "wedding-background-audio-playing",
-      pauseForBackgroundAudio,
-    );
     return () => {
       cancelled = true;
-      window.removeEventListener(
-        "wedding-background-audio-playing",
-        pauseForBackgroundAudio,
-      );
       playerRef.current?.destroy();
       playerRef.current = null;
     };
   }, [
-    isIframeLoaded,
     isOpened,
     messages.youtube.blocked,
     messages.youtube.connectionFailed,
@@ -219,7 +186,6 @@ export function YouTubeSection({
       playerRef.current.pauseVideo();
       return;
     }
-    window.dispatchEvent(new Event("wedding-youtube-playing"));
     playerRef.current.playVideo();
   }
 
@@ -238,17 +204,9 @@ export function YouTubeSection({
         </div>
         <div className="youtube-music-layout" data-reveal>
           <div className="youtube-player-frame">
-            <div className="youtube-player-host" data-loaded={Boolean(embedUrl)}>
-              {embedUrl ? (
-                <iframe
-                  ref={playerIframeRef}
-                  src={embedUrl}
-                  title={language === "ko" ? messages.youtube.title : settings.title}
-                  allow="autoplay; encrypted-media; picture-in-picture"
-                  allowFullScreen
-                  referrerPolicy="strict-origin-when-cross-origin"
-                  onLoad={() => setIsIframeLoaded(true)}
-                />
+            <div className="youtube-player-host" data-loaded={isOpened}>
+              {isOpened ? (
+                <div ref={playerHostRef} />
               ) : (
                 <p>{messages.youtube.openFirst}</p>
               )}
@@ -282,7 +240,6 @@ export function YouTubeSection({
           isUnavailable={isUnavailable}
           onToggle={handleToggle}
           sourceLabel="nhạc YouTube"
-          stacked={stackPlayer}
         />
       ) : null}
     </section>
