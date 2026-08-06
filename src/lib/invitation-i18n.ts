@@ -75,6 +75,7 @@ const vi = {
   rsvp: {
     eyebrow: "Hẹn gặp bạn trong ngày vui",
     title: "Xác nhận tham dự",
+    description: "Sự hồi đáp của bạn giúp gia đình chuẩn bị chu đáo hơn.",
     invitationFor: "Thiệp dành cho:",
     guestName: "Tên người xác nhận",
     attendingQuestion: "Bạn có thể tham dự không?",
@@ -209,6 +210,7 @@ const ko: typeof vi = {
   },
   rsvp: {
     eyebrow: "기쁜 날에 뵙겠습니다", title: "참석 여부 회신", invitationFor: "초대받으신 분:",
+    description: "참석 여부를 알려 주시면 정성껏 준비하겠습니다.",
     guestName: "성함", attendingQuestion: "결혼식에 참석하시나요?", attendingYes: "네, 참석하겠습니다",
     attendingNo: "죄송하지만 참석하기 어렵습니다", confirmedCount: "참석 인원",
     maximum: (count) => `이 청첩장으로 최대 ${count}명까지 회신할 수 있습니다.`,

@@ -59,7 +59,7 @@ async function copyText(value: string) {
   }
 }
 
-export function InvitationForm() {
+export function InvitationForm({ missingKoreanCount = 0 }: { missingKoreanCount?: number }) {
   const formRef = useRef<HTMLFormElement>(null);
   const recipientRef = useRef<HTMLInputElement>(null);
   const [formState, setFormState] = useState<FormState>({
@@ -93,6 +93,20 @@ export function InvitationForm() {
 
     if (clientError) {
       setFormState({ status: "error", message: clientError });
+      return;
+    }
+
+    if (
+      language === "ko" &&
+      missingKoreanCount > 0 &&
+      !window.confirm(
+        `Bản tiếng Hàn còn thiếu ${missingKoreanCount} nội dung và sẽ dùng tiếng Việt thay thế. Bạn vẫn muốn tạo thiệp?`,
+      )
+    ) {
+      setFormState({
+        status: "idle",
+        message: "Đã dừng tạo thiệp để bạn kiểm tra lại nội dung tiếng Hàn.",
+      });
       return;
     }
 

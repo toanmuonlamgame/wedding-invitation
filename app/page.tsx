@@ -16,12 +16,23 @@ export const metadata: Metadata = {
   },
 };
 
-export default async function Home() {
+export default async function Home({
+  searchParams,
+}: {
+  searchParams: Promise<{ language?: string; preview?: string }>;
+}) {
+  const query = await searchParams;
+  const language = query.language === "ko" ? "ko" : "vi";
   const [content, wishes] = await Promise.all([
     getWeddingContent(),
     getPublicWishes(),
   ]);
   return (
-    <WeddingInvitation content={content} wishes={wishes} showCreator />
+    <WeddingInvitation
+      content={content}
+      wishes={wishes}
+      showCreator={query.preview !== "admin"}
+      language={language}
+    />
   );
 }

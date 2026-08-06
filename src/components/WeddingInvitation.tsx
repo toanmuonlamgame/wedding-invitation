@@ -17,6 +17,11 @@ import type { PublicWeddingWish } from "@/src/types/engagement";
 import type { WeddingContentData } from "@/src/types/wedding";
 import { InvitationLocaleProvider } from "@/src/components/InvitationLocaleProvider";
 import type { InvitationLanguage } from "@/src/lib/invitation-i18n";
+import {
+  getLocalizedWeddingContent,
+  getMissingKoreanContent,
+  weddingMessageOverrides,
+} from "@/src/lib/localized-wedding-content";
 
 type WeddingInvitationProps = {
   content: WeddingContentData;
@@ -35,13 +40,18 @@ export function WeddingInvitation({
   showCreator = false,
   language = invitation?.language ?? "vi",
 }: WeddingInvitationProps) {
+  const localized = getLocalizedWeddingContent(content, language);
+  const missingKoreanCount = getMissingKoreanContent(content).length;
   return (
-    <InvitationLocaleProvider language={language}>
+    <InvitationLocaleProvider
+      language={language}
+      overrides={weddingMessageOverrides(localized.copy)}
+    >
     <WeddingExperience
       recipientText={invitation?.recipientText}
       themePreset={content.themePreset}
       fontPreset={content.fontPreset}
-      cover={content.experience.cover}
+      cover={localized.cover}
       adminUrl={
         showCreator
           ? "https://wedding-invitation-eight-lac.vercel.app/admin"
@@ -54,7 +64,7 @@ export function WeddingInvitation({
         {content.experience.sections.invitation ? (
           <InvitationSection
             invitation={invitation}
-            settings={content.experience.invitation}
+            settings={localized.invitation}
             language={language}
           />
         ) : null}
@@ -66,7 +76,7 @@ export function WeddingInvitation({
         ) : null}
         {content.experience.sections.story ? (
           <StorySection
-            chapters={content.storyChapters.filter(
+            chapters={localized.storyChapters.filter(
               (chapter) => chapter.visible && chapter.available,
             )}
             language={language}
@@ -74,11 +84,11 @@ export function WeddingInvitation({
         ) : null}
         <ScheduleSection
           weddingDateTime={content.weddingDateTime}
-          expiredMessage={content.expiredCountdownMessage}
+          expiredMessage={localized.expiredCountdownMessage}
           settings={content.experience.countdown}
           language={language}
         />
-        <VenueSection venues={content.venues} language={language} />
+        <VenueSection venues={localized.venues} language={language} />
         {content.experience.sections.rsvp && invitation && invitationToken ? (
           <RsvpForm
             token={invitationToken}
@@ -97,9 +107,9 @@ export function WeddingInvitation({
           showList={content.experience.wishes.showList}
         />
         <MusicSection settings={content.experience.music} />
-        {showCreator ? <CreatorSection /> : null}
+        {showCreator ? <CreatorSection missingKoreanCount={missingKoreanCount} /> : null}
         <YouTubeSection
-          settings={content.experience.youtube}
+          settings={localized.youtube}
           stackPlayer={content.experience.music.enabled}
         />
         <FooterSection language={language} />

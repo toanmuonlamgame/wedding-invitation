@@ -1,4 +1,59 @@
 import type { WeddingExperienceSettings } from "@/src/types/wedding";
+import { invitationMessages } from "./invitation-i18n.ts";
+
+function defaultTextCopy(language: "vi" | "ko") {
+  const messages = invitationMessages[language];
+  return {
+    cover: {
+      kicker: messages.cover.invitationLabel,
+      brideName: "Vũ Bình",
+      connector: "&",
+      groomName: "Thành Long",
+      note: messages.cover.note,
+      buttonText: messages.cover.openInvitation,
+    },
+    invitation: {
+      eyebrow: messages.invitation.eyebrow,
+      title: messages.invitation.title,
+      body: messages.invitation.body,
+      supportingText: messages.invitation.supportingText,
+      brideFamily: language === "ko" ? "신부 Vũ Bình 가족" : "Gia đình cô dâu Vũ Bình",
+      groomFamily: language === "ko" ? "신랑 Thành Long 가족" : "Gia đình chú rể Thành Long",
+    },
+    album: { eyebrow: messages.album.eyebrow, title: messages.album.title },
+    story: {
+      eyebrow: messages.story.eyebrow,
+      title: messages.story.title,
+      description: messages.story.description,
+    },
+    countdown: {
+      eyebrow: messages.schedule.eyebrow,
+      title: messages.schedule.title,
+      description: messages.schedule.description,
+      expiredMessage: messages.schedule.expired,
+    },
+    venue: {
+      eyebrow: messages.venue.eyebrow,
+      title: messages.venue.title,
+      description: messages.venue.description,
+    },
+    rsvp: {
+      eyebrow: messages.rsvp.eyebrow,
+      title: messages.rsvp.title,
+      description: messages.rsvp.description,
+    },
+    wishes: {
+      eyebrow: messages.wishes.eyebrow,
+      title: messages.wishes.title,
+      description: messages.wishes.description,
+    },
+    youtube: {
+      title: messages.youtube.title,
+      description: messages.youtube.description,
+    },
+    footer: { title: messages.footer.title, body: messages.footer.body },
+  };
+}
 
 export const defaultExperienceSettings: WeddingExperienceSettings = {
   cover: {
@@ -96,6 +151,10 @@ export const defaultExperienceSettings: WeddingExperienceSettings = {
     rsvp: true,
   },
   allowGuestSideSelection: false,
+  localizedCopy: {
+    vi: defaultTextCopy("vi"),
+    ko: defaultTextCopy("ko"),
+  },
 };
 
 function record(value: unknown): Record<string, unknown> {
@@ -111,11 +170,58 @@ export function mergeExperienceSettings(value: unknown): unknown {
   const youtube = record(source.youtube);
   const usedTemporaryYouTubeDefault =
     youtube.title === "Bản nhạc chúng mình yêu thích";
+  const localizedCopy = record(source.localizedCopy);
+  const mergedCover = { ...defaultExperienceSettings.cover, ...cover };
+  const mergedInvitation = {
+    ...defaultExperienceSettings.invitation,
+    ...record(source.invitation),
+  };
+  const mergedYoutube = {
+    ...defaultExperienceSettings.youtube,
+    ...youtube,
+    ...(usedTemporaryYouTubeDefault
+      ? {
+          url: defaultExperienceSettings.youtube.url,
+          title: defaultExperienceSettings.youtube.title,
+          description: defaultExperienceSettings.youtube.description,
+        }
+      : {}),
+  };
+
+  const mergeCopy = (language: "vi" | "ko") => {
+    const defaults = defaultExperienceSettings.localizedCopy[language];
+    const stored = record(localizedCopy[language]);
+    return {
+      ...defaults,
+      ...stored,
+      cover: {
+        ...defaults.cover,
+        ...(language === "vi" ? mergedCover : {}),
+        ...record(stored.cover),
+      },
+      invitation: {
+        ...defaults.invitation,
+        ...(language === "vi" ? mergedInvitation : {}),
+        ...record(stored.invitation),
+      },
+      album: { ...defaults.album, ...record(stored.album) },
+      story: { ...defaults.story, ...record(stored.story) },
+      countdown: { ...defaults.countdown, ...record(stored.countdown) },
+      venue: { ...defaults.venue, ...record(stored.venue) },
+      rsvp: { ...defaults.rsvp, ...record(stored.rsvp) },
+      wishes: { ...defaults.wishes, ...record(stored.wishes) },
+      youtube: {
+        ...defaults.youtube,
+        ...(language === "vi" ? mergedYoutube : {}),
+        ...record(stored.youtube),
+      },
+      footer: { ...defaults.footer, ...record(stored.footer) },
+    };
+  };
 
   return {
     cover: {
-      ...defaultExperienceSettings.cover,
-      ...cover,
+      ...mergedCover,
       background: {
         ...defaultExperienceSettings.cover.background,
         ...record(cover.background),
@@ -125,25 +231,12 @@ export function mergeExperienceSettings(value: unknown): unknown {
         ...record(cover.logoFrame),
       },
     },
-    invitation: {
-      ...defaultExperienceSettings.invitation,
-      ...record(source.invitation),
-    },
+    invitation: mergedInvitation,
     music: {
       ...defaultExperienceSettings.music,
       ...record(source.music),
     },
-    youtube: {
-      ...defaultExperienceSettings.youtube,
-      ...youtube,
-      ...(usedTemporaryYouTubeDefault
-        ? {
-            url: defaultExperienceSettings.youtube.url,
-            title: defaultExperienceSettings.youtube.title,
-            description: defaultExperienceSettings.youtube.description,
-          }
-        : {}),
-    },
+    youtube: mergedYoutube,
     countdown: {
       ...defaultExperienceSettings.countdown,
       ...countdown,
@@ -165,5 +258,6 @@ export function mergeExperienceSettings(value: unknown): unknown {
     allowGuestSideSelection:
       source.allowGuestSideSelection ??
       defaultExperienceSettings.allowGuestSideSelection,
+    localizedCopy: { vi: mergeCopy("vi"), ko: mergeCopy("ko") },
   };
 }

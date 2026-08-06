@@ -9,9 +9,112 @@ import type {
   CoverSettings,
   InvitationContentSettings,
   WeddingExperienceSettings,
+  WeddingTextCopy,
   WishOverlayPreset,
 } from "@/src/types/wedding";
 import { InvitationCopy } from "@/src/sections/InvitationSection";
+
+function localizedTextField(
+  value: WeddingTextCopy,
+  onChange: (value: WeddingTextCopy) => void,
+  {
+    section,
+    field,
+    label,
+    textarea = false,
+  }: {
+    section: keyof WeddingTextCopy;
+    field: string;
+    label: string;
+    textarea?: boolean;
+  },
+) {
+  const current = value[section] as unknown as Record<string, string>;
+  const handleChange = (
+    event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
+  ) =>
+    onChange({
+      ...value,
+      [section]: { ...value[section], [field]: event.target.value },
+    });
+  return (
+    <label className={textarea ? "admin-wide-field" : undefined} key={`${section}.${field}`}>
+      {label}
+      {textarea ? (
+        <textarea value={current[field] ?? ""} onChange={handleChange} />
+      ) : (
+        <input value={current[field] ?? ""} onChange={handleChange} />
+      )}
+      {!current[field]?.trim() ? (
+        <span className="translation-missing">Chưa có bản ngôn ngữ này</span>
+      ) : null}
+    </label>
+  );
+}
+
+export function LocalizedCopyEditor({
+  value,
+  area,
+  onChange,
+}: {
+  value: WeddingTextCopy;
+  area: "cover" | "invitation" | "sections" | "album" | "story" | "countdown" | "venue";
+  onChange: (value: WeddingTextCopy) => void;
+}) {
+  if (area === "cover") {
+    return <div className="admin-form-grid">
+      {localizedTextField(value, onChange, { section: "cover", field: "kicker", label: "Dòng kính mời" })}
+      {localizedTextField(value, onChange, { section: "cover", field: "brideName", label: "Tên cô dâu hiển thị" })}
+      {localizedTextField(value, onChange, { section: "cover", field: "connector", label: "Ký hiệu nối" })}
+      {localizedTextField(value, onChange, { section: "cover", field: "groomName", label: "Tên chú rể hiển thị" })}
+      {localizedTextField(value, onChange, { section: "cover", field: "note", label: "Mô tả ngắn", textarea: true })}
+      {localizedTextField(value, onChange, { section: "cover", field: "buttonText", label: "Nút mở thiệp" })}
+    </div>;
+  }
+  if (area === "invitation") {
+    return <div className="admin-form-grid">
+      {localizedTextField(value, onChange, { section: "invitation", field: "eyebrow", label: "Nhãn nhỏ" })}
+      {localizedTextField(value, onChange, { section: "invitation", field: "title", label: "Tiêu đề", textarea: true })}
+      {localizedTextField(value, onChange, { section: "invitation", field: "body", label: "Nội dung lời mời", textarea: true })}
+      {localizedTextField(value, onChange, { section: "invitation", field: "supportingText", label: "Dòng bổ sung", textarea: true })}
+      {localizedTextField(value, onChange, { section: "invitation", field: "brideFamily", label: "Thông tin nhà gái" })}
+      {localizedTextField(value, onChange, { section: "invitation", field: "groomFamily", label: "Thông tin nhà trai" })}
+    </div>;
+  }
+  if (["album", "story", "countdown", "venue"].includes(area)) {
+    const fields = area === "album"
+      ? [["eyebrow", "Nhãn nhỏ"], ["title", "Tiêu đề"]] as const
+      : area === "countdown"
+        ? [["eyebrow", "Nhãn nhỏ"], ["title", "Tiêu đề"], ["description", "Mô tả"], ["expiredMessage", "Thông báo khi kết thúc"]] as const
+        : [["eyebrow", "Nhãn nhỏ"], ["title", "Tiêu đề"], ["description", "Mô tả"]] as const;
+    const section = area as "album" | "story" | "countdown" | "venue";
+    return <fieldset className="admin-item">
+      <legend>Nội dung tiêu đề section</legend>
+      <div className="admin-form-grid">
+        {fields.map(([field, label]) => localizedTextField(value, onChange, { section, field, label, textarea: field === "description" }))}
+      </div>
+    </fieldset>;
+  }
+  return <div className="admin-list">
+    {([
+      ["album", "Album", [["eyebrow", "Nhãn nhỏ"], ["title", "Tiêu đề"]]],
+      ["story", "Chuyện chúng mình", [["eyebrow", "Nhãn nhỏ"], ["title", "Tiêu đề"], ["description", "Mô tả"]]],
+      ["countdown", "Countdown", [["eyebrow", "Nhãn nhỏ"], ["title", "Tiêu đề"], ["description", "Mô tả"], ["expiredMessage", "Thông báo khi kết thúc"]]],
+      ["venue", "Địa điểm", [["eyebrow", "Nhãn nhỏ"], ["title", "Tiêu đề"], ["description", "Mô tả"]]],
+      ["rsvp", "RSVP", [["eyebrow", "Nhãn nhỏ"], ["title", "Tiêu đề"], ["description", "Mô tả"]]],
+      ["wishes", "Lời chúc", [["eyebrow", "Nhãn nhỏ"], ["title", "Tiêu đề"], ["description", "Mô tả"]]],
+      ["youtube", "YouTube", [["title", "Tiêu đề"], ["description", "Mô tả"]]],
+      ["footer", "Footer", [["title", "Tiêu đề"], ["body", "Lời kết"]]],
+    ] as const).map(([section, legend, fields]) => (
+      <fieldset className="admin-item" key={section}>
+        <legend>{legend}</legend>
+        <div className="admin-form-grid">
+          {fields.map(([field, label]) => localizedTextField(value, onChange, { section, field, label, textarea: field === "description" || field === "body" }))}
+        </div>
+      </fieldset>
+    ))}
+  </div>;
+}
 
 type CoverEditorProps = {
   value: CoverSettings;

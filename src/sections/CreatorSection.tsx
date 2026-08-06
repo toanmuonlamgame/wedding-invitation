@@ -1,7 +1,7 @@
 import { InvitationForm } from "@/src/components/InvitationForm";
 import { SectionHeading } from "@/src/components/SectionHeading";
 
-export function CreatorSection() {
+export function CreatorSection({ missingKoreanCount = 0 }: { missingKoreanCount?: number }) {
   return (
     <section className="section creator-section" aria-labelledby="creator-title">
       <div className="section-shell">
@@ -29,7 +29,7 @@ export function CreatorSection() {
               tạo thiệp hợp lệ.
             </p>
           </aside>
-          <InvitationForm />
+          <InvitationForm missingKoreanCount={missingKoreanCount} />
         </div>
       </div>
     </section>

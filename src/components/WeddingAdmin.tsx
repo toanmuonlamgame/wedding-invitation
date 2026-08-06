@@ -8,6 +8,8 @@ import {
   MIN_ALBUM_INTERVAL_MS,
 } from "@/src/lib/album-autoplay";
 import { normalizeImageFraming } from "@/src/lib/image-framing";
+import { getMissingKoreanContent } from "@/src/lib/localized-wedding-content";
+import type { InvitationLanguage } from "@/src/lib/invitation-i18n";
 import type { FieldErrors } from "@/src/types/engagement";
 import type {
   GalleryMoment,
@@ -15,6 +17,7 @@ import type {
   StoryImage,
   WeddingContentData,
   WeddingEvent,
+  WeddingTextCopy,
 } from "@/src/types/wedding";
 
 const adminLoading = () => (
@@ -55,6 +58,13 @@ const InvitationEditor = dynamic(
   () =>
     import("@/src/components/ExperienceEditor").then(
       (module) => module.InvitationEditor,
+    ),
+  { loading: adminLoading },
+);
+const LocalizedCopyEditor = dynamic(
+  () =>
+    import("@/src/components/ExperienceEditor").then(
+      (module) => module.LocalizedCopyEditor,
     ),
   { loading: adminLoading },
 );
@@ -197,6 +207,13 @@ function normalizeContent(content: WeddingContentData): WeddingContentData {
       imageStoragePath: venue.imageStoragePath?.trim() || undefined,
       imageAlt: venue.imageAlt?.trim() || undefined,
       showImage: Boolean(venue.showImage),
+      translations: venue.translations?.ko
+        ? {
+            ko: Object.fromEntries(
+              Object.entries(venue.translations.ko).map(([key, value]) => [key, value?.trim()]),
+            ),
+          }
+        : undefined,
     })),
     storyChapters: content.storyChapters.map((chapter) => ({
       ...chapter,
@@ -206,6 +223,13 @@ function normalizeContent(content: WeddingContentData): WeddingContentData {
       title: chapter.title.trim(),
       summary: chapter.summary.trim(),
       fullStory: chapter.fullStory.trim(),
+      translations: chapter.translations?.ko
+        ? {
+            ko: Object.fromEntries(
+              Object.entries(chapter.translations.ko).map(([key, value]) => [key, value?.trim()]),
+            ),
+          }
+        : undefined,
       images: chapter.images.map((image) => ({
         ...image,
         ...normalizeImageFraming(image),
@@ -334,6 +358,8 @@ export function WeddingAdmin({
   );
   const [draft, setDraft] = useState(() => cloneContent(initialContent));
   const [activeTab, setActiveTab] = useState<AdminTab>("overview");
+  const [editingLanguage, setEditingLanguage] = useState<InvitationLanguage>("vi");
+  const [previewLanguage, setPreviewLanguage] = useState<InvitationLanguage>("vi");
   const [status, setStatus] = useState("");
   const [isSaving, setIsSaving] = useState(false);
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
@@ -503,6 +529,21 @@ export function WeddingAdmin({
     }));
   }
 
+  function updateVenueTranslation(
+    index: number,
+    key: keyof NonNullable<NonNullable<WeddingEvent["translations"]>["ko"]>,
+    value: string,
+  ) {
+    setDraft((current) => ({
+      ...current,
+      venues: current.venues.map((venue, venueIndex) =>
+        venueIndex === index
+          ? { ...venue, translations: { ...venue.translations, ko: { ...venue.translations?.ko, [key]: value } } }
+          : venue,
+      ),
+    }));
+  }
+
   function updateChapter(index: number, patch: Partial<LoveStoryChapter>) {
     Object.keys(patch).forEach((key) =>
       clearFieldError(`storyChapters.${index}.${key}`),
@@ -512,6 +553,34 @@ export function WeddingAdmin({
       storyChapters: current.storyChapters.map((chapter, chapterIndex) =>
         chapterIndex === index ? { ...chapter, ...patch } : chapter,
       ),
+    }));
+  }
+
+  function updateChapterTranslation(
+    index: number,
+    key: keyof NonNullable<NonNullable<LoveStoryChapter["translations"]>["ko"]>,
+    value: string,
+  ) {
+    setDraft((current) => ({
+      ...current,
+      storyChapters: current.storyChapters.map((chapter, chapterIndex) =>
+        chapterIndex === index
+          ? { ...chapter, translations: { ...chapter.translations, ko: { ...chapter.translations?.ko, [key]: value } } }
+          : chapter,
+      ),
+    }));
+  }
+
+  function updateLocalizedCopy(value: WeddingTextCopy) {
+    setDraft((current) => ({
+      ...current,
+      experience: {
+        ...current.experience,
+        localizedCopy: {
+          ...current.experience.localizedCopy,
+          [editingLanguage]: value,
+        },
+      },
     }));
   }
 
@@ -537,6 +606,9 @@ export function WeddingAdmin({
       ),
     }));
   }
+
+  const missingKoreanCount = getMissingKoreanContent(draft).length;
+  const localizedTabs = ["cover", "invitation", "experience", "general", "venues", "story", "album"].includes(activeTab);
 
   return (
     <aside className="wedding-admin" aria-label="Quản trị nội dung thiệp">
@@ -575,6 +647,12 @@ export function WeddingAdmin({
             </div>
           </header>
 
+          {missingKoreanCount ? (
+            <p className="admin-translation-warning" role="status">
+              Bản tiếng Hàn còn thiếu {missingKoreanCount} nội dung. Thiệp vẫn lưu được và sẽ tự dùng tiếng Việt cho các ô còn trống.
+            </p>
+          ) : null}
+
           <nav className="admin-tabs" aria-label="Nhóm nội dung chỉnh sửa">
             {(
               [
@@ -604,6 +682,14 @@ export function WeddingAdmin({
             ))}
           </nav>
 
+          {localizedTabs ? (
+            <div className="admin-language-tabs" role="group" aria-label="Ngôn ngữ nội dung đang chỉnh sửa">
+              <span>Nội dung:</span>
+              <button type="button" aria-pressed={editingLanguage === "vi"} onClick={() => setEditingLanguage("vi")}>Tiếng Việt</button>
+              <button type="button" aria-pressed={editingLanguage === "ko"} onClick={() => setEditingLanguage("ko")}>한국어</button>
+            </div>
+          ) : null}
+
           <div className="admin-editor">
             {activeTab === "overview" ? (
               <section className="admin-overview" aria-labelledby="admin-preview-title">
@@ -614,17 +700,28 @@ export function WeddingAdmin({
                     Preview luôn dùng nội dung đã lưu gần nhất. Sau khi lưu thay
                     đổi, tải lại khung xem trước để kiểm tra.
                   </p>
+                  <div className="admin-language-tabs" role="group" aria-label="Ngôn ngữ xem trước">
+                    <span>Xem trước:</span>
+                    <button type="button" aria-pressed={previewLanguage === "vi"} onClick={() => setPreviewLanguage("vi")}>Tiếng Việt</button>
+                    <button type="button" aria-pressed={previewLanguage === "ko"} onClick={() => setPreviewLanguage("ko")}>한국어</button>
+                  </div>
                 </div>
                 <iframe
                   className="admin-preview-frame"
-                  src="/"
-                  title="Xem trước trang thiệp công khai"
+                  src={`/?language=${previewLanguage}&preview=admin`}
+                  title={`Xem trước thiệp ${previewLanguage === "ko" ? "tiếng Hàn" : "tiếng Việt"}`}
                 />
               </section>
             ) : null}
 
             {activeTab === "general" ? (
-              <div className="admin-form-grid">
+              <div className="admin-list" lang={editingLanguage === "ko" ? "ko" : "vi"}>
+                <LocalizedCopyEditor
+                  value={draft.experience.localizedCopy[editingLanguage]}
+                  area="countdown"
+                  onChange={updateLocalizedCopy}
+                />
+              {editingLanguage === "vi" ? <div className="admin-form-grid">
                 <div className="field">
                   <label htmlFor="adminWeddingDateTime">
                     Ngày cưới (Giờ Việt Nam)
@@ -688,6 +785,7 @@ export function WeddingAdmin({
                   />
                   <AdminFieldError errors={fieldErrors} path="albumIntervalMs" />
                 </div>
+              </div> : <p className="admin-shared-note">Ngày giờ thật, lịch, ảnh nền và cấu hình countdown dùng chung với tiếng Việt.</p>}
               </div>
             ) : null}
 
@@ -715,7 +813,13 @@ export function WeddingAdmin({
             ) : null}
 
             {activeTab === "cover" ? (
-              <CoverEditor
+              editingLanguage === "ko" ? (
+                <LocalizedCopyEditor
+                  value={draft.experience.localizedCopy.ko}
+                  area="cover"
+                  onChange={updateLocalizedCopy}
+                />
+              ) : <CoverEditor
                 value={draft.experience.cover}
                 creatorSecret={creatorSecret}
                 errors={fieldErrors}
@@ -723,24 +827,69 @@ export function WeddingAdmin({
                 onChange={(cover) =>
                   setDraft((current) => ({
                     ...current,
-                    experience: { ...current.experience, cover },
+                    experience: {
+                      ...current.experience,
+                      cover,
+                      localizedCopy: {
+                        ...current.experience.localizedCopy,
+                        vi: {
+                          ...current.experience.localizedCopy.vi,
+                          cover: {
+                            kicker: cover.kicker,
+                            brideName: cover.brideName,
+                            connector: cover.connector,
+                            groomName: cover.groomName,
+                            note: cover.note,
+                            buttonText: cover.buttonText,
+                          },
+                        },
+                      },
+                    },
                   }))
                 }
               />
             ) : null}
 
             {activeTab === "experience" ? (
-              <ExperienceEditor
-                value={draft.experience}
-                creatorSecret={creatorSecret}
-                onChange={(experience) =>
-                  setDraft((current) => ({ ...current, experience }))
-                }
-              />
+              <div className="admin-list">
+                <LocalizedCopyEditor
+                  value={draft.experience.localizedCopy[editingLanguage]}
+                  area="sections"
+                  onChange={updateLocalizedCopy}
+                />
+                {editingLanguage === "vi" ? <ExperienceEditor
+                  value={draft.experience}
+                  creatorSecret={creatorSecret}
+                  onChange={(experience) =>
+                    setDraft((current) => ({
+                      ...current,
+                      experience: {
+                        ...experience,
+                        localizedCopy: {
+                          ...experience.localizedCopy,
+                          vi: {
+                            ...experience.localizedCopy.vi,
+                            youtube: {
+                              title: experience.youtube.title,
+                              description: experience.youtube.description,
+                            },
+                          },
+                        },
+                      },
+                    }))
+                  }
+                /> : <p className="admin-shared-note">Ảnh, nhạc, YouTube URL, countdown, theme và trạng thái bật/tắt dùng chung với tiếng Việt.</p>}
+              </div>
             ) : null}
 
             {activeTab === "invitation" ? (
-              <InvitationEditor
+              editingLanguage === "ko" ? (
+                <LocalizedCopyEditor
+                  value={draft.experience.localizedCopy.ko}
+                  area="invitation"
+                  onChange={updateLocalizedCopy}
+                />
+              ) : <InvitationEditor
                 value={draft.experience.invitation}
                 enabled={draft.experience.sections.invitation}
                 errors={fieldErrors}
@@ -748,7 +897,17 @@ export function WeddingAdmin({
                 onChange={(invitation) =>
                   setDraft((current) => ({
                     ...current,
-                    experience: { ...current.experience, invitation },
+                    experience: {
+                      ...current.experience,
+                      invitation,
+                      localizedCopy: {
+                        ...current.experience.localizedCopy,
+                        vi: {
+                          ...current.experience.localizedCopy.vi,
+                          invitation,
+                        },
+                      },
+                    },
                   }))
                 }
                 onEnabledChange={(enabled) => {
@@ -769,12 +928,36 @@ export function WeddingAdmin({
 
             {activeTab === "venues" ? (
               <div className="admin-list">
+                <LocalizedCopyEditor
+                  value={draft.experience.localizedCopy[editingLanguage]}
+                  area="venue"
+                  onChange={updateLocalizedCopy}
+                />
                 {draft.venues.map((venue, index) => (
                   <fieldset className="admin-item" key={venue.id}>
                     <legend>
                       Địa điểm {index + 1}: {venue.venueName}
                     </legend>
                     <div className="admin-form-grid">
+                      {editingLanguage === "ko" ? (
+                        <>
+                          {(["title", "eventType", "venueName", "address", "note"] as const).map((key) => {
+                            const labels = { title: "Tiêu đề", eventType: "Loại sự kiện", venueName: "Tên địa điểm", address: "Địa chỉ", note: "Ghi chú" };
+                            const value = venue.translations?.ko?.[key] ?? "";
+                            return <label className={key === "address" || key === "note" ? "admin-wide-field" : undefined} key={key} lang="ko">
+                              {labels[key]}
+                              {key === "address" || key === "note" ? (
+                                <textarea value={value} onChange={(event) => updateVenueTranslation(index, key, event.target.value)} />
+                              ) : (
+                                <input value={value} onChange={(event) => updateVenueTranslation(index, key, event.target.value)} />
+                              )}
+                              {!value.trim() ? <span className="translation-missing">Chưa có bản tiếng Hàn</span> : null}
+                            </label>;
+                          })}
+                          <p className="admin-shared-note admin-wide-field">Ngày giờ, Google Maps, ảnh và trạng thái hiển thị dùng chung cho cả hai ngôn ngữ.</p>
+                        </>
+                      ) : (
+                        <>
                       <label>
                         Tiêu đề
                         <input
@@ -967,6 +1150,8 @@ export function WeddingAdmin({
                         />
                         Đã có thông tin thật
                       </label>
+                        </>
+                      )}
                     </div>
                     <AdminItemActions
                       index={index}
@@ -1011,12 +1196,37 @@ export function WeddingAdmin({
 
             {activeTab === "story" ? (
               <div className="admin-list">
+                <LocalizedCopyEditor
+                  value={draft.experience.localizedCopy[editingLanguage]}
+                  area="story"
+                  onChange={updateLocalizedCopy}
+                />
                 {draft.storyChapters.map((chapter, index) => (
                   <fieldset className="admin-item" key={chapter.id}>
                     <legend>
                       {chapter.chapterNumber}: {chapter.title}
                     </legend>
                     <div className="admin-form-grid">
+                      {editingLanguage === "ko" ? (
+                        <>
+                          {(["chapterNumber", "period", "title", "summary", "fullStory"] as const).map((key) => {
+                            const labels = { chapterNumber: "Số chương", period: "Mốc thời gian", title: "Tiêu đề", summary: "Tóm tắt", fullStory: "Nội dung đầy đủ" };
+                            const value = chapter.translations?.ko?.[key] ?? "";
+                            const multiline = key === "summary" || key === "fullStory";
+                            return <label className={multiline ? "admin-wide-field" : undefined} key={key} lang="ko">
+                              {labels[key]}
+                              {multiline ? (
+                                <textarea className={key === "fullStory" ? "admin-story-textarea" : undefined} value={value} onChange={(event) => updateChapterTranslation(index, key, event.target.value)} />
+                              ) : (
+                                <input value={value} onChange={(event) => updateChapterTranslation(index, key, event.target.value)} />
+                              )}
+                              {!value.trim() ? <span className="translation-missing">Chưa có bản tiếng Hàn</span> : null}
+                            </label>;
+                          })}
+                          <p className="admin-shared-note admin-wide-field">Ảnh chương, framing và trạng thái hiển thị dùng chung cho cả hai ngôn ngữ.</p>
+                        </>
+                      ) : (
+                        <>
                       <label>
                         Số chương
                         <input
@@ -1127,11 +1337,13 @@ export function WeddingAdmin({
                         />
                         Hiển thị chương trên thiệp
                       </label>
+                        </>
+                      )}
                     </div>
                     <div className="admin-preview">
                       <span>Xem trước</span>
-                      <strong>{chapter.title}</strong>
-                      <p>{chapter.summary}</p>
+                      <strong>{editingLanguage === "ko" ? chapter.translations?.ko?.title || chapter.title : chapter.title}</strong>
+                      <p>{editingLanguage === "ko" ? chapter.translations?.ko?.summary || chapter.summary : chapter.summary}</p>
                       <small>{chapter.images.length} ảnh</small>
                     </div>
                     <AdminItemActions
@@ -1180,6 +1392,11 @@ export function WeddingAdmin({
 
             {activeTab === "album" ? (
               <div className="admin-list">
+                <LocalizedCopyEditor
+                  value={draft.experience.localizedCopy[editingLanguage]}
+                  area="album"
+                  onChange={updateLocalizedCopy}
+                />
                 <MediaUploader
                   category="album"
                   creatorSecret={creatorSecret}

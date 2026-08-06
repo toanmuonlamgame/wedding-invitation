@@ -102,6 +102,30 @@ export type CountdownSettings = {
   markerStyle: "circle" | "dot" | "heart";
 };
 
+export type SectionCopy = {
+  eyebrow: string;
+  title: string;
+  description: string;
+};
+
+export type WeddingTextCopy = {
+  cover: Pick<
+    CoverSettings,
+    "kicker" | "brideName" | "connector" | "groomName" | "note" | "buttonText"
+  >;
+  invitation: InvitationContentSettings;
+  album: Pick<SectionCopy, "eyebrow" | "title">;
+  story: SectionCopy;
+  countdown: SectionCopy & { expiredMessage: string };
+  venue: SectionCopy;
+  rsvp: SectionCopy;
+  wishes: SectionCopy;
+  youtube: Pick<YouTubeSettings, "title" | "description">;
+  footer: Pick<SectionCopy, "title"> & { body: string };
+};
+
+export type LocalizedWeddingCopy = Record<"vi" | "ko", WeddingTextCopy>;
+
 export type WeddingExperienceSettings = {
   cover: CoverSettings;
   invitation: InvitationContentSettings;
@@ -125,6 +149,7 @@ export type WeddingExperienceSettings = {
     rsvp: boolean;
   };
   allowGuestSideSelection: boolean;
+  localizedCopy: LocalizedWeddingCopy;
 };
 
 export type InvitationContentSettings = {
@@ -155,6 +180,9 @@ export type WeddingEvent = {
   backgroundColor: string;
   showImage: boolean;
   available: boolean;
+  translations?: {
+    ko?: Partial<Pick<WeddingEvent, "title" | "eventType" | "venueName" | "address" | "note">>;
+  };
 };
 
 export type StoryImage = ImageFraming & {
@@ -175,6 +203,11 @@ export type LoveStoryChapter = {
   images: StoryImage[];
   available: boolean;
   visible: boolean;
+  translations?: {
+    ko?: Partial<
+      Pick<LoveStoryChapter, "chapterNumber" | "period" | "title" | "summary" | "fullStory">
+    >;
+  };
 };
 
 export type GalleryMoment = {

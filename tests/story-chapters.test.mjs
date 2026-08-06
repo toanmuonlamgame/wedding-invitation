@@ -104,4 +104,10 @@ test("backfills editable invitation content for old experience records", () => {
     mergeExperienceSettings(undefined).invitation,
     defaultExperienceSettings.invitation,
   );
+  assert.equal(
+    merged.localizedCopy.vi.invitation.supportingText,
+    merged.invitation.supportingText,
+  );
+  assert.equal(merged.localizedCopy.ko.cover.buttonText, "청첩장 열기");
+  assert.equal(merged.localizedCopy.ko.story.title, "인연이 사랑이 되기까지");
 });

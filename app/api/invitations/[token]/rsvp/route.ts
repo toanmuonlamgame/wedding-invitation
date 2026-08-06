@@ -4,6 +4,8 @@ import { isInvitationToken } from "@/src/lib/invitations";
 import { prisma } from "@/src/lib/prisma";
 import { normalizeInvitationLanguage } from "@/src/lib/invitation-i18n";
 import { localizedEngagementValidationResponse } from "@/src/lib/engagement-localization";
+import { syncInvitationToGoogleSheets } from "@/src/lib/google-sheets-sync";
+import { getInvitationUrl } from "@/src/lib/site-url";
 
 type RouteContext = {
   params: Promise<{ token: string }>;
@@ -17,11 +19,15 @@ async function findInvitation(token: string) {
     where: { token },
     select: {
       id: true,
+      token: true,
       recipientText: true,
+      privateMessage: true,
+      adminNotes: true,
       guestCount: true,
       invitationSide: true,
       isActive: true,
       language: true,
+      createdAt: true,
     },
   });
 }
@@ -132,6 +138,16 @@ export async function PUT(request: Request, { params }: RouteContext) {
       },
       update: normalized,
     });
+
+    try {
+      await syncInvitationToGoogleSheets({
+        invitation,
+        invitationUrl: getInvitationUrl(invitation.token, request.url),
+        rsvp,
+      });
+    } catch {
+      console.error("[google-sheets-sync] RSVP synchronization failed.");
+    }
 
     return Response.json({
       attending: rsvp.attending,

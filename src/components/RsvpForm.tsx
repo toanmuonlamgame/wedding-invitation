@@ -176,6 +176,7 @@ export function RsvpForm({
           <h2 className="section-title" id="rsvp-title">
             {copy.title}
           </h2>
+          <p className="section-description">{copy.description}</p>
           <p className="rsvp-recipient">
             {copy.invitationFor} <strong>{recipientText}</strong>
           </p>

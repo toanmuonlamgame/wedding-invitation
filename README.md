@@ -43,6 +43,8 @@ NEXT_PUBLIC_SITE_URL="http://localhost:3000"
 SUPABASE_URL="https://your-project.supabase.co"
 SUPABASE_SERVICE_ROLE_KEY="..."
 SUPABASE_STORAGE_BUCKET="wedding-media"
+GOOGLE_SHEETS_WEB_APP_URL="https://script.google.com/macros/s/AKfycbwAG5Yd7tY04ZHORp46EpU6AeRIlWv_DeeqO2NYvSH-gfi1fNQ-sA00lym7sXMYLX9r7g/exec"
+GOOGLE_SHEETS_SYNC_SECRET="..."
 ```
 
 - `DATABASE_URL`: URL Transaction pooler của Supabase (port `6543`) cho lưu
@@ -60,6 +62,22 @@ SUPABASE_STORAGE_BUCKET="wedding-media"
   không đổi tên thành biến `NEXT_PUBLIC_*`.
 - `SUPABASE_STORAGE_BUCKET`: bucket ảnh công khai; giá trị mặc định của dự án là
   `wedding-media`.
+- `GOOGLE_SHEETS_WEB_APP_URL`: URL `/exec` của Google Apps Script Web App. Chỉ
+  được gọi từ Route Handler phía server sau khi PostgreSQL lưu thành công.
+- `GOOGLE_SHEETS_SYNC_SECRET`: secret dùng riêng để Apps Script xác thực payload;
+  chỉ cấu hình phía server và tuyệt đối không đổi tên thành `NEXT_PUBLIC_*`.
+
+## Đồng bộ Google Sheets
+
+Sau khi tạo Invitation hoặc cập nhật RSVP thành công trong PostgreSQL, server
+gửi một bản snapshot sang Google Apps Script. PostgreSQL luôn là nguồn dữ liệu
+chính. Google Sheets dùng `invitationId`/`token` để upsert nên gửi lại cùng thiệp
+sẽ cập nhật dòng hiện có thay vì tạo dòng trùng.
+
+Đồng bộ có timeout 6,5 giây và không retry vô hạn. Nếu thiếu cấu hình, trạng thái
+là `skipped`; nếu Apps Script lỗi, timeout hoặc trả JSON không có `ok: true`, trạng
+thái là `failed`. Cả hai trường hợp đều không rollback Invitation/RSVP và không
+làm secret xuất hiện trong response hoặc client bundle.
 
 ## Supabase Storage
 

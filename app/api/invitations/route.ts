@@ -7,25 +7,12 @@ import {
   type InvitationRequest,
 } from "@/src/lib/invitations";
 import { prisma } from "@/src/lib/prisma";
+import { syncInvitationToGoogleSheets } from "@/src/lib/google-sheets-sync";
+import { getSiteOrigin } from "@/src/lib/site-url";
 
 export const runtime = "nodejs";
 
 const MAX_TOKEN_ATTEMPTS = 3;
-const LOCAL_HOSTNAMES = new Set(["localhost", "127.0.0.1", "[::1]"]);
-
-function getSiteOrigin(request: NextRequest) {
-  const configuredSiteUrl = process.env.NEXT_PUBLIC_SITE_URL?.trim();
-  const url = new URL(configuredSiteUrl || request.nextUrl.origin);
-  const isSecureOrigin = url.protocol === "https:";
-  const isLocalOrigin =
-    url.protocol === "http:" && LOCAL_HOSTNAMES.has(url.hostname);
-
-  if (!isSecureOrigin && !isLocalOrigin) {
-    throw new Error("Unsafe site URL origin.");
-  }
-
-  return url.origin;
-}
 
 async function createInvitation(
   data: Omit<InvitationRequest, "creatorSecret">,
@@ -43,7 +30,17 @@ async function createInvitation(
           invitationSide: data.invitationSide,
           language: data.language,
         },
-        select: { token: true },
+        select: {
+          id: true,
+          token: true,
+          recipientText: true,
+          privateMessage: true,
+          adminNotes: true,
+          guestCount: true,
+          invitationSide: true,
+          language: true,
+          createdAt: true,
+        },
       });
     } catch (error) {
       const isTokenCollision =
@@ -97,6 +94,7 @@ export async function POST(request: NextRequest) {
   }
 
   try {
+    const siteOrigin = getSiteOrigin(request.nextUrl.toString());
     const invitationData = {
       recipientText: parsed.data.recipientText,
       guestCount: parsed.data.guestCount,
@@ -107,11 +105,15 @@ export async function POST(request: NextRequest) {
     const invitation = await createInvitation(invitationData);
     const invitationUrl = new URL(
       `/thiep/${invitation.token}`,
-      getSiteOrigin(request),
+      siteOrigin,
     ).toString();
+    const sheetsSync = await syncInvitationToGoogleSheets({
+      invitation,
+      invitationUrl,
+    });
 
     return Response.json(
-      { token: invitation.token, invitationUrl },
+      { token: invitation.token, invitationUrl, sheetsSync },
       { status: 201 },
     );
   } catch (error) {

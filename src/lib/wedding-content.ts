@@ -191,6 +191,37 @@ const hexColorSchema = z
   .trim()
   .regex(/^#[0-9a-f]{6}$/i, "Màu phải là mã hex hợp lệ.");
 
+const localizedTextSchema = z.string().trim().max(4_000);
+const sectionCopySchema = z
+  .object({
+    eyebrow: localizedTextSchema.max(100),
+    title: localizedTextSchema.max(300),
+    description: localizedTextSchema.max(1_200),
+  })
+  .strict();
+const weddingTextCopySchema = z
+  .object({
+    cover: z.object({
+      kicker: localizedTextSchema.max(100), brideName: localizedTextSchema.max(80),
+      connector: localizedTextSchema.max(12), groomName: localizedTextSchema.max(80),
+      note: localizedTextSchema.max(240), buttonText: localizedTextSchema.max(60),
+    }).strict(),
+    invitation: z.object({
+      eyebrow: localizedTextSchema.max(80), title: localizedTextSchema.max(300),
+      body: localizedTextSchema.max(1_200), supportingText: localizedTextSchema.max(400),
+      brideFamily: localizedTextSchema.max(160), groomFamily: localizedTextSchema.max(160),
+    }).strict(),
+    album: z.object({ eyebrow: localizedTextSchema.max(100), title: localizedTextSchema.max(300) }).strict(),
+    story: sectionCopySchema,
+    countdown: sectionCopySchema.extend({ expiredMessage: localizedTextSchema.max(200) }).strict(),
+    venue: sectionCopySchema,
+    rsvp: sectionCopySchema,
+    wishes: sectionCopySchema,
+    youtube: z.object({ title: localizedTextSchema.max(120), description: localizedTextSchema.max(300) }).strict(),
+    footer: z.object({ title: localizedTextSchema.max(300), body: localizedTextSchema.max(1_200) }).strict(),
+  })
+  .strict();
+
 const experienceSchema = z
   .object({
     cover: z
@@ -358,6 +389,7 @@ const experienceSchema = z
       })
       .strict(),
     allowGuestSideSelection: z.boolean(),
+    localizedCopy: z.object({ vi: weddingTextCopySchema, ko: weddingTextCopySchema }).strict(),
   })
   .strict()
   .default(defaultExperienceSettings);
@@ -390,6 +422,15 @@ export const weddingEventSchema = z
     backgroundColor: imageBackgroundSchema,
     showImage: z.boolean().default(false),
     available: z.boolean(),
+    translations: z.object({
+      ko: z.object({
+        title: localizedTextSchema.max(100).optional(),
+        eventType: localizedTextSchema.max(80).optional(),
+        venueName: localizedTextSchema.max(160).optional(),
+        address: localizedTextSchema.max(300).optional(),
+        note: localizedTextSchema.max(300).optional(),
+      }).strict().optional(),
+    }).strict().optional(),
   })
   .strict()
   .transform((value) => ({ ...value, ...normalizeImageFraming(value) }));
@@ -433,6 +474,15 @@ export const storyChapterSchema = z.preprocess(
         .max(10, "Mỗi chương chỉ được có tối đa 10 ảnh."),
       available: z.boolean(),
       visible: z.boolean(),
+      translations: z.object({
+        ko: z.object({
+          chapterNumber: localizedTextSchema.max(40).optional(),
+          period: localizedTextSchema.max(100).optional(),
+          title: localizedTextSchema.max(120).optional(),
+          summary: localizedTextSchema.max(400).optional(),
+          fullStory: localizedTextSchema.max(4_000).optional(),
+        }).strict().optional(),
+      }).strict().optional(),
     })
     .strict()
     .superRefine((chapter, context) => {
