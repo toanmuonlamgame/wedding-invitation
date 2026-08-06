@@ -8,12 +8,14 @@ import {
 } from "react";
 import { StoryImageCollection } from "@/src/components/StoryImageCollection";
 import type { LoveStoryChapter } from "@/src/types/wedding";
+import { useInvitationLocale } from "@/src/components/InvitationLocaleProvider";
 
 type StoryExplorerProps = {
   chapters: LoveStoryChapter[];
 };
 
 export function StoryExplorer({ chapters }: StoryExplorerProps) {
+  const { messages } = useInvitationLocale();
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
   const dialogRef = useRef<HTMLDivElement>(null);
   const openerRefs = useRef<Array<HTMLButtonElement | null>>([]);
@@ -137,7 +139,7 @@ export function StoryExplorer({ chapters }: StoryExplorerProps) {
                 type="button"
                 onClick={() => openDialog(index)}
               >
-                Đọc chương
+                {messages.story.read}
               </button>
             </div>
           </article>
@@ -166,7 +168,7 @@ export function StoryExplorer({ chapters }: StoryExplorerProps) {
               className="dialog-close"
               type="button"
               data-dialog-close
-              aria-label="Đóng câu chuyện"
+              aria-label={messages.story.close}
               onClick={closeDialog}
             >
               ×
@@ -195,7 +197,7 @@ export function StoryExplorer({ chapters }: StoryExplorerProps) {
                     )
                   }
                 >
-                  ← Chương trước
+                  ← {messages.story.previous}
                 </button>
                 <span aria-live="polite">
                   {(selectedIndex ?? 0) + 1} / {chapters.length}
@@ -209,7 +211,7 @@ export function StoryExplorer({ chapters }: StoryExplorerProps) {
                     )
                   }
                 >
-                  Chương sau →
+                  {messages.story.next} →
                 </button>
               </nav>
             </article>

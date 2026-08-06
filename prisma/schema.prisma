@@ -12,6 +12,7 @@ model Invitation {
   id             String   @id @default(cuid())
   token          String   @unique
   recipientText  String
+  language       String   @default("vi")
   guestCount     Int?
   privateMessage String?
   label          String?
@@ -26,6 +27,7 @@ model Invitation {
 
   @@index([isActive, createdAt])
   @@index([recipientText])
+  @@index([language, createdAt])
 }
 
 model WeddingContent {

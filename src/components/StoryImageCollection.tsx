@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { WeddingImage } from "@/src/components/WeddingImage";
 import { getNextStoryImageIndex } from "@/src/lib/story-chapters";
 import type { StoryImage } from "@/src/types/wedding";
+import { useInvitationLocale } from "@/src/components/InvitationLocaleProvider";
 
 const STORY_AUTOPLAY_MS = 5_000;
 const SWIPE_THRESHOLD_PX = 42;
@@ -15,6 +16,7 @@ export function StoryImageCollection({
   images: StoryImage[];
   context: "card" | "dialog";
 }) {
+  const { messages } = useInvitationLocale();
   const availableImages = images.filter(
     (image) => image.available && image.src.trim(),
   );
@@ -55,7 +57,7 @@ export function StoryImageCollection({
   return (
     <div
       className={`story-image-carousel story-image-carousel-${context}`}
-      aria-label={`${availableImages.length} ảnh trong chương`}
+      aria-label={messages.story.imageCount(availableImages.length)}
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
       onFocusCapture={() => setIsPaused(true)}
@@ -104,7 +106,7 @@ export function StoryImageCollection({
           <button
             className="story-carousel-button story-carousel-previous"
             type="button"
-            aria-label="Ảnh trước"
+            aria-label={messages.album.previous}
             onClick={() => move(-1)}
           >
             ←
@@ -112,7 +114,7 @@ export function StoryImageCollection({
           <button
             className="story-carousel-button story-carousel-next"
             type="button"
-            aria-label="Ảnh tiếp theo"
+            aria-label={messages.album.next}
             onClick={() => move(1)}
           >
             →
@@ -120,13 +122,13 @@ export function StoryImageCollection({
           <div
             className="story-carousel-dots"
             role="group"
-            aria-label="Chọn ảnh trong chương"
+            aria-label={messages.story.chooseImage}
           >
             {availableImages.map((image, index) => (
               <button
                 type="button"
                 key={image.id}
-                aria-label={`Xem ảnh ${index + 1}`}
+                aria-label={messages.album.view(index + 1)}
                 aria-current={index === currentIndex ? "true" : undefined}
                 onClick={() => setActiveIndex(index)}
               />

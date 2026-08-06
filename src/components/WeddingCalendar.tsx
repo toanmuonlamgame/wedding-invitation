@@ -1,24 +1,19 @@
-const WEEKDAYS = ["T2", "T3", "T4", "T5", "T6", "T7", "CN"];
+import { getInvitationMessages, type InvitationLanguage } from "@/src/lib/invitation-i18n";
+import { getWeddingCalendarParts } from "@/src/lib/wedding-format";
 
 export function WeddingCalendar({
   dateTime,
   markerStyle,
+  language = "vi",
 }: {
   dateTime: string | null;
   markerStyle: "circle" | "dot" | "heart";
+  language?: InvitationLanguage;
 }) {
-  if (!dateTime) return null;
-  const date = new Date(dateTime);
-  if (Number.isNaN(date.getTime())) return null;
-  const year = Number(
-    new Intl.DateTimeFormat("en", { timeZone: "Asia/Ho_Chi_Minh", year: "numeric" }).format(date),
-  );
-  const month = Number(
-    new Intl.DateTimeFormat("en", { timeZone: "Asia/Ho_Chi_Minh", month: "numeric" }).format(date),
-  );
-  const weddingDay = Number(
-    new Intl.DateTimeFormat("en", { timeZone: "Asia/Ho_Chi_Minh", day: "numeric" }).format(date),
-  );
+  const dateParts = getWeddingCalendarParts(dateTime);
+  if (!dateParts) return null;
+  const { year, month, day: weddingDay } = dateParts;
+  const messages = getInvitationMessages(language);
   const firstDay = new Date(Date.UTC(year, month - 1, 1)).getUTCDay();
   const offset = (firstDay + 6) % 7;
   const daysInMonth = new Date(Date.UTC(year, month, 0)).getUTCDate();
@@ -28,10 +23,10 @@ export function WeddingCalendar({
   });
 
   return (
-    <div className="wedding-calendar" data-marker={markerStyle} aria-label={`Lịch cưới tháng ${month} năm ${year}`}>
-      <p>Tháng {month} · {year}</p>
+    <div className="wedding-calendar" data-marker={markerStyle} aria-label={messages.schedule.calendar(month, year)}>
+      <p>{messages.schedule.monthYear(month, year)}</p>
       <div className="calendar-grid">
-        {WEEKDAYS.map((weekday) => <strong key={weekday}>{weekday}</strong>)}
+        {messages.schedule.weekdays.map((weekday) => <strong key={weekday}>{weekday}</strong>)}
         {cells.map((day, index) => (
           <span
             key={`${day ?? "empty"}-${index}`}

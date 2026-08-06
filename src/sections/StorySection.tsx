@@ -1,23 +1,26 @@
 import { SectionHeading } from "@/src/components/SectionHeading";
 import { StoryExplorer } from "@/src/components/StoryExplorer";
 import type { LoveStoryChapter } from "@/src/types/wedding";
+import { getInvitationMessages, type InvitationLanguage } from "@/src/lib/invitation-i18n";
 
 type StorySectionProps = {
   chapters: LoveStoryChapter[];
+  language?: InvitationLanguage;
 };
 
-export function StorySection({ chapters }: StorySectionProps) {
+export function StorySection({ chapters, language = "vi" }: StorySectionProps) {
   if (!chapters.length) return null;
+  const messages = getInvitationMessages(language);
 
   return (
     <section className="section story-section" aria-labelledby="story-title">
       <div className="section-shell">
         <div data-reveal>
           <SectionHeading
-            eyebrow="Chuyện chúng mình"
-            title="Từ lạ thành thương"
+            eyebrow={messages.story.eyebrow}
+            title={messages.story.title}
             titleId="story-title"
-            description="Từng chương nhỏ được mở ra như những trang nhật ký trong hành trình của Vũ Bình và Thành Long."
+            description={messages.story.description}
           />
         </div>
         <StoryExplorer chapters={chapters} />

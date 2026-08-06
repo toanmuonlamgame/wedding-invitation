@@ -1,5 +1,8 @@
+"use client";
+
 import type { CSSProperties, Ref } from "react";
 import { WeddingImage } from "@/src/components/WeddingImage";
+import { useInvitationLocale } from "@/src/components/InvitationLocaleProvider";
 import type { CoverSettings } from "@/src/types/wedding";
 
 type CoverRendererProps = {
@@ -17,6 +20,7 @@ export function CoverRenderer({
   openButtonRef,
   preview = false,
 }: CoverRendererProps) {
+  const { language, messages } = useInvitationLocale();
   return (
     <div
       className="cover-renderer"
@@ -55,7 +59,9 @@ export function CoverRenderer({
         <div className="cover-text-halo" aria-hidden="true" />
       ) : null}
       <div className="cover-content">
-        <p className="cover-kicker">{cover.kicker}</p>
+        <p className="cover-kicker">
+          {language === "ko" ? messages.cover.invitationLabel : cover.kicker}
+        </p>
         {recipientText ? <p className="cover-recipient">{recipientText}</p> : null}
         {cover.logoMode === "monogram" ? (
           <p className="cover-monogram" aria-hidden="true">
@@ -79,7 +85,11 @@ export function CoverRenderer({
           <span>{cover.connector}</span>
           {cover.groomName}
         </h1>
-        {cover.note ? <p className="cover-note">{cover.note}</p> : null}
+        {cover.note ? (
+          <p className="cover-note">
+            {language === "ko" ? messages.cover.note : cover.note}
+          </p>
+        ) : null}
         <button
           ref={openButtonRef}
           className="cover-button"
@@ -89,7 +99,7 @@ export function CoverRenderer({
           aria-hidden={preview || undefined}
           tabIndex={preview ? -1 : undefined}
         >
-          {cover.buttonText}
+          {language === "ko" ? messages.cover.openInvitation : cover.buttonText}
           <span aria-hidden="true">↓</span>
         </button>
       </div>

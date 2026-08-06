@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import type { FieldErrors, InvitationRsvp } from "@/src/types/engagement";
 import type { InvitationSide } from "@/src/types/wedding";
+import { useInvitationLocale } from "@/src/components/InvitationLocaleProvider";
 
 type RsvpFormProps = {
   token: string;
@@ -25,6 +26,8 @@ export function RsvpForm({
   defaultSide,
   allowSideSelection,
 }: RsvpFormProps) {
+  const { language, messages } = useInvitationLocale();
+  const copy = messages.rsvp;
   const safeMaximumGuests = Math.max(1, maximumGuests);
   const [guestName, setGuestName] = useState(recipientText);
   const [invitationSide, setInvitationSide] =
@@ -66,14 +69,14 @@ export function RsvpForm({
       })
       .catch(() => {
         if (active) {
-          setStatus("Chưa thể tải xác nhận trước đó.");
+          setStatus(copy.loadFailed);
         }
       });
 
     return () => {
       active = false;
     };
-  }, [defaultSide, recipientText, suggestedCount, token]);
+  }, [copy.loadFailed, defaultSide, recipientText, suggestedCount, token]);
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -83,30 +86,30 @@ export function RsvpForm({
 
     const errors: FieldErrors = {};
     if (guestName.trim().length < 2) {
-      errors.guestName = "Vui lòng nhập tên người xác nhận.";
+      errors.guestName = copy.nameError;
     }
     if (attending === null) {
-      errors.attending = "Vui lòng chọn trạng thái tham dự.";
+      errors.attending = copy.attendingError;
     }
     const count = Number(confirmedCount);
     if (
       attending === true &&
       (!Number.isInteger(count) || count < 1 || count > safeMaximumGuests)
     ) {
-      errors.confirmedCount = "Số người phải là số nguyên từ 1 đến 20.";
+      errors.confirmedCount = copy.countError;
     }
     if (note.trim().length > 500) {
-      errors.note = "Ghi chú không được quá 500 ký tự.";
+      errors.note = copy.noteError;
     }
     if (Object.keys(errors).length > 0) {
       setFieldErrors(errors);
-      setStatus("Vui lòng kiểm tra các trường được đánh dấu.");
+      setStatus(copy.checkFields);
       return;
     }
 
     setIsSubmitting(true);
     setFieldErrors({});
-    setStatus("Đang lưu xác nhận…");
+    setStatus(copy.saving);
 
     try {
       const response = await fetch(`/api/invitations/${token}/rsvp`, {
@@ -127,22 +130,38 @@ export function RsvpForm({
 
       if (!response.ok) {
         if (payload.fieldErrors && typeof payload.fieldErrors === "object") {
-          setFieldErrors(payload.fieldErrors as FieldErrors);
+          const serverErrors = payload.fieldErrors as FieldErrors;
+          setFieldErrors(
+            language === "ko"
+              ? Object.fromEntries(
+                  Object.keys(serverErrors).map((field) => [
+                    field,
+                    field === "guestName"
+                      ? copy.nameError
+                      : field === "attending"
+                        ? copy.attendingError
+                        : field === "confirmedCount"
+                          ? copy.countError
+                          : copy.noteError,
+                  ]),
+                )
+              : serverErrors,
+          );
         }
         throw new Error(
-          typeof payload.message === "string"
+          language === "vi" && typeof payload.message === "string"
             ? payload.message
-            : "Chưa thể lưu xác nhận.",
+            : copy.saveFailed,
         );
       }
 
       setHasExistingRsvp(true);
-      setStatus("Cảm ơn bạn đã xác nhận tham dự.");
+      setStatus(copy.success);
     } catch (error) {
       setStatus(
         error instanceof Error
           ? error.message
-          : "Chưa thể lưu xác nhận lúc này.",
+          : copy.saveFailed,
       );
     } finally {
       setIsSubmitting(false);
@@ -153,18 +172,18 @@ export function RsvpForm({
     <section className="section rsvp-section" aria-labelledby="rsvp-title">
       <div className="section-shell rsvp-shell">
         <header>
-          <p className="section-eyebrow">Hẹn gặp bạn trong ngày vui</p>
+          <p className="section-eyebrow">{copy.eyebrow}</p>
           <h2 className="section-title" id="rsvp-title">
-            Xác nhận tham dự
+            {copy.title}
           </h2>
           <p className="rsvp-recipient">
-            Thiệp dành cho: <strong>{recipientText}</strong>
+            {copy.invitationFor} <strong>{recipientText}</strong>
           </p>
         </header>
 
         <form className="rsvp-form" onSubmit={handleSubmit} noValidate>
           <div className="field">
-            <label htmlFor="rsvpGuestName">Tên người xác nhận</label>
+            <label htmlFor="rsvpGuestName">{copy.guestName}</label>
             <input
               id="rsvpGuestName"
               value={guestName}
@@ -191,7 +210,7 @@ export function RsvpForm({
               fieldErrors.attending ? "rsvpAttendingError" : undefined
             }
           >
-            <legend>Bạn có thể tham dự không?</legend>
+            <legend>{copy.attendingQuestion}</legend>
             <label data-selected={attending === true}>
               <input
                 type="radio"
@@ -205,7 +224,7 @@ export function RsvpForm({
                   }));
                 }}
               />
-              Tôi/chúng tôi sẽ tham dự
+              {copy.attendingYes}
             </label>
             <label data-selected={attending === false}>
               <input
@@ -221,7 +240,7 @@ export function RsvpForm({
                   }));
                 }}
               />
-              Rất tiếc, tôi/chúng tôi không thể tham dự
+              {copy.attendingNo}
             </label>
           </fieldset>
           {fieldErrors.attending ? (
@@ -232,7 +251,7 @@ export function RsvpForm({
 
           {attending ? (
             <div className="field">
-              <label htmlFor="confirmedCount">Số người xác nhận</label>
+              <label htmlFor="confirmedCount">{copy.confirmedCount}</label>
               <input
                 id="confirmedCount"
                 type="number"
@@ -254,7 +273,7 @@ export function RsvpForm({
                   }));
                 }}
               />
-              <small>Tối đa {safeMaximumGuests} người theo thiệp mời này.</small>
+              <small>{copy.maximum(safeMaximumGuests)}</small>
               {fieldErrors.confirmedCount ? (
                 <p className="field-error" id="confirmedCountError">
                   {fieldErrors.confirmedCount}
@@ -265,7 +284,7 @@ export function RsvpForm({
 
           {allowSideSelection ? (
             <div className="field">
-              <label htmlFor="rsvpInvitationSide">Bạn là khách bên nào?</label>
+              <label htmlFor="rsvpInvitationSide">{copy.sideQuestion}</label>
               <select
                 id="rsvpInvitationSide"
                 value={invitationSide}
@@ -273,20 +292,20 @@ export function RsvpForm({
                   setInvitationSide(event.target.value as InvitationSide)
                 }
               >
-                <option value="unspecified">Không phân loại</option>
-                <option value="groom">Nhà trai</option>
-                <option value="bride">Nhà gái</option>
+                <option value="unspecified">{copy.unspecified}</option>
+                <option value="groom">{copy.groomSide}</option>
+                <option value="bride">{copy.brideSide}</option>
               </select>
             </div>
           ) : null}
 
           <div className="field">
-            <label htmlFor="rsvpNote">Ghi chú (không bắt buộc)</label>
+            <label htmlFor="rsvpNote">{copy.note}</label>
             <textarea
               id="rsvpNote"
               value={note}
               maxLength={500}
-              placeholder="Ăn chay, trẻ nhỏ hoặc lời nhắn thêm…"
+              placeholder={copy.notePlaceholder}
               aria-invalid={Boolean(fieldErrors.note)}
               aria-describedby={fieldErrors.note ? "rsvpNoteError" : undefined}
               onChange={(event) => {
@@ -303,10 +322,10 @@ export function RsvpForm({
 
           <button className="button" type="submit" disabled={isSubmitting}>
             {isSubmitting
-              ? "Đang lưu…"
+              ? copy.submitting
               : hasExistingRsvp
-                ? "Cập nhật xác nhận"
-                : "Xác nhận tham dự"}
+                ? copy.update
+                : copy.submit}
           </button>
           <p className="form-status" role="status" aria-live="polite">
             {status}

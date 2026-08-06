@@ -1,4 +1,5 @@
 "use client";
+import { useInvitationLocale } from "@/src/components/InvitationLocaleProvider";
 
 type MusicPlayerProps = {
   isPlaying: boolean;
@@ -17,13 +18,18 @@ export function MusicPlayer({
   sourceLabel = "nhạc nền",
   stacked = false,
 }: MusicPlayerProps) {
+  const { messages } = useInvitationLocale();
+  const translatedSource =
+    sourceLabel === "nhạc YouTube"
+      ? messages.music.youtube
+      : messages.music.background;
   const label = isUnavailable
-    ? `Không thể phát ${sourceLabel}`
+    ? messages.music.unavailable(translatedSource)
     : isLoading
-      ? `Đang tải trình phát ${sourceLabel}`
+      ? messages.music.loading(translatedSource)
       : isPlaying
-        ? `Tạm dừng ${sourceLabel}`
-        : `Phát ${sourceLabel}`;
+        ? messages.music.pause(translatedSource)
+        : messages.music.play(translatedSource);
 
   return (
     <div
@@ -33,12 +39,12 @@ export function MusicPlayer({
     >
       <span className="music-caption" aria-live="polite">
         {isUnavailable
-          ? `${sourceLabel} không khả dụng`
+          ? messages.music.captionUnavailable(translatedSource)
           : isLoading
-            ? `Đang tải ${sourceLabel}`
+            ? messages.music.captionLoading(translatedSource)
             : isPlaying
-              ? `Đang phát ${sourceLabel}`
-              : `${sourceLabel} · Đang tạm dừng`}
+              ? messages.music.captionPlaying(translatedSource)
+              : messages.music.captionPaused(translatedSource)}
       </span>
       <button
         className="music-button"

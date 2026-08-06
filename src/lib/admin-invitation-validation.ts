@@ -50,6 +50,7 @@ export const adminInvitationMutationSchema = z.discriminatedUnion("action", [
         .max(120),
       guestCount: z.number().int().min(1).max(20).nullable(),
       invitationSide: z.enum(["groom", "bride", "unspecified"]),
+      language: z.enum(["vi", "ko"]),
       privateMessage: optionalTrimmedString(500),
       label: optionalTrimmedString(80),
       adminNotes: optionalTrimmedString(1_000),

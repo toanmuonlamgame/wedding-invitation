@@ -6,6 +6,8 @@ import type {
   PublicWeddingWish,
 } from "@/src/types/engagement";
 import type { WishLayout } from "@/src/types/wedding";
+import { useInvitationLocale } from "@/src/components/InvitationLocaleProvider";
+import { WEDDING_TIME_ZONE } from "@/src/lib/wedding-format";
 
 type WeddingWishesProps = {
   initialWishes: PublicWeddingWish[];
@@ -20,11 +22,12 @@ type ErrorPayload = {
   fieldErrors?: unknown;
 };
 
-function formatWishDate(value: string) {
-  return new Intl.DateTimeFormat("vi-VN", {
+function formatWishDate(value: string, language: "vi" | "ko") {
+  return new Intl.DateTimeFormat(language === "ko" ? "ko-KR" : "vi-VN", {
     day: "2-digit",
     month: "2-digit",
     year: "numeric",
+    timeZone: WEDDING_TIME_ZONE,
   }).format(new Date(value));
 }
 
@@ -35,6 +38,8 @@ export function WeddingWishes({
   layout,
   showList,
 }: WeddingWishesProps) {
+  const { language, messages } = useInvitationLocale();
+  const copy = messages.wishes;
   const [wishes, setWishes] = useState(initialWishes);
   const [senderName, setSenderName] = useState(defaultSenderName);
   const [message, setMessage] = useState("");
@@ -64,20 +69,20 @@ export function WeddingWishes({
     const normalizedMessage = message.trim();
     const clientErrors: FieldErrors = {};
     if (normalizedName.length < 2) {
-      clientErrors.senderName = "Tên người gửi phải có ít nhất 2 ký tự.";
+      clientErrors.senderName = copy.nameError;
     }
     if (normalizedMessage.length < 2) {
-      clientErrors.message = "Lời chúc phải có ít nhất 2 ký tự.";
+      clientErrors.message = copy.messageError;
     }
     if (Object.keys(clientErrors).length > 0) {
       setFieldErrors(clientErrors);
-      setStatus("Vui lòng kiểm tra các trường được đánh dấu.");
+      setStatus(copy.checkFields);
       return;
     }
 
     setIsSubmitting(true);
     setFieldErrors({});
-    setStatus("Đang gửi lời chúc…");
+    setStatus(copy.sendingStatus);
 
     try {
       const response = await fetch(
@@ -102,11 +107,20 @@ export function WeddingWishes({
           typeof payload.fieldErrors === "object"
             ? (payload.fieldErrors as FieldErrors)
             : {};
-        setFieldErrors(errors);
+        setFieldErrors(
+          language === "ko"
+            ? Object.fromEntries(
+                Object.keys(errors).map((field) => [
+                  field,
+                  field === "senderName" ? copy.nameError : copy.messageError,
+                ]),
+              )
+            : errors,
+        );
         throw new Error(
-          "message" in payload && typeof payload.message === "string"
+          language === "vi" && "message" in payload && typeof payload.message === "string"
             ? payload.message
-            : "Chưa thể gửi lời chúc.",
+            : copy.sendFailed,
         );
       }
 
@@ -114,12 +128,12 @@ export function WeddingWishes({
       setWishes((current) => [wish, ...current].slice(0, 10));
       setSenderName(normalizedName);
       setMessage("");
-      setStatus("Cảm ơn bạn đã gửi lời chúc.");
+      setStatus(copy.success);
     } catch (error) {
       setStatus(
         error instanceof Error
           ? error.message
-          : "Chưa thể gửi lời chúc lúc này.",
+          : copy.sendFailed,
       );
     } finally {
       setIsSubmitting(false);
@@ -135,13 +149,12 @@ export function WeddingWishes({
     >
       <div className="section-shell">
         <header className="section-heading">
-          <p className="section-eyebrow">Những lời thương mến</p>
+          <p className="section-eyebrow">{copy.eyebrow}</p>
           <h2 className="section-title" id="wishes-title">
-            Lời chúc dành cho chúng mình
+            {copy.title}
           </h2>
           <p className="section-description">
-            Mỗi lời nhắn là một kỷ niệm đẹp Vũ Bình và Thành Long sẽ luôn trân
-            trọng.
+            {copy.description}
           </p>
         </header>
 
@@ -156,7 +169,7 @@ export function WeddingWishes({
                 <footer>
                   <strong>{wish.senderName}</strong>
                   <time dateTime={wish.createdAt}>
-                    {formatWishDate(wish.createdAt)}
+                    {formatWishDate(wish.createdAt, language)}
                   </time>
                 </footer>
               </blockquote>
@@ -164,7 +177,7 @@ export function WeddingWishes({
           </div>
         ) : showList ? (
           <p className="wishes-empty">
-            Hãy là người đầu tiên gửi lời chúc đến Vũ Bình & Thành Long.
+            {copy.empty}
           </p>
         ) : null}
         {showList && wishes.length > visibleCount ? (
@@ -173,18 +186,18 @@ export function WeddingWishes({
             type="button"
             onClick={() => setVisibleCount((count) => count + 6)}
           >
-            Xem thêm lời chúc
+            {copy.showMore}
           </button>
         ) : null}
 
         {invitationToken ? (
           <form className="wish-form" onSubmit={handleSubmit} noValidate>
             <div>
-              <p className="section-eyebrow">Gửi lời chúc</p>
-              <h3>Để lại một lời nhắn cho ngày vui</h3>
+              <p className="section-eyebrow">{copy.send}</p>
+              <h3>{copy.formTitle}</h3>
             </div>
             <div className="field">
-              <label htmlFor="wishSenderName">Tên người gửi</label>
+              <label htmlFor="wishSenderName">{copy.senderName}</label>
               <input
                 id="wishSenderName"
                 value={senderName}
@@ -206,7 +219,7 @@ export function WeddingWishes({
               ) : null}
             </div>
             <div className="field">
-              <label htmlFor="wishMessage">Lời chúc</label>
+              <label htmlFor="wishMessage">{copy.message}</label>
               <textarea
                 id="wishMessage"
                 value={message}
@@ -228,7 +241,7 @@ export function WeddingWishes({
               ) : null}
             </div>
             <button className="button" type="submit" disabled={isSubmitting}>
-              {isSubmitting ? "Đang gửi…" : "Gửi lời chúc"}
+              {isSubmitting ? copy.sending : copy.send}
             </button>
             <p className="form-status" role="status" aria-live="polite">
               {status}

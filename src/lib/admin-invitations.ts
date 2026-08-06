@@ -7,6 +7,7 @@ import {
 } from "@/src/lib/admin-invitation-query";
 import { createInvitationToken } from "@/src/lib/invitations";
 import { prisma } from "@/src/lib/prisma";
+import { normalizeInvitationLanguage } from "@/src/lib/invitation-i18n";
 import type {
   AdminInvitationFilter,
   AdminInvitationPage,
@@ -43,6 +44,7 @@ export async function listAdminInvitations({
         id: true,
         token: true,
         recipientText: true,
+        language: true,
         guestCount: true,
         invitationSide: true,
         privateMessage: true,
@@ -85,6 +87,7 @@ export async function listAdminInvitations({
         id: invitation.id,
         token: invitation.token,
         recipientText: invitation.recipientText,
+        language: normalizeInvitationLanguage(invitation.language),
         guestCount: invitation.guestCount,
         invitationSide:
           invitation.invitationSide === "groom" ||

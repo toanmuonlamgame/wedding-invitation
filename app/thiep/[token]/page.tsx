@@ -5,6 +5,7 @@ import { getInvitationByToken } from "@/src/lib/invitations";
 import { getPublicWishes } from "@/src/lib/engagement";
 import { wedding } from "@/src/lib/wedding-data";
 import { getWeddingContent } from "@/src/lib/wedding-content";
+import { getInvitationMessages } from "@/src/lib/invitation-i18n";
 
 export const dynamic = "force-dynamic";
 
@@ -24,24 +25,30 @@ export async function generateMetadata({
 
   if (!invitation.isActive) {
     return {
-      title: "Thiệp mời không còn khả dụng",
-      description: "Liên kết thiệp mời này hiện đã được vô hiệu hóa.",
+      title: invitation.language === "ko" ? "이용할 수 없는 청첩장" : "Thiệp mời không còn khả dụng",
+      description: invitation.language === "ko" ? "이 청첩장 링크는 현재 비활성화되었습니다." : "Liên kết thiệp mời này hiện đã được vô hiệu hóa.",
       robots: { index: false, follow: false },
     };
   }
 
-  const title = `Thiệp mời dành cho ${invitation.recipientText} | ${wedding.coupleDisplay}`;
+  const title = invitation.language === "ko"
+    ? `${invitation.recipientText}님을 위한 청첩장 | ${wedding.coupleDisplay}`
+    : `Thiệp mời dành cho ${invitation.recipientText} | ${wedding.coupleDisplay}`;
 
   return {
     title,
-    description: `Trân trọng kính mời ${invitation.recipientText} chung vui cùng ${wedding.coupleDisplay}.`,
+    description: invitation.language === "ko"
+      ? `${invitation.recipientText}님을 ${wedding.coupleDisplay}의 결혼식에 정중히 초대합니다.`
+      : `Trân trọng kính mời ${invitation.recipientText} chung vui cùng ${wedding.coupleDisplay}.`,
     robots: {
       index: false,
       follow: false,
     },
     openGraph: {
       title,
-      description: `Thiệp cưới trực tuyến của ${wedding.coupleDisplay}.`,
+      description: invitation.language === "ko"
+        ? `${wedding.coupleDisplay}의 온라인 청첩장입니다.`
+        : `Thiệp cưới trực tuyến của ${wedding.coupleDisplay}.`,
       type: "website",
       siteName: wedding.coupleDisplay,
     },
@@ -59,16 +66,16 @@ export default async function InvitationPage({
   }
 
   if (!invitation.isActive) {
+    const messages = getInvitationMessages(invitation.language);
     return (
-      <main className="disabled-invitation">
+      <main className="disabled-invitation" lang={invitation.language}>
         <section aria-labelledby="disabled-invitation-title">
           <p className="section-eyebrow">Vũ Bình &amp; Thành Long</p>
           <h1 id="disabled-invitation-title">
-            Thiệp mời này hiện không còn khả dụng.
+            {messages.unavailable.title}
           </h1>
           <p>
-            Có thể gia đình đã gửi một liên kết mới. Vui lòng liên hệ người gửi
-            thiệp để được hỗ trợ.
+            {messages.unavailable.body}
           </p>
         </section>
       </main>
@@ -86,6 +93,7 @@ export default async function InvitationPage({
       invitation={invitation}
       invitationToken={token}
       wishes={wishes}
+      language={invitation.language}
     />
   );
 }

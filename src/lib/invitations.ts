@@ -3,6 +3,10 @@ import { cache } from "react";
 import { connection } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/src/lib/prisma";
+import {
+  normalizeInvitationLanguage,
+  type InvitationLanguage,
+} from "@/src/lib/invitation-i18n";
 import type { InvitationSide } from "@/src/types/wedding";
 
 export const invitationRequestSchema = z
@@ -23,6 +27,7 @@ export const invitationRequestSchema = z
       .enum(["groom", "bride", "unspecified"])
       .optional()
       .default("unspecified"),
+    language: z.enum(["vi", "ko"]).optional().default("vi"),
     creatorSecret: z.string().min(1).max(256),
   })
   .strict();
@@ -61,6 +66,7 @@ export const getInvitationByToken = cache(async (token: string) => {
       guestCount: true,
       privateMessage: true,
       invitationSide: true,
+      language: true,
       isActive: true,
     },
   });
@@ -74,5 +80,8 @@ export const getInvitationByToken = cache(async (token: string) => {
   return {
     ...invitation,
     invitationSide,
+    language: normalizeInvitationLanguage(invitation.language),
   };
 });
+
+export type { InvitationLanguage };

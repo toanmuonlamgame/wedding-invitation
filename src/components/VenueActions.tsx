@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useInvitationLocale } from "@/src/components/InvitationLocaleProvider";
 
 type VenueActionsProps = {
   address: string;
@@ -34,14 +35,15 @@ export function VenueActions({
   mapsUrl,
   available,
 }: VenueActionsProps) {
+  const { messages } = useInvitationLocale();
   const [status, setStatus] = useState("");
 
   async function handleCopy() {
     try {
       await copyAddress(address);
-      setStatus("Đã sao chép địa chỉ.");
+      setStatus(messages.venue.copied);
     } catch {
-      setStatus("Không thể tự sao chép. Địa chỉ vẫn hiển thị ở phía trên.");
+      setStatus(messages.venue.copyFailed);
     }
   }
 
@@ -54,12 +56,12 @@ export function VenueActions({
           target="_blank"
           rel="noopener noreferrer"
         >
-          Mở Google Maps
+          {messages.venue.openMaps}
           <span aria-hidden="true">↗</span>
         </a>
       ) : (
         <button className="button button-disabled" type="button" disabled>
-          Google Maps · Chờ cập nhật
+          {messages.venue.mapsPending}
         </button>
       )}
       <button
@@ -68,7 +70,7 @@ export function VenueActions({
         disabled={!available}
         onClick={handleCopy}
       >
-        Sao chép địa chỉ
+        {messages.venue.copyAddress}
       </button>
       <p className="venue-copy-status" aria-live="polite">
         {status}

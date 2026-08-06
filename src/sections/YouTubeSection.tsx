@@ -5,6 +5,7 @@ import { MusicPlayer } from "@/src/components/MusicPlayer";
 import { SectionHeading } from "@/src/components/SectionHeading";
 import { useWeddingExperience } from "@/src/components/WeddingExperience";
 import type { YouTubeSettings } from "@/src/types/wedding";
+import { useInvitationLocale } from "@/src/components/InvitationLocaleProvider";
 
 type YouTubePlayer = {
   destroy: () => void;
@@ -85,6 +86,7 @@ export function YouTubeSection({
   settings: YouTubeSettings;
   stackPlayer?: boolean;
 }) {
+  const { language, messages } = useInvitationLocale();
   const { isOpened } = useWeddingExperience();
   const playerHostRef = useRef<HTMLDivElement>(null);
   const playerRef = useRef<YouTubePlayer | null>(null);
@@ -92,7 +94,7 @@ export function YouTubeSection({
   const [isPlaying, setIsPlaying] = useState(false);
   const [isUnavailable, setIsUnavailable] = useState(false);
   const [status, setStatus] = useState(
-    "Video chỉ được tải sau khi bạn mở thiệp.",
+    messages.youtube.willLoad,
   );
   const videoId = useMemo(() => getYouTubeId(settings.url), [settings.url]);
 
@@ -123,7 +125,7 @@ export function YouTubeSection({
               event.target.setVolume(28);
               setIsReady(true);
               setIsUnavailable(false);
-              setStatus("Trình phát đã sẵn sàng.");
+              setStatus(messages.youtube.ready);
               event.target.playVideo();
             },
             onStateChange: (event) => {
@@ -131,8 +133,8 @@ export function YouTubeSection({
               setIsPlaying(playing);
               setStatus(
                 playing
-                  ? "Đang phát nhạc từ YouTube."
-                  : "Nhạc YouTube đang tạm dừng.",
+                  ? messages.youtube.playing
+                  : messages.youtube.paused,
               );
               if (playing) {
                 window.dispatchEvent(new Event("wedding-youtube-playing"));
@@ -141,13 +143,13 @@ export function YouTubeSection({
             onError: () => {
               setIsPlaying(false);
               setIsUnavailable(true);
-              setStatus("Không thể phát video YouTube trên thiết bị này.");
+              setStatus(messages.youtube.unavailable);
             },
             onAutoplayBlocked: () => {
               setIsPlaying(false);
               setIsReady(true);
               setStatus(
-                "Trình duyệt đã chặn autoplay. Hãy bấm phát trực tiếp trên video.",
+                messages.youtube.blocked,
               );
             },
           },
@@ -156,7 +158,7 @@ export function YouTubeSection({
       .catch(() => {
         setIsPlaying(false);
         setIsUnavailable(true);
-        setStatus("Chưa thể kết nối với YouTube.");
+        setStatus(messages.youtube.connectionFailed);
       });
 
     const pauseForBackgroundAudio = () => playerRef.current?.pauseVideo();
@@ -173,7 +175,17 @@ export function YouTubeSection({
       playerRef.current?.destroy();
       playerRef.current = null;
     };
-  }, [isOpened, settings.enabled, videoId]);
+  }, [
+    isOpened,
+    messages.youtube.blocked,
+    messages.youtube.connectionFailed,
+    messages.youtube.paused,
+    messages.youtube.playing,
+    messages.youtube.ready,
+    messages.youtube.unavailable,
+    settings.enabled,
+    videoId,
+  ]);
 
   function handleToggle() {
     if (!playerRef.current || !isReady || isUnavailable) return;
@@ -192,10 +204,10 @@ export function YouTubeSection({
       <div className="section-shell">
         <div data-reveal>
           <SectionHeading
-            eyebrow="Giai điệu ngày vui"
-            title={settings.title}
+            eyebrow={messages.youtube.eyebrow}
+            title={language === "ko" ? messages.youtube.title : settings.title}
             titleId="youtube-title"
-            description={settings.description}
+            description={language === "ko" ? messages.youtube.description : settings.description}
           />
         </div>
         <div className="youtube-music-layout" data-reveal>
@@ -203,17 +215,16 @@ export function YouTubeSection({
             <div ref={playerHostRef} className="youtube-player-host">
               <p>
                 {isOpened
-                  ? "Đang kết nối với YouTube…"
-                  : "Hãy mở thiệp để tải trình phát YouTube."}
+                  ? messages.youtube.connect
+                  : messages.youtube.openFirst}
               </p>
             </div>
           </div>
           <div className="youtube-music-copy">
-            <p className="section-eyebrow">Đang chọn phát</p>
-            <h3>{settings.title}</h3>
+            <p className="section-eyebrow">{messages.youtube.selected}</p>
+            <h3>{language === "ko" ? messages.youtube.title : settings.title}</h3>
             <p>
-              Nếu autoplay bị chặn, bạn có thể dùng nút phát trực tiếp trên
-              video.
+              {messages.youtube.autoplayHelp}
             </p>
             <a
               href={settings.url}
@@ -221,7 +232,7 @@ export function YouTubeSection({
               rel="noreferrer"
               className="youtube-source-link"
             >
-              Xem video gốc trên YouTube
+              {messages.youtube.openOriginal}
               <span aria-hidden="true">↗</span>
             </a>
             <p className="youtube-status" role="status">

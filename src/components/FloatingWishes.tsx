@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useWeddingExperience } from "@/src/components/WeddingExperience";
 import type { PublicWeddingWish } from "@/src/types/engagement";
 import type { WeddingExperienceSettings } from "@/src/types/wedding";
+import { useInvitationLocale } from "@/src/components/InvitationLocaleProvider";
 
 const SESSION_KEY = "wedding-floating-wishes";
 
@@ -14,6 +15,7 @@ export function FloatingWishes({
   wishes: PublicWeddingWish[];
   settings: WeddingExperienceSettings["wishes"];
 }) {
+  const { messages } = useInvitationLocale();
   const { isOpened } = useWeddingExperience();
   const [enabled, setEnabled] = useState(settings.overlayEnabled);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -195,7 +197,7 @@ export function FloatingWishes({
           window.sessionStorage.setItem(SESSION_KEY, next ? "on" : "off");
         }}
       >
-        {enabled ? "Ẩn lời chúc" : "Hiện lời chúc"}
+        {enabled ? messages.wishes.hideOverlay : messages.wishes.showOverlay}
       </button>
     </>
   );

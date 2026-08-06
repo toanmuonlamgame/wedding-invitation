@@ -14,6 +14,7 @@ import {
   normalizeAlbumInterval,
 } from "@/src/lib/album-autoplay";
 import type { GalleryMoment } from "@/src/types/wedding";
+import { useInvitationLocale } from "@/src/components/InvitationLocaleProvider";
 
 export function HeroCollage({
   images,
@@ -22,6 +23,7 @@ export function HeroCollage({
   images: GalleryMoment[];
   intervalMs: number;
 }) {
+  const { messages } = useInvitationLocale();
   const slides = useMemo(
     () =>
       images
@@ -106,9 +108,9 @@ export function HeroCollage({
     >
       <div className="section-shell">
         <header className="compact-section-heading">
-          <p className="section-eyebrow">Album</p>
+          <p className="section-eyebrow">{messages.album.eyebrow}</p>
           <h2 className="section-title" id="album-title">
-            Khoảnh khắc của chúng mình
+            {messages.album.title}
           </h2>
         </header>
         <div className="hero-collage" data-count={Math.min(slides.length, 7)}>
@@ -124,12 +126,12 @@ export function HeroCollage({
             {current.caption ? <figcaption>{current.caption}</figcaption> : null}
           </figure>
           {slides.length > 1 ? (
-            <div className="hero-collage-secondary" aria-label="Chọn ảnh album">
+            <div className="hero-collage-secondary" aria-label={messages.album.choose}>
               {slides.slice(0, 7).map((slide, index) => (
                 <button
                   type="button"
                   key={slide.id}
-                  aria-label={`Chọn ảnh ${index + 1}: ${slide.caption || slide.alt}`}
+                  aria-label={messages.album.select(index + 1, slide.caption || slide.alt)}
                   aria-current={index === safeIndex ? "true" : undefined}
                   onClick={() => select(index)}
                 >
@@ -148,11 +150,11 @@ export function HeroCollage({
         </div>
         {slides.length > 1 ? (
           <div className="hero-collage-controls">
-            <button type="button" onClick={() => move(-1)} aria-label="Ảnh trước">
+            <button type="button" onClick={() => move(-1)} aria-label={messages.album.previous}>
               ←
             </button>
             <span>{safeIndex + 1} / {slides.length}</span>
-            <button type="button" onClick={() => move(1)} aria-label="Ảnh tiếp theo">
+            <button type="button" onClick={() => move(1)} aria-label={messages.album.next}>
               →
             </button>
           </div>

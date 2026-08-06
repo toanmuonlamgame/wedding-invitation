@@ -19,6 +19,8 @@ import type {
   ThemePresetId,
   CoverSettings,
 } from "@/src/types/wedding";
+import type { InvitationLanguage } from "@/src/lib/invitation-i18n";
+import { useInvitationLocale } from "@/src/components/InvitationLocaleProvider";
 
 type WeddingExperienceProps = {
   children: React.ReactNode;
@@ -27,6 +29,7 @@ type WeddingExperienceProps = {
   fontPreset: FontPresetId;
   cover: CoverSettings;
   adminUrl?: string;
+  language?: InvitationLanguage;
 };
 
 type WeddingExperienceContextValue = {
@@ -66,7 +69,9 @@ export function WeddingExperience({
   fontPreset,
   cover,
   adminUrl,
+  language = "vi",
 }: WeddingExperienceProps) {
+  const { messages } = useInvitationLocale();
   const rootRef = useRef<HTMLDivElement>(null);
   const openButtonRef = useRef<HTMLButtonElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
@@ -316,9 +321,11 @@ export function WeddingExperience({
         }
         data-theme={themePreset}
         data-font={fontPreset}
+        data-language={language}
+        lang={language}
       >
         {adminUrl && !showCover ? (
-          <a className="admin-shortcut" href={adminUrl} aria-label="Mở trang quản trị" title="Mở trang quản trị">
+          <a className="admin-shortcut" href={adminUrl} aria-label={messages.cover.admin} title={messages.cover.admin}>
             <WrenchIcon />
           </a>
         ) : null}
@@ -340,7 +347,7 @@ export function WeddingExperience({
               aria-hidden="true"
             />
             {adminUrl ? (
-              <a className="admin-shortcut admin-shortcut-cover" href={adminUrl} aria-label="Mở trang quản trị" title="Mở trang quản trị">
+              <a className="admin-shortcut admin-shortcut-cover" href={adminUrl} aria-label={messages.cover.admin} title={messages.cover.admin}>
                 <WrenchIcon />
               </a>
             ) : null}

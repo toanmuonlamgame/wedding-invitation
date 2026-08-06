@@ -2,6 +2,7 @@
 
 import { type FormEvent, useRef, useState } from "react";
 import type { CreatedInvitation } from "@/src/types/invitation";
+import { normalizeInvitationLanguage } from "@/src/lib/invitation-i18n";
 
 type FormState =
   | { status: "idle"; message: string }
@@ -82,6 +83,7 @@ export function InvitationForm() {
       : undefined;
     const privateMessage = String(form.get("privateMessage") ?? "").trim();
     const creatorSecret = String(form.get("creatorSecret") ?? "");
+    const language = normalizeInvitationLanguage(form.get("language"));
     const clientError = getClientError(
       recipientText,
       guestCount,
@@ -108,6 +110,7 @@ export function InvitationForm() {
           guestCount,
           privateMessage: privateMessage || undefined,
           creatorSecret,
+          language,
         }),
       });
       const payload = (await response.json()) as {
@@ -267,6 +270,20 @@ export function InvitationForm() {
           placeholder="Rất mong gia đình tới chung vui..."
           maxLength={500}
         />
+      </div>
+
+      <div className="field">
+        <fieldset className="invitation-language-fieldset">
+          <legend>Ngôn ngữ thiệp</legend>
+          <label>
+            <input type="radio" name="language" value="vi" defaultChecked />
+            Tiếng Việt
+          </label>
+          <label>
+            <input type="radio" name="language" value="ko" />
+            한국어
+          </label>
+        </fieldset>
       </div>
 
       <div className="field">

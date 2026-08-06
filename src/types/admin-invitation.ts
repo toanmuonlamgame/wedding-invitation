@@ -19,6 +19,7 @@ export type AdminInvitationItem = {
   id: string;
   token: string;
   recipientText: string;
+  language: InvitationLanguage;
   guestCount: number | null;
   invitationSide: "groom" | "bride" | "unspecified";
   privateMessage: string | null;
@@ -46,3 +47,4 @@ export type AdminInvitationPage = {
   total: number;
   totalPages: number;
 };
+import type { InvitationLanguage } from "@/src/lib/invitation-i18n";

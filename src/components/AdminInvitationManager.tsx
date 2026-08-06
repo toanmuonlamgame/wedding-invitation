@@ -8,6 +8,7 @@ import type {
   AdminInvitationPage,
   AdminInvitationSort,
 } from "@/src/types/admin-invitation";
+import { normalizeInvitationLanguage } from "@/src/lib/invitation-i18n";
 import type { FieldErrors } from "@/src/types/engagement";
 
 type AdminInvitationManagerProps = {
@@ -239,6 +240,7 @@ export function AdminInvitationManager({
       | "privateMessage"
       | "label"
       | "adminNotes"
+      | "language"
     > = {
       recipientText: String(form.get("recipientText") || "").trim(),
       guestCount: guestCountValue ? Number(guestCountValue) : null,
@@ -249,6 +251,7 @@ export function AdminInvitationManager({
       privateMessage: String(form.get("privateMessage") || "").trim() || null,
       label: String(form.get("label") || "").trim() || null,
       adminNotes: String(form.get("adminNotes") || "").trim() || null,
+      language: normalizeInvitationLanguage(form.get("language")),
     };
     setBusy(true);
     setEditErrors({});
@@ -381,6 +384,9 @@ export function AdminInvitationManager({
                     {invitation.isActive ? "Đang hoạt động" : "Đã vô hiệu hóa"}
                   </span>
                   <span>{responseLabel(invitation)}</span>
+                  <span className="invitation-language-badge">
+                    {invitation.language === "ko" ? "한국어" : "Tiếng Việt"}
+                  </span>
                   <span>
                     {invitation.wishCount > 0
                       ? "Đã gửi lời chúc"
@@ -468,6 +474,14 @@ export function AdminInvitationManager({
               <span>Số người được mời</span>
               <input name="guestCount" type="number" min={1} max={20} defaultValue={editing.guestCount ?? ""} aria-invalid={Boolean(editErrors.guestCount)} />
               {editErrors.guestCount ? <span className="field-error">{editErrors.guestCount}</span> : null}
+            </label>
+            <label className="field">
+              <span>Ngôn ngữ thiệp</span>
+              <select name="language" defaultValue={editing.language}>
+                <option value="vi">Tiếng Việt</option>
+                <option value="ko">한국어</option>
+              </select>
+              {editErrors.language ? <span className="field-error">{editErrors.language}</span> : null}
             </label>
             <label className="field">
               <span>Nhóm khách mặc định</span>

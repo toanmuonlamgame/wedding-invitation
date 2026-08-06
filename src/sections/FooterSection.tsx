@@ -1,18 +1,19 @@
 import { Ornament } from "@/src/components/Ornament";
 import { wedding } from "@/src/lib/wedding-details";
+import { getInvitationMessages, type InvitationLanguage } from "@/src/lib/invitation-i18n";
 
-export function FooterSection() {
+export function FooterSection({ language = "vi" }: { language?: InvitationLanguage }) {
+  const messages = getInvitationMessages(language);
   return (
     <footer className="footer-section">
       <div className="section-shell" data-reveal>
         <div className="footer-mark" aria-hidden="true">
           ♡
         </div>
-        <h2 className="footer-title">Cảm ơn bạn đã mở lời mời</h2>
+        <h2 className="footer-title">{messages.footer.title}</h2>
         <Ornament />
         <p className="footer-copy">
-          Cảm ơn bạn đã yêu thương, đồng hành và dành thời gian chung vui cùng
-          gia đình. Hẹn gặp bạn trong ngày hạnh phúc của Vũ Bình và Thành Long.
+          {messages.footer.body}
         </p>
         <p className="footer-signature">
           {wedding.bride} &amp; {wedding.groom}

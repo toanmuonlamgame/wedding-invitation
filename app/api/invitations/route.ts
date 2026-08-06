@@ -41,6 +41,7 @@ async function createInvitation(
           guestCount: data.guestCount,
           privateMessage: data.privateMessage,
           invitationSide: data.invitationSide,
+          language: data.language,
         },
         select: { token: true },
       });
@@ -101,6 +102,7 @@ export async function POST(request: NextRequest) {
       guestCount: parsed.data.guestCount,
       privateMessage: parsed.data.privateMessage,
       invitationSide: parsed.data.invitationSide,
+      language: parsed.data.language,
     };
     const invitation = await createInvitation(invitationData);
     const invitationUrl = new URL(

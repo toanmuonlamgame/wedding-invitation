@@ -1,10 +1,9 @@
-import {
-  readJsonBody,
-  validationErrorResponse,
-} from "@/src/lib/api-validation";
+import { readJsonBody } from "@/src/lib/api-validation";
 import { wishInputSchema } from "@/src/lib/engagement";
 import { isInvitationToken } from "@/src/lib/invitations";
 import { prisma } from "@/src/lib/prisma";
+import { normalizeInvitationLanguage } from "@/src/lib/invitation-i18n";
+import { localizedEngagementValidationResponse } from "@/src/lib/engagement-localization";
 
 type RouteContext = {
   params: Promise<{ token: string }>;
@@ -18,15 +17,10 @@ export async function POST(request: Request, { params }: RouteContext) {
 
   const body = await readJsonBody(request);
   if (!body.success) return body.response;
-  const parsed = wishInputSchema.safeParse(body.data);
-  if (!parsed.success) {
-    return validationErrorResponse(parsed.error);
-  }
-
   try {
     const invitation = await prisma.invitation.findUnique({
       where: { token },
-      select: { id: true, isActive: true },
+      select: { id: true, isActive: true, language: true },
     });
     if (!invitation) {
       return Response.json(
@@ -39,6 +33,11 @@ export async function POST(request: Request, { params }: RouteContext) {
         { message: "Thiệp mời này hiện không còn khả dụng." },
         { status: 410 },
       );
+    }
+    const language = normalizeInvitationLanguage(invitation.language);
+    const parsed = wishInputSchema.safeParse(body.data);
+    if (!parsed.success) {
+      return localizedEngagementValidationResponse(parsed.error, language, "wish");
     }
 
     const wish = await prisma.weddingWish.create({

@@ -1,13 +1,16 @@
 import { Ornament } from "@/src/components/Ornament";
 import { wedding } from "@/src/lib/wedding-details";
 import { formatWeddingDateTime } from "@/src/lib/wedding-format";
+import { getInvitationMessages, type InvitationLanguage } from "@/src/lib/invitation-i18n";
 
 type OpeningSectionProps = {
   weddingDateTime: string | null;
+  language?: InvitationLanguage;
 };
 
-export function OpeningSection({ weddingDateTime }: OpeningSectionProps) {
-  const formattedDate = formatWeddingDateTime(weddingDateTime);
+export function OpeningSection({ weddingDateTime, language = "vi" }: OpeningSectionProps) {
+  const messages = getInvitationMessages(language);
+  const formattedDate = formatWeddingDateTime(weddingDateTime, language);
   return (
     <section className="section hero-section" aria-labelledby="opening-title">
       <div
@@ -22,7 +25,7 @@ export function OpeningSection({ weddingDateTime }: OpeningSectionProps) {
       />
       <div className="hero-content">
         <p className="hero-kicker" data-hero-reveal>
-          Lễ thành hôn
+          {messages.opening.ceremony}
         </p>
         <p className="hero-monogram" data-hero-reveal aria-hidden="true">
           {wedding.monogram}

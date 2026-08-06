@@ -4,30 +4,33 @@ import { WeddingImage } from "@/src/components/WeddingImage";
 import { wedding } from "@/src/lib/wedding-details";
 import { formatWeddingDateTime } from "@/src/lib/wedding-format";
 import type { WeddingEvent } from "@/src/types/wedding";
+import { getInvitationMessages, type InvitationLanguage } from "@/src/lib/invitation-i18n";
 
 type VenueSectionProps = {
   venues: WeddingEvent[];
+  language?: InvitationLanguage;
 };
 
-export function VenueSection({ venues }: VenueSectionProps) {
+export function VenueSection({ venues, language = "vi" }: VenueSectionProps) {
   const visibleVenues = venues.filter((venue) => venue.available);
   if (!visibleVenues.length) return null;
+  const messages = getInvitationMessages(language);
 
   return (
     <section className="section venue-section" aria-labelledby="venue-title">
       <div className="section-shell">
         <div data-reveal>
           <SectionHeading
-            eyebrow="Địa điểm"
-            title="Hẹn bạn tại đây"
+            eyebrow={messages.venue.eyebrow}
+            title={messages.venue.title}
             titleId="venue-title"
-            description="Thông tin điểm hẹn và chỉ đường."
+            description={messages.venue.description}
           />
         </div>
 
         <div className="venue-list">
           {visibleVenues.map((venue, index) => {
-            const dateTime = formatWeddingDateTime(venue.dateTime);
+            const dateTime = formatWeddingDateTime(venue.dateTime, language);
 
             return (
               <article className="venue-layout" key={venue.id} data-reveal>
@@ -44,7 +47,7 @@ export function VenueSection({ venues }: VenueSectionProps) {
                       available
                       alt={
                         venue.imageAlt ||
-                        `Ảnh địa điểm ${venue.venueName}`
+                        messages.venue.imageAlt(venue.venueName)
                       }
                       sizes="(max-width: 896px) 100vw, 48vw"
                       className="venue-image-media"

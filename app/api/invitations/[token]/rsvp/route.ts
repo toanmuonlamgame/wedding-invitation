@@ -1,10 +1,9 @@
-import {
-  readJsonBody,
-  validationErrorResponse,
-} from "@/src/lib/api-validation";
+import { readJsonBody } from "@/src/lib/api-validation";
 import { rsvpInputSchema } from "@/src/lib/engagement";
 import { isInvitationToken } from "@/src/lib/invitations";
 import { prisma } from "@/src/lib/prisma";
+import { normalizeInvitationLanguage } from "@/src/lib/invitation-i18n";
+import { localizedEngagementValidationResponse } from "@/src/lib/engagement-localization";
 
 type RouteContext = {
   params: Promise<{ token: string }>;
@@ -22,6 +21,7 @@ async function findInvitation(token: string) {
       guestCount: true,
       invitationSide: true,
       isActive: true,
+      language: true,
     },
   });
 }
@@ -74,11 +74,6 @@ export async function PUT(request: Request, { params }: RouteContext) {
   const { token } = await params;
   const body = await readJsonBody(request);
   if (!body.success) return body.response;
-  const parsed = rsvpInputSchema.safeParse(body.data);
-  if (!parsed.success) {
-    return validationErrorResponse(parsed.error);
-  }
-
   try {
     const invitation = await findInvitation(token);
     if (!invitation) {
@@ -93,6 +88,11 @@ export async function PUT(request: Request, { params }: RouteContext) {
         { status: 410 },
       );
     }
+    const language = normalizeInvitationLanguage(invitation.language);
+    const parsed = rsvpInputSchema.safeParse(body.data);
+    if (!parsed.success) {
+      return localizedEngagementValidationResponse(parsed.error, language, "rsvp");
+    }
 
     const maximumGuests = Math.max(1, invitation.guestCount ?? 1);
     if (
@@ -103,9 +103,11 @@ export async function PUT(request: Request, { params }: RouteContext) {
       return Response.json(
         {
           error: "VALIDATION_ERROR",
-          message: "Dữ liệu chưa hợp lệ.",
+          message: language === "ko" ? "입력 내용을 다시 확인해 주세요." : "Dữ liệu chưa hợp lệ.",
           fieldErrors: {
-            confirmedCount: `Thiệp này xác nhận tối đa ${maximumGuests} người.`,
+            confirmedCount: language === "ko"
+              ? `이 청첩장은 최대 ${maximumGuests}명까지 회신할 수 있습니다.`
+              : `Thiệp này xác nhận tối đa ${maximumGuests} người.`,
           },
         },
         { status: 400 },

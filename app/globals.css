@@ -2816,6 +2816,25 @@ fieldset[aria-invalid="true"] {
   font-family: var(--theme-body-font, var(--font-body)), sans-serif;
 }
 
+.wedding-theme-root[data-language="ko"] {
+  --font-korean-sans: "Noto Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif;
+  --font-korean-serif: "Noto Serif KR", "Nanum Myeongjo", Batang, serif;
+  --theme-body-font: var(--font-korean-sans);
+  --theme-display-font: var(--font-korean-serif);
+  font-family: var(--font-korean-sans);
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+}
+
+.wedding-theme-root[data-language="ko"] :is(
+  h1, h2, h3, h4, .section-title, .cover-title, .invitation-lead,
+  .couple-names, .footer-title, .footer-signature
+) {
+  font-family: var(--font-korean-serif);
+  font-style: normal;
+  line-height: 1.28;
+}
+
 .wedding-theme-root :is(
     .cover-title,
     .couple-names,
@@ -3732,6 +3751,40 @@ textarea {
 .invitation-badges .status-inactive {
   background: #f4dfdf;
   color: #8b3434;
+}
+
+.invitation-badges .invitation-language-badge {
+  background: #e7edf4;
+  color: #38536d;
+}
+
+.invitation-language-fieldset {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem 1.25rem;
+  margin: 0;
+  padding: 0.85rem 1rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+}
+
+.invitation-language-fieldset legend {
+  padding-inline: 0.3rem;
+  color: var(--ink);
+  font-weight: 650;
+}
+
+.invitation-language-fieldset label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  cursor: pointer;
+}
+
+.invitation-language-fieldset input {
+  width: 1rem;
+  height: 1rem;
+  accent-color: var(--accent);
 }
 
 .invitation-token {

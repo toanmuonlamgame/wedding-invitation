@@ -1,6 +1,7 @@
 "use client";
 
 import { memo, useEffect, useState } from "react";
+import { useInvitationLocale } from "@/src/components/InvitationLocaleProvider";
 
 type CountdownProps = {
   targetDate: string | null;
@@ -52,6 +53,7 @@ export function Countdown({
   targetDate,
   expiredMessage,
 }: CountdownProps) {
+  const { language, messages } = useInvitationLocale();
   const [countdown, setCountdown] = useState<CountdownState | null>(null);
 
   useEffect(() => {
@@ -102,20 +104,20 @@ export function Countdown({
   if (activeCountdown?.expired) {
     return (
       <p className="countdown-celebration" role="status">
-        {expiredMessage}
+        {language === "ko" ? messages.schedule.expired : expiredMessage}
       </p>
     );
   }
 
   const units = [
-    ["Ngày", activeCountdown?.timeLeft.days],
-    ["Giờ", activeCountdown?.timeLeft.hours],
-    ["Phút", activeCountdown?.timeLeft.minutes],
-    ["Giây", activeCountdown?.timeLeft.seconds],
+    [messages.schedule.days, activeCountdown?.timeLeft.days],
+    [messages.schedule.hours, activeCountdown?.timeLeft.hours],
+    [messages.schedule.minutes, activeCountdown?.timeLeft.minutes],
+    [messages.schedule.seconds, activeCountdown?.timeLeft.seconds],
   ] as const;
 
   return (
-    <div className="countdown" aria-label="Đếm ngược đến ngày cưới">
+    <div className="countdown" aria-label={messages.schedule.countdown}>
       {units.map(([label, value]) => (
         <CountdownUnit key={label} label={label} value={value} />
       ))}

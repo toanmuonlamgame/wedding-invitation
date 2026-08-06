@@ -5,16 +5,18 @@ import { MusicPlayer } from "@/src/components/MusicPlayer";
 import { SectionHeading } from "@/src/components/SectionHeading";
 import { useWeddingExperience } from "@/src/components/WeddingExperience";
 import type { MusicSettings } from "@/src/types/wedding";
+import { useInvitationLocale } from "@/src/components/InvitationLocaleProvider";
 
 const SESSION_KEY = "wedding-music-enabled";
 
 export function MusicSection({ settings }: { settings: MusicSettings }) {
+  const { language, messages } = useInvitationLocale();
   const { isOpened } = useWeddingExperience();
   const audioRef = useRef<HTMLAudioElement>(null);
   const [isReady, setIsReady] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isUnavailable, setIsUnavailable] = useState(false);
-  const [status, setStatus] = useState("Nhạc sẽ được tải sau khi bạn mở thiệp.");
+  const [status, setStatus] = useState(messages.music.willLoad);
 
   useEffect(() => {
     const audio = audioRef.current;
@@ -27,10 +29,10 @@ export function MusicSection({ settings }: { settings: MusicSettings }) {
       (sessionPreference === null && settings.autoplayAfterOpen);
     if (!shouldPlay) return;
     void audio.play().catch(() => {
-      setStatus("Trình duyệt đã chặn tự phát. Bấm nút nhạc để bắt đầu.");
+      setStatus(messages.music.blocked);
     });
     return () => audio.pause();
-  }, [isOpened, settings]);
+  }, [isOpened, messages.music.blocked, settings]);
 
   useEffect(() => {
     const pauseForYouTube = () => audioRef.current?.pause();
@@ -49,7 +51,7 @@ export function MusicSection({ settings }: { settings: MusicSettings }) {
       void audio.play().then(() => {
         window.sessionStorage.setItem(SESSION_KEY, "on");
         window.dispatchEvent(new Event("wedding-background-audio-playing"));
-      }).catch(() => setStatus("Thiết bị chưa cho phép phát nhạc. Vui lòng thử lại."));
+      }).catch(() => setStatus(messages.music.deviceDenied));
     }
   }
 
@@ -59,10 +61,10 @@ export function MusicSection({ settings }: { settings: MusicSettings }) {
     <section className="section background-music-section" aria-labelledby="music-title">
       <div className="section-shell" data-reveal>
         <SectionHeading
-          eyebrow="Giai điệu ngày vui"
-          title={settings.title}
+          eyebrow={messages.music.eyebrow}
+          title={language === "ko" ? messages.music.title : settings.title}
           titleId="music-title"
-          description="Nhạc nền nội bộ được phát nhẹ sau khi mở thiệp và có thể bật hoặc tắt bất cứ lúc nào."
+          description={messages.music.description}
         />
         <p className="youtube-status" role="status">{status}</p>
         <audio
@@ -72,16 +74,16 @@ export function MusicSection({ settings }: { settings: MusicSettings }) {
           onCanPlay={() => setIsReady(true)}
           onPlay={() => {
             setIsPlaying(true);
-            setStatus("Đang phát nhạc nền.");
+            setStatus(messages.music.playingStatus);
             window.dispatchEvent(new Event("wedding-background-audio-playing"));
           }}
           onPause={() => {
             setIsPlaying(false);
-            setStatus("Nhạc nền đang tạm dừng.");
+            setStatus(messages.music.pausedStatus);
           }}
           onError={() => {
             setIsUnavailable(true);
-            setStatus("Không thể phát tệp nhạc nền trên thiết bị này.");
+            setStatus(messages.music.fileUnavailable);
           }}
         />
       </div>
