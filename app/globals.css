@@ -1248,6 +1248,10 @@ a {
   text-align: center;
 }
 
+.youtube-player-host[data-loaded="true"] {
+  padding: 0;
+}
+
 .youtube-player-host p {
   max-width: 17rem;
   margin: 0;

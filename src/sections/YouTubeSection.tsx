@@ -1,6 +1,12 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  useSyncExternalStore,
+} from "react";
 import { MusicPlayer } from "@/src/components/MusicPlayer";
 import { SectionHeading } from "@/src/components/SectionHeading";
 import { useWeddingExperience } from "@/src/components/WeddingExperience";
@@ -18,10 +24,10 @@ type YouTubeApi = {
   Player: new (
     element: HTMLElement,
     options: {
-      width: string;
-      height: string;
-      videoId: string;
-      playerVars: Record<string, string | number>;
+      width?: string;
+      height?: string;
+      videoId?: string;
+      playerVars?: Record<string, string | number>;
       events: {
         onReady: (event: { target: YouTubePlayer }) => void;
         onStateChange: (event: { data: number }) => void;
@@ -41,6 +47,10 @@ declare global {
 }
 
 let youtubeApiPromise: Promise<YouTubeApi> | null = null;
+
+const subscribeToBrowserOrigin = () => () => undefined;
+const getBrowserOrigin = () => window.location.origin;
+const getServerOrigin = () => "";
 
 function loadYouTubeApi() {
   if (window.YT?.Player) return Promise.resolve(window.YT);
@@ -87,38 +97,54 @@ export function YouTubeSection({
 }) {
   const { language, messages } = useInvitationLocale();
   const { isOpened } = useWeddingExperience();
-  const playerHostRef = useRef<HTMLDivElement>(null);
+  const playerIframeRef = useRef<HTMLIFrameElement>(null);
   const playerRef = useRef<YouTubePlayer | null>(null);
   const [isReady, setIsReady] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isUnavailable, setIsUnavailable] = useState(false);
+  const [isIframeLoaded, setIsIframeLoaded] = useState(false);
   const [status, setStatus] = useState(
     messages.youtube.willLoad,
   );
   const videoId = useMemo(() => getYouTubeId(settings.url), [settings.url]);
+  const browserOrigin = useSyncExternalStore(
+    subscribeToBrowserOrigin,
+    getBrowserOrigin,
+    getServerOrigin,
+  );
+  const embedUrl = useMemo(() => {
+    if (!browserOrigin || !isOpened || !settings.enabled || !videoId) {
+      return "";
+    }
+    const params = new URLSearchParams({
+      origin: browserOrigin,
+      autoplay: "1",
+      controls: "1",
+      loop: "1",
+      playlist: videoId,
+      playsinline: "1",
+      rel: "0",
+      enablejsapi: "1",
+    });
+    return `https://www.youtube.com/embed/${encodeURIComponent(videoId)}?${params}`;
+  }, [browserOrigin, isOpened, settings.enabled, videoId]);
 
   useEffect(() => {
-    if (!settings.enabled || !isOpened || !videoId || !playerHostRef.current) {
+    if (
+      !settings.enabled ||
+      !isOpened ||
+      !videoId ||
+      !isIframeLoaded ||
+      !playerIframeRef.current
+    ) {
       return;
     }
 
     let cancelled = false;
     void loadYouTubeApi()
       .then((youtube) => {
-        if (cancelled || !playerHostRef.current) return;
-        playerRef.current = new youtube.Player(playerHostRef.current, {
-          width: "100%",
-          height: "100%",
-          videoId,
-          playerVars: {
-            origin: window.location.origin,
-            autoplay: 1,
-            controls: 1,
-            loop: 1,
-            playlist: videoId,
-            playsinline: 1,
-            rel: 0,
-          },
+        if (cancelled || !playerIframeRef.current) return;
+        playerRef.current = new youtube.Player(playerIframeRef.current, {
           events: {
             onReady: (event) => {
               event.target.setVolume(28);
@@ -175,6 +201,7 @@ export function YouTubeSection({
       playerRef.current = null;
     };
   }, [
+    isIframeLoaded,
     isOpened,
     messages.youtube.blocked,
     messages.youtube.connectionFailed,
@@ -211,12 +238,20 @@ export function YouTubeSection({
         </div>
         <div className="youtube-music-layout" data-reveal>
           <div className="youtube-player-frame">
-            <div ref={playerHostRef} className="youtube-player-host">
-              <p>
-                {isOpened
-                  ? messages.youtube.connect
-                  : messages.youtube.openFirst}
-              </p>
+            <div className="youtube-player-host" data-loaded={Boolean(embedUrl)}>
+              {embedUrl ? (
+                <iframe
+                  ref={playerIframeRef}
+                  src={embedUrl}
+                  title={language === "ko" ? messages.youtube.title : settings.title}
+                  allow="autoplay; encrypted-media; picture-in-picture"
+                  allowFullScreen
+                  referrerPolicy="strict-origin-when-cross-origin"
+                  onLoad={() => setIsIframeLoaded(true)}
+                />
+              ) : (
+                <p>{messages.youtube.openFirst}</p>
+              )}
             </div>
           </div>
           <div className="youtube-music-copy">
